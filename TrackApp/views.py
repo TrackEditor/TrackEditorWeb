@@ -7,11 +7,11 @@ from django.urls import reverse
 from .models import User
 
 
-def index(request):
+def index_view(request):
     return render(request, "TrackApp/index.html")
 
 
-def register(request):
+def register_view(request):
     if request.method == "POST":
         username = request.POST["username"]
         email = request.POST["email"]
@@ -38,7 +38,7 @@ def register(request):
         return render(request, "TrackApp/register.html")
 
 
-def login(request):
+def login_view(request):
     if request.method == "POST":
 
         # Attempt to sign user in
@@ -57,11 +57,10 @@ def login(request):
     else:
         return render(request, "TrackApp/login.html")
 
-    return HttpResponse('Log In')
 
-
-def log_out(request):
-    return HttpResponse('Log Out')
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse("index"))
 
 
 def combine_tracks(request):

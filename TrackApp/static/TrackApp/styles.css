@@ -1,5 +1,7 @@
 /* colors: https://www.computerhope.com/htmcolor.htm
-           https://encycolorpedia.com/cfdac6*/
+           https://encycolorpedia.com/cfdac6
+           https://99designs.es/blog/tips/website-color-schemes/
+*/
 body {
   font-family: "Lato", sans-serif;
   background-color: #f5f7f3;
@@ -12,7 +14,7 @@ body {
   z-index: 1;
   top: 0;
   left: 0;
-  background-color: #848B79;
+  background-color: #7BCCB5;
   overflow-x: hidden;
   padding-top: 20px;
 }
