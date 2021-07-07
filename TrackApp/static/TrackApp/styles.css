@@ -7,7 +7,7 @@ body {
 
 .sidenav {
   height: 100%;
-  width: 200px;
+  width: 230px;
   position: fixed;
   z-index: 1;
   top: 0;
@@ -20,7 +20,7 @@ body {
 .sidenav a {
   padding: 6px 6px 6px 32px;
   text-decoration: none;
-  font-size: 25px;
+  font-size: 23px;
   color: #3C565B;
   display: block;
 }
@@ -32,10 +32,11 @@ body {
 .sidenav img {
   padding: 6px 6px 6px 32px;
   display: block;
+  margin-left: 40px;
 }
 
 .main {
-  margin-left: 200px; /* Same as the width of the sidenav */
+  margin-left: 230px; /* Same as the width of the sidenav */
 }
 
 @media screen and (max-height: 450px) {

@@ -7,15 +7,16 @@
 
         <title>{% block title %}{% endblock %}</title>
 
-          <link href="{% static 'TrackApp/styles.css' %}" rel="stylesheet">
+        <link href="{% static 'TrackApp/styles.css' %}" rel="stylesheet">
     </head>
     <body>
         <div class="sidenav">
             <img src="{% static 'TrackApp/compass.png' %}" alt="compass" width="80">
-            <a href="#">About</a>
-            <a href="#">Services</a>
-            <a href="#">Clients</a>
-            <a href="#">Contact</a>
+            <a id="a_combine_tracks" href="combine_tracks">Combine Tracks</a>
+            <a id="a_insert_timestamp" href="insert_timestamp">Insert Timestamp</a>
+            <a id="a_log_in" href="log_in">Log In</a>
+            <a id="a_register" href="register">Register</a>
+            <a id="a_log_out" href="log_out">Log Out</a>
         </div>
 
         <div class="container main">
