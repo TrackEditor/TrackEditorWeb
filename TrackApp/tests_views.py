@@ -27,10 +27,10 @@ class LayoutTest(TestCase):
                             endpoint='register')
         )
 
-    def test_link_log_in(self):
+    def test_link_login(self):
         self.assertTrue(
-            self.check_link(html_id='a_log_in',
-                            endpoint='log_in')
+            self.check_link(html_id='a_login',
+                            endpoint='login')
         )
 
     def test_link_log_out(self):

@@ -1,5 +1,7 @@
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 
 
 def index(request):
@@ -10,7 +12,25 @@ def register(request):
     return HttpResponse('Register')
 
 
-def log_in(request):
+def login(request):
+    if request.method == "POST":
+
+        # Attempt to sign user in
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+
+        # Check if authentication successful
+        if user is not None:
+            login(request, user)
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            return render(request, "TrackApp/login.html", {
+                "message": "Invalid username and/or password."
+            })
+    else:
+        return render(request, "TrackApp/login.html")
+
     return HttpResponse('Log In')
 
 
