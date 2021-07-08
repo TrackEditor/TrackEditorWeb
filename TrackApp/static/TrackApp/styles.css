@@ -1,8 +1,18 @@
 /* colors: https://www.computerhope.com/htmcolor.htm
-           https://encycolorpedia.com/cfdac6*/
+           https://encycolorpedia.com/cfdac6
+           https://99designs.es/blog/tips/website-color-schemes/
+*/
 body {
   font-family: "Lato", sans-serif;
   background-color: #f5f7f3;
+}
+
+.link {
+    color: #7C565B;
+}
+
+.link:hover {
+    color: #3C565B;
 }
 
 .sidenav {
@@ -12,7 +22,7 @@ body {
   z-index: 1;
   top: 0;
   left: 0;
-  background-color: #848B79;
+  background-color: #7BCCB5;
   overflow-x: hidden;
   padding-top: 20px;
 }
@@ -36,10 +46,23 @@ body {
 }
 
 .main {
-  margin-left: 230px; /* Same as the width of the sidenav */
+  margin-left: 240px; /* Same as the width of the sidenav */
+  margin-top: 40px;
 }
 
 @media screen and (max-height: 450px) {
   .sidenav {padding-top: 15px;}
   .sidenav a {font-size: 18px;}
+}
+
+.btn-primary {
+    background-color: #7C565B;
+    border-color: #7C565B;
+}
+
+.btn-primary:hover, .btn-primary:active, .btn-primary:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: #3C565B;
+    border-color: #3C565B;
 }
