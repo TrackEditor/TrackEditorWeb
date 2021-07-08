@@ -5,10 +5,34 @@ from selenium import webdriver
 from .models import User
 
 
+class Utils:
+    @staticmethod
+    def login(driver, live_server_url, username, password):
+        driver.get(live_server_url + '/login')
+        driver.find_element_by_id('input_txt_username').send_keys(username)
+        driver.find_element_by_id('input_txt_password').send_keys(password)
+        driver.find_element_by_id('input_btn_login').click()
+
+    @staticmethod
+    def create_user(username='default_user',
+                    password='default_password_1234',
+                    email='default_user@example.com'):
+        if not User.objects.filter(username=username):
+            user = User.objects.create(username=username,
+                                       email=email,
+                                       password='!')
+            user.set_password(password)
+            user.save()
+        else:
+            user = User.objects.get(username=username)
+        return user
+
+
 class LayoutTest(StaticLiveServerTestCase):
     def setUp(self):
         self.driver = webdriver.Firefox()
         self.driver.get(self.live_server_url)
+        self.user = Utils.create_user()
 
     def tearDown(self):
         self.driver.quit()
@@ -27,6 +51,16 @@ class LayoutTest(StaticLiveServerTestCase):
         self.assertTrue(
             self.check_link(html_id='a_register',
                             endpoint='register')
+        )
+
+    def test_link_logout(self):
+        Utils().login(driver=self.driver,
+                      live_server_url=self.live_server_url,
+                      username='default_user',
+                      password='default_password_1234')
+        self.assertTrue(
+            self.check_link(html_id='a_logout',
+                            endpoint='')
         )
 
     def test_link_login(self):
@@ -52,13 +86,7 @@ class ViewsTest(StaticLiveServerTestCase):
 
     def setUp(self):
         self.driver = webdriver.Firefox()
-
-        if not User.objects.filter(username='default_user'):
-            user = User.objects.create(username='default_user',
-                                       email='default_user@example.com',
-                                       password='!')
-            user.set_password('default_password_1234')
-            user.save()
+        self.user = Utils.create_user()
 
     def tearDown(self):
         self.driver.quit()
@@ -83,29 +111,21 @@ class ViewsTest(StaticLiveServerTestCase):
             self.assertTrue(False)
 
     def test_login(self):
-        self.driver.get(self.live_server_url + '/login')
-        self.driver.find_element_by_id('input_txt_username').send_keys('default_user')
-        self.driver.find_element_by_id('input_txt_password').send_keys('default_password_1234')
-        self.driver.find_element_by_id('input_btn_login').click()
+        Utils().login(driver=self.driver,
+                      live_server_url=self.live_server_url,
+                      username='default_user',
+                      password='default_password_1234')
 
         self.assertEqual(self.driver.current_url.rstrip('/'), self.live_server_url)
+        # TODO extra check is needed to verify that there is a logged user
 
     def test_log_out(self):
-        # Create user
-        if not User.objects.filter(username='default_user'):
-            user = User.objects.create(username='default_user',
-                                       email='default_user@example.com',
-                                       password='!')
-            user.set_password('default_password_1234')
-            user.save()
+        Utils().login(driver=self.driver,
+                      live_server_url=self.live_server_url,
+                      username='default_user',
+                      password='default_password_1234')
 
-        # Login
-        self.driver.get(self.live_server_url + '/login')
-        self.driver.find_element_by_id('input_txt_username').send_keys('default_user')
-        self.driver.find_element_by_id('input_txt_password').send_keys('default_password_1234')
-        self.driver.find_element_by_id('input_btn_login').click()
-
-        # Check endpoint
         link = self.driver.find_element_by_id('a_logout')
         link.click()
         self.assertEqual(self.driver.current_url.rstrip('/'), self.live_server_url)
+        # TODO extra check is needed to verify that there is no logged user
