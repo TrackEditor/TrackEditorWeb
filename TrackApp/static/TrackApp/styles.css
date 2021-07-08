@@ -7,6 +7,14 @@ body {
   background-color: #f5f7f3;
 }
 
+.link {
+    color: #7C565B;
+}
+
+.link:hover {
+    color: #3C565B;
+}
+
 .sidenav {
   height: 100%;
   width: 230px;
@@ -38,10 +46,23 @@ body {
 }
 
 .main {
-  margin-left: 230px; /* Same as the width of the sidenav */
+  margin-left: 240px; /* Same as the width of the sidenav */
+  margin-top: 40px;
 }
 
 @media screen and (max-height: 450px) {
   .sidenav {padding-top: 15px;}
   .sidenav a {font-size: 18px;}
+}
+
+.btn-primary {
+    background-color: #7C565B;
+    border-color: #7C565B;
+}
+
+.btn-primary:hover, .btn-primary:active, .btn-primary:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: #3C565B;
+    border-color: #3C565B;
 }
