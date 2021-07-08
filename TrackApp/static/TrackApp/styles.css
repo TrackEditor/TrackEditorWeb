@@ -72,7 +72,8 @@ body {
     border-color: #7C565B;
     color: #7C565B;
     width: 130px;
-    border: 2px solid #d0d0d0 ;
+    border: 2px solid #d0d0d0;
+    display: inline-block;
 }
 
 .btn-select-file:hover {
@@ -87,4 +88,10 @@ body {
 
 input[type="file"] {
     display: none;
+}
+
+#file-name {
+    font-size: 18px;
+    vertical-align: middle;
+    margin-left: 10px;
 }
