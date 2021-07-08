@@ -64,7 +64,7 @@ def logout_view(request):
 
 
 def combine_tracks(request):
-    return HttpResponse('Combine Tracks')
+    return render(request, "TrackApp/combine_tracks.html")
 
 
 def insert_timestamp(request):
