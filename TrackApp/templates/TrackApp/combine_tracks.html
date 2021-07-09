@@ -6,8 +6,11 @@
 {% endblock %}
 
 {% block body %}
-
     <h2>Combine Tracks</h2>
+    <div class="container" id="div_alerts_box">
+        <div id="div_alert"></div>
+    </div>
+
     <div class="container">
         {% if not download %}
             <form method="post" enctype="multipart/form-data">

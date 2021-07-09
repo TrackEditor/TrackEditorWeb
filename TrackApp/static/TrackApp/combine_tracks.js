@@ -1,5 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
-    var files = [];
+    document.addEventListener('DOMContentLoaded', function() {
     var count = 1;
 
     btn_select_gpx(count);
@@ -13,19 +12,38 @@ function btn_select_gpx(count) {
 
     element_input.onchange = function() {
         var new_file = this.files[0];
-        document.querySelector("#file-list").innerHTML += `<p>${new_file.name}</p>`;
-        element_label.style.display = "none";
 
-        new_element = create_btn_select_gpx(count+1);
-        element_div.append(new_element);
-        btn_select_gpx(count+1);
+        if (check_file_size(new_file)){
+            document.querySelector('#file-list').innerHTML += `<p>${new_file.name}</p>`;
+            element_label.style.display = 'none';
+
+            new_element = create_btn_select_gpx(count+1);
+            element_div.append(new_element);
+            btn_select_gpx(count+1);
+        }
+    }
+}
+
+function check_file_size(file) {
+    let element_alert = document.querySelector('#div_alert');
+
+    if (file.size > 1e7){
+        element_alert.style.display = 'block';
+        element_alert.className = 'alert alert-danger';
+        element_alert.setAttribute('role', 'alert');
+        element_alert.innerHTML = `File ${file.name} is ${file.size/1e6}. It must be smaller than 10Mb`;
+        return false;
+    }
+    else {
+        element_alert.style.display = 'none';
+        return true;
     }
 }
 
 function create_btn_select_gpx(count){
     let label = document.createElement('label');
-    label.className = "btn btn-lg btn-select-file"
-    label.innerHTML = "Select gpx"
+    label.className = 'btn btn-lg btn-select-file'
+    label.innerHTML = 'Select gpx'
     label.setAttribute('id', `label-select-file-${count}`);
 
     let input = document.createElement('input');
