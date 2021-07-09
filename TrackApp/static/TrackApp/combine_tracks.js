@@ -15,7 +15,8 @@ function btn_select_gpx(count, files) {
 
         if ( check_number_files(count) &&
              check_file_size(new_file) &&
-             check_repeated_element(files, new_file) ) {
+             check_repeated_element(files, new_file) &&
+             check_extension(new_file) ) {
             files.push(`${new_file.name}-${new_file.size}-${new_file.lastModified}`);
             console.log(files);
             document.querySelector('#file-list').innerHTML += `<p>${new_file.name}</p>`;
@@ -45,6 +46,7 @@ function check_file_size(file) {
         return true;
     }
 }
+
 
 function check_number_files(count) {
     let element_alert = document.querySelector('#div_alert');
@@ -79,6 +81,28 @@ function check_repeated_element(files, new_file){
         element_alert.style.display = 'none';
         return true;
     }
+}
+
+
+function check_extension(new_file){
+    let element_alert = document.querySelector('#div_alert');
+    let valid_extensions = element_alert.dataset.valid_extensions;
+
+    let extension = new_file.name.split('.').pop();
+    let is_valid = valid_extensions.includes(extension);
+
+    if (!is_valid) {
+        element_alert.style.display = 'block';
+        element_alert.className = 'alert alert-danger';
+        element_alert.setAttribute('role', 'alert');
+        element_alert.innerHTML = `Extension for ${new_file.name} is not valid ${valid_extensions}`;
+        return false;
+    }
+    else {
+        element_alert.style.display = 'none';
+        return true;
+    }
+    return true;
 }
 
 

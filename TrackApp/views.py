@@ -92,12 +92,14 @@ def combine_tracks(request):
                       {'download': True,
                        'file': output_url,
                        'maximum_file_size': c.maximum_file_size,
-                       'maximum_files': c.maximum_files})
+                       'maximum_files': c.maximum_files,
+                       'valid_extensions': c.valid_extensions})
 
     return render(request, 'TrackApp/combine_tracks.html',
                   {'download': False,
                    'maximum_file_size': c.maximum_file_size,
-                   'maximum_files': c.maximum_files})
+                   'maximum_files': c.maximum_files,
+                   'valid_extensions': c.valid_extensions})
 
 
 def insert_timestamp(request):
