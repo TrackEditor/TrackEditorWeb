@@ -1,11 +1,11 @@
     document.addEventListener('DOMContentLoaded', function() {
     var count = 1;
-
-    btn_select_gpx(count);
+    var files = [];
+    btn_select_gpx(count, files);
 
 });
 
-function btn_select_gpx(count) {
+function btn_select_gpx(count, files) {
     let element_input = document.querySelector(`#select-file-${count}`);
     let element_label = document.querySelector(`#label-select-file-${count}`);
     let element_div = document.querySelector('#div_form');
@@ -13,16 +13,21 @@ function btn_select_gpx(count) {
     element_input.onchange = function() {
         var new_file = this.files[0];
 
-        if ( check_number_files(count) && check_file_size(new_file) ){
+        if ( check_number_files(count) &&
+             check_file_size(new_file) &&
+             check_repeated_element(files, new_file) ) {
+            files.push(`${new_file.name}-${new_file.size}-${new_file.lastModified}`);
+            console.log(files);
             document.querySelector('#file-list').innerHTML += `<p>${new_file.name}</p>`;
             element_label.style.display = 'none';
 
             new_element = create_btn_select_gpx(count+1);
             element_div.append(new_element);
-            btn_select_gpx(count+1);
+            btn_select_gpx(count+1, files);
         }
     }
 }
+
 
 function check_file_size(file) {
     let element_alert = document.querySelector('#div_alert');
@@ -31,7 +36,7 @@ function check_file_size(file) {
         element_alert.style.display = 'block';
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
-        element_alert.innerHTML = `File ${file.name} is ${file.size/1e6}. It must be smaller than 10Mb`;
+        element_alert.innerHTML = `File ${file.name} is ${Math.floor(file.size/1e6)} Mb. It must be smaller than 10Mb`;
         return false;
     }
     else {
@@ -55,6 +60,25 @@ function check_number_files(count) {
         return true;
     }
 }
+
+
+function check_repeated_element(files, new_file){
+    let element_alert = document.querySelector('#div_alert');
+    let repeated = files.includes(`${new_file.name}-${new_file.size}-${new_file.lastModified}`);
+
+    if (repeated) {
+        element_alert.style.display = 'block';
+        element_alert.className = 'alert alert-danger';
+        element_alert.setAttribute('role', 'alert');
+        element_alert.innerHTML = `Repeated file is selected: ${new_file.name}`;
+        return false;
+    }
+    else {
+        element_alert.style.display = 'none';
+        return true;
+    }
+}
+
 
 function create_btn_select_gpx(count){
     let label = document.createElement('label');
