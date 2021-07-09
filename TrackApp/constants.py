@@ -7,6 +7,7 @@ import datetime
 
 # gpx file parser options
 maximum_file_size = 10e+6
+maximum_files = 5
 default_datetime = datetime.datetime(2000, 1, 1, 0, 0, 0)
 
 # fix elevation

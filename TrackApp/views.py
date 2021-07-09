@@ -88,12 +88,16 @@ def combine_tracks(request):
         output_url = fs.url(output_filename)
         obj_track.save_gpx(output_location)
 
-        print(output_url)
         return render(request, 'TrackApp/combine_tracks.html',
                       {'download': True,
-                       'file': output_url})
+                       'file': output_url,
+                       'maximum_file_size': c.maximum_file_size,
+                       'maximum_files': c.maximum_files})
 
-    return render(request, 'TrackApp/combine_tracks.html', {'download': False})
+    return render(request, 'TrackApp/combine_tracks.html',
+                  {'download': False,
+                   'maximum_file_size': c.maximum_file_size,
+                   'maximum_files': c.maximum_files})
 
 
 def insert_timestamp(request):

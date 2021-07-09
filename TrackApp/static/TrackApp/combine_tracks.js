@@ -31,12 +31,13 @@ function btn_select_gpx(count, files) {
 
 function check_file_size(file) {
     let element_alert = document.querySelector('#div_alert');
+    let maximum_file_size = element_alert.dataset.maximum_file_size;
 
-    if (file.size > 1e7){  // TODO move constant to corresponding file
+    if (file.size > maximum_file_size){
         element_alert.style.display = 'block';
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
-        element_alert.innerHTML = `File ${file.name} is ${Math.floor(file.size/1e6)} Mb. It must be smaller than 10Mb`;
+        element_alert.innerHTML = `File ${file.name} is ${Math.floor(file.size/1e6)} Mb. It must be smaller than ${maximum_file_size/1e6} Mb`;
         return false;
     }
     else {
@@ -47,12 +48,13 @@ function check_file_size(file) {
 
 function check_number_files(count) {
     let element_alert = document.querySelector('#div_alert');
+    let maximum_files = element_alert.dataset.maximum_files;
 
-    if (count > 5){  // TODO move constant to corresponding file
+    if (count > maximum_files){
         element_alert.style.display = 'block';
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
-        element_alert.innerHTML = 'No more than 5 files are allowed.';
+        element_alert.innerHTML = `No more than ${maximum_files} files are allowed.`;
         return false;
     }
     else {
