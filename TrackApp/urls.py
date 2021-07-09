@@ -8,5 +8,6 @@ urlpatterns = [
     path('login', views.login_view, name='login'),
     path('log_out', views.logout_view, name='log_out'),
     path('combine_tracks', views.combine_tracks, name='combine_tracks'),
+    path('combine_tracks/api', views.combine_tracks_api, name='combine_tracks_api'),
     path('insert_timestamp', views.insert_timestamp, name='insert_timestamp')
 ]

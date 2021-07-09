@@ -9,20 +9,22 @@
 
     <h2>Combine Tracks</h2>
     <div class="container">
-        <form action="{% url 'combine_tracks' %}" method="post">
-
+        <form method="post">
+            {% csrf_token %}
             <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
+                <div id="file-list">
+                </div>
+
                 <label for="select-file" class="btn btn-lg btn-select-file">
                     Select gpx
                 </label>
 
                 <input id="select-file" type="file" accept=".gpx">
-                <span id="file-name">No selected file</span>
 
             </div>
 
             <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
-                <input class="btn btn-lg btn-primary btn-combine" type="submit" id="input_btn_login" value="Combine" style="margin-bottom: 10px;">
+                <input class="btn btn-lg btn-primary btn-combine" type="submit" id="input_btn_combine" value="Combine" style="margin-bottom: 10px;">
             </div>
 
         </form>

@@ -1,8 +1,10 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 from .models import User
 
@@ -65,6 +67,28 @@ def logout_view(request):
 
 def combine_tracks(request):
     return render(request, "TrackApp/combine_tracks.html")
+
+
+@csrf_exempt
+def combine_tracks_api(request):
+    """
+    TODO
+    mirar esto yo creo que se necesita un get
+    hay que buscar la forma de enviar un archivo y recibir un archivo
+    o enviar un archivo y poner un boton disponible para descargar el resultado
+    Igual hay que usar un PUT https://developer.mozilla.org/es/docs/Web/API/Fetch_API/Using_Fetch#enviando_un_archivo
+    """
+    if request.method != "POST":
+        print('->this is not post')
+        return JsonResponse({"error": "POST request required."}, status=400)
+    else:
+        print('->this is post')
+
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    print(body['file_list'])
+
+    return JsonResponse({"message": "Files have been received."}, status=201)
 
 
 def insert_timestamp(request):
