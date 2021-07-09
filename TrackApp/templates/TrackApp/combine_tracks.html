@@ -9,17 +9,16 @@
 
     <h2>Combine Tracks</h2>
     <div class="container">
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
+            <div id="div_form" class="form-group" style="margin-bottom: 10px; margin-top: 10px">
                 <div id="file-list">
                 </div>
 
-                <label for="select-file" class="btn btn-lg btn-select-file">
+                <label id="label-select-file-1" class="btn btn-lg btn-select-file">
                     Select gpx
+                    <input id="select-file-1" type="file" accept=".gpx" name="document">
                 </label>
-
-                <input id="select-file" type="file" accept=".gpx">
 
             </div>
 
