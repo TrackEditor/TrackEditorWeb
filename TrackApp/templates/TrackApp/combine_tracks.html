@@ -9,23 +9,27 @@
 
     <h2>Combine Tracks</h2>
     <div class="container">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div id="div_form" class="form-group" style="margin-bottom: 10px; margin-top: 10px">
-                <div id="file-list">
+        {% if not download %}
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div id="div_form" class="form-group" style="margin-bottom: 10px; margin-top: 10px">
+                    <div id="file-list">
+                    </div>
+
+                    <label id="label-select-file-1" class="btn btn-lg btn-select-file">
+                        Select gpx
+                        <input id="select-file-1" type="file" accept=".gpx" name="document">
+                    </label>
+
                 </div>
 
-                <label id="label-select-file-1" class="btn btn-lg btn-select-file">
-                    Select gpx
-                    <input id="select-file-1" type="file" accept=".gpx" name="document">
-                </label>
+                <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
+                    <input class="btn btn-lg btn-primary btn-combine" type="submit" id="input_btn_combine" value="Combine" style="margin-bottom: 10px;">
+                </div>
+            </form>
 
-            </div>
-
-            <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
-                <input class="btn btn-lg btn-primary btn-combine" type="submit" id="input_btn_combine" value="Combine" style="margin-bottom: 10px;">
-            </div>
-
-        </form>
+        {% else %}
+            <a href='{{file}}' class="btn btn-lg btn-primary btn-combine">Download</a>
+        {% endif %}
     </div>
 {% endblock %}
