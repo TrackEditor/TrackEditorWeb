@@ -17,8 +17,9 @@ def md5sum(file: str) -> str:
     """
     md5_hash = hashlib.md5()
 
-    a_file = open(file, "rb")
-    content = a_file.read()
+    with open(file, "rb") as file:
+        content = file.read()
+
     md5_hash.update(content)
 
     digest = md5_hash.hexdigest()
@@ -27,5 +28,10 @@ def md5sum(file: str) -> str:
 
 
 def id_generator(size=6):
+    """
+    Creates a string with random characters
+    :param size: length of the output string
+    :return: random string
+    """
     chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
     return ''.join(random.choice(chars) for _ in range(size))

@@ -72,34 +72,56 @@ def logout_view(request):
 
 @csrf_exempt
 def combine_tracks(request):
+    config = {'maximum_file_size': c.maximum_file_size,
+              'maximum_files': c.maximum_files,
+              'valid_extensions': c.valid_extensions}
+
     if request.method == 'POST':
         obj_track = track.Track()
         fs = FileSystemStorage()
 
-        for uploaded_file in request.FILES.getlist('document'):
-            filename = fs.save(uploaded_file.name, uploaded_file)
-            filepath = os.path.join(fs.location, filename)
-            obj_track.add_gpx(filepath)
+        if len(request.FILES.getlist("document")) == 0:
+            warning = 'No file has been selected'
+            return render(request, 'TrackApp/combine_tracks.html',
+                          {'download': False,
+                           'warning': warning,
+                           **config})
 
-        output_filename = c.tool + '_' + \
-                          datetime.now().strftime("%d%m%Y_%H%M%S") + '_' + \
-                          id_generator(size=8) + '.gpx'
-        output_location = os.path.join(fs.location, output_filename)
-        output_url = fs.url(output_filename)
-        obj_track.save_gpx(output_location)
+        try:
+            for uploaded_file in request.FILES.getlist('document'):
+                filename = fs.save(uploaded_file.name, uploaded_file)
+                filepath = os.path.join(fs.location, filename)
+                obj_track.add_gpx(filepath)
+        except Exception as e:
+            error = f'Error loading files'
+            return render(request, 'TrackApp/combine_tracks.html',
+                          {'download': False,
+                           'error': error,
+                           **config})
+
+        try:
+            output_filename = \
+                c.tool + '_' + \
+                datetime.now().strftime("%d%m%Y_%H%M%S") + '_' + \
+                id_generator(size=8) + '.gpx'
+            output_location = os.path.join(fs.location, output_filename)
+            output_url = fs.url(output_filename)
+            obj_track.save_gpx(output_location)
+        except Exception as e:
+            error = f'Error processing files'
+            return render(request, 'TrackApp/combine_tracks.html',
+                          {'download': False,
+                           'error': error,
+                           **config})
 
         return render(request, 'TrackApp/combine_tracks.html',
                       {'download': True,
                        'file': output_url,
-                       'maximum_file_size': c.maximum_file_size,
-                       'maximum_files': c.maximum_files,
-                       'valid_extensions': c.valid_extensions})
+                       **config})
 
     return render(request, 'TrackApp/combine_tracks.html',
                   {'download': False,
-                   'maximum_file_size': c.maximum_file_size,
-                   'maximum_files': c.maximum_files,
-                   'valid_extensions': c.valid_extensions})
+                   **config})
 
 
 def insert_timestamp(request):

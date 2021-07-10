@@ -9,6 +9,15 @@
     <h2>Combine Tracks</h2>
     <div class="container" id="div_alerts_box">
         <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-maximum_files="{{maximum_files}}" data-valid_extensions="{{valid_extensions}}">
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{error}}
+                </div>
+            {% elif warning %}
+                <div class="alert alert-warning" role="alert">
+                    {{warning}}
+                </div>
+            {% endif %}
         </div>
     </div>
 
