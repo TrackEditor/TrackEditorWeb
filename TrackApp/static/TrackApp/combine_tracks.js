@@ -1,9 +1,10 @@
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     var count = 1;
     var files = [];
     btn_select_gpx(count, files);
-
+    activate_spinner();
 });
+
 
 function btn_select_gpx(count, files) {
     let element_input = document.querySelector(`#select-file-${count}`);
@@ -121,4 +122,13 @@ function create_btn_select_gpx(count){
     label.appendChild(input);
 
     return label;
+}
+
+
+function activate_spinner(){
+    let element_combine_btn = document.querySelector('#input_btn_combine');
+    element_combine_btn.onclick = function() {
+        let spinner = document.querySelector('#div_spinner');
+        spinner.style.display = 'inline-block';
+    }
 }
