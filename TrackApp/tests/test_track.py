@@ -1,5 +1,5 @@
 from django.test import TestCase
-import pandas as pd
+import pytest
 import numpy as np
 import datetime as dt
 import os
@@ -19,13 +19,13 @@ class TrackTest(TestCase):
             f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
     
         # Check that the file is properly loaded
-        self.assertAlmostEqual(obj_track.df_track.lat.iloc[0], -37.30945, places=4)
-        self.assertAlmostEqual(obj_track.df_track.lon.iloc[0], -12.69670, places=4)
-        self.assertAlmostEqual(obj_track.df_track.ele.iloc[0], 537.61, places=4)
-        self.assertAlmostEqual(obj_track.df_track.lat.iloc[-1], -37.30682, places=4)
-        self.assertAlmostEqual(obj_track.df_track.lon.iloc[-1], -12.69775, places=4)
-        self.assertAlmostEqual(obj_track.df_track.ele.iloc[-1], 550.0200, places=4)
-        self.assertAlmostEqual(obj_track.df_track.shape[0], 141, places=4)
+        self.assertTrue(obj_track.df_track.lat.iloc[0] == pytest.approx(-37.30945))
+        self.assertTrue(obj_track.df_track.lon.iloc[0] == pytest.approx(-12.69670))
+        self.assertTrue(obj_track.df_track.ele.iloc[0] == pytest.approx(537.61))
+        self.assertTrue(obj_track.df_track.lat.iloc[-1] == pytest.approx(-37.30682))
+        self.assertTrue(obj_track.df_track.lon.iloc[-1] == pytest.approx(-12.69775))
+        self.assertTrue(obj_track.df_track.ele.iloc[-1] == pytest.approx(550.0200))
+        self.assertTrue(obj_track.df_track.shape[0] == pytest.approx(141))
     
     def test_update_summary(self):
         """
@@ -62,7 +62,7 @@ class TrackTest(TestCase):
         # Overall initial information
         total_pos_elevation = obj_track.df_track.ele_pos_cum.iloc[-1]
     
-        self.assertAlmostEqual(total_pos_elevation, 909.71997, places=4)
+        self.assertTrue(total_pos_elevation == pytest.approx(909.71997))
     
     def test_insert_negative_elevation(self):
         """
@@ -76,7 +76,7 @@ class TrackTest(TestCase):
         # Overall initial information
         total_neg_elevation = obj_track.df_track.ele_neg_cum.iloc[-1]
     
-        self.assertAlmostEqual(total_neg_elevation, -897.31000, places=4)
+        self.assertTrue(total_neg_elevation == pytest.approx(-897.31000))
 
     def test_insert_distance(self):
         """
@@ -90,7 +90,7 @@ class TrackTest(TestCase):
         # Overall initial information
         total_distance = obj_track.df_track.distance.iloc[-1]
     
-        self.assertAlmostEqual(total_distance, 12.121018, places=4)
+        self.assertTrue(total_distance == pytest.approx(12.121018))
 
     def test_update_extremes(self):
         """
@@ -112,10 +112,10 @@ class TrackTest(TestCase):
         new_extremes = obj_track.extremes
     
         self.assertNotEqual(new_extremes, extremes)
-        self.assertAlmostEqual(new_extremes[0], obj_track.df_track["lat"].min(), places=4)
-        self.assertAlmostEqual(new_extremes[1], obj_track.df_track["lat"].max(), places=4)
-        self.assertAlmostEqual(new_extremes[2], obj_track.df_track["lon"].min(), places=4)
-        self.assertAlmostEqual(new_extremes[3], obj_track.df_track["lon"].max(), places=4)
+        self.assertTrue(new_extremes[0] == pytest.approx(obj_track.df_track["lat"].min()))
+        self.assertTrue(new_extremes[1] == pytest.approx(obj_track.df_track["lat"].max()))
+        self.assertTrue(new_extremes[2] == pytest.approx(obj_track.df_track["lon"].min()))
+        self.assertTrue(new_extremes[3] == pytest.approx(obj_track.df_track["lon"].max()))
 
     def test_reverse_segment(self):
         """
@@ -139,14 +139,13 @@ class TrackTest(TestCase):
         obj_track.reverse_segment(1)
     
         # Specific checks
-        # TODO
-        self.assertTrue(False)
-        # assert np.all(obj_track.df_track.lat.to_numpy() ==
-        #               pytest.approx(lat_comp[::-1]))
-        # assert np.all(obj_track.df_track.lon.to_numpy() ==
-        #               pytest.approx(lon_comp[::-1]))
-        # assert np.all(obj_track.df_track.ele.to_numpy() ==
-        #               pytest.approx(ele_comp[::-1]))
+        import pytest
+        self.assertTrue(np.all(obj_track.df_track.lat.to_numpy() ==
+                               pytest.approx(lat_comp[::-1])))
+        self.assertTrue(np.all(obj_track.df_track.lon.to_numpy() ==
+                               pytest.approx(lon_comp[::-1])))
+        self.assertTrue(np.all(obj_track.df_track.ele.to_numpy() ==
+                               pytest.approx(ele_comp[::-1])))
     
         # Non-regression checks, total_distance is not applicable
         self.assertEqual(initial_shape, obj_track.df_track.shape)
@@ -249,12 +248,12 @@ class TrackTest(TestCase):
             old_i = i
             segment = obj_track.get_segment(new_i)  # after the re-ordering
     
-            self.assertAlmostEqual(init_segment[old_i]['lat'], segment.iloc[0].lat)
-            self.assertAlmostEqual(init_segment[old_i]['lon'], segment.iloc[0].lon)
-            self.assertAlmostEqual(init_segment[old_i]['ele'], segment.iloc[0].ele)
-            self.assertAlmostEqual(end_segment[old_i]['lat'], segment.iloc[-1].lat)
-            self.assertAlmostEqual(end_segment[old_i]['lon'], segment.iloc[-1].lon)
-            self.assertAlmostEqual(end_segment[old_i]['ele'], segment.iloc[-1].ele)
+            self.assertTrue(init_segment[old_i]['lat'], segment.iloc[0].lat)
+            self.assertTrue(init_segment[old_i]['lon'], segment.iloc[0].lon)
+            self.assertTrue(init_segment[old_i]['ele'], segment.iloc[0].ele)
+            self.assertTrue(end_segment[old_i]['lat'], segment.iloc[-1].lat)
+            self.assertTrue(end_segment[old_i]['lon'], segment.iloc[-1].lon)
+            self.assertTrue(end_segment[old_i]['ele'], segment.iloc[-1].ele)
     
     def test_fix_elevation(self):
         """
