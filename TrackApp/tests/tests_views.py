@@ -1,11 +1,10 @@
 import os
-import pyautogui
 import time
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from glob import glob
-from ..utils import md5sum
+from TrackApp.utils import md5sum
 from TrackApp.models import User
 
 
@@ -33,9 +32,18 @@ class ViewsTest(StaticLiveServerTestCase):
         return user
 
     def setUp(self):
-        self.driver = webdriver.Firefox()
-        self.user = self.create_user()
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
+        preferences = \
+            {'download.default_directory':  self.downloads_dir,
+             'safebrowsing.enabled': 'false'}
+        options.add_experimental_option('prefs', preferences)
+
+        self.driver = webdriver.Chrome(chrome_options=options)
+
         self.test_path = os.path.dirname(__file__)
+        self.user = self.create_user()
 
     def tearDown(self):
         self.driver.quit()
@@ -80,6 +88,10 @@ class ViewsTest(StaticLiveServerTestCase):
         # TODO extra check is needed to verify that there is no logged user
 
     def test_combine_tracks(self):
+        # Remove previous testing files
+        for file in glob(os.path.join(self.downloads_dir, 'TrackEditor*.gpx')):
+            os.remove(file)
+
         self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
 
         self.driver.\
@@ -96,19 +108,11 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.driver.find_element_by_id('input_btn_combine').click()
         self.driver.find_element_by_id('input_btn_download').click()
-
-        # Download file
-        time.sleep(1)
-        pyautogui.press('down')
-        pyautogui.press('enter')
-        time.sleep(1)
+        time.sleep(2)  # some time is needed to download the file
 
         downloaded_file = \
-            glob(
-                os.path.join(
-                    os.path.expanduser('~'),
-                    'Downloads',
-                    'TrackEditor*gpx'))[-1]
+            glob(os.path.join(self.downloads_dir, 'TrackEditor*.gpx'))[-1]
+
         self.assertTrue(
             md5sum(downloaded_file),
             'd0730d6a0d813b3b62b11f58ff3b9edb')
@@ -116,7 +120,9 @@ class ViewsTest(StaticLiveServerTestCase):
 
 class CombineTracksTest(StaticLiveServerTestCase):
     def setUp(self):
-        self.driver = webdriver.Firefox()
+        options = webdriver.FirefoxOptions()
+        options.headless = True
+        self.driver = webdriver.Firefox(options=options)
         self.test_path = os.path.dirname(__file__)
         self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
 
@@ -149,7 +155,9 @@ class CombineTracksTest(StaticLiveServerTestCase):
 
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
 
-        self.assertEqual(error_msg.text, "Extension for wrong_extension.txt is not valid ['gpx']")
+        self.assertEqual(
+            error_msg.text,
+            "Extension for wrong_extension.txt is not valid ['gpx']")
 
     def test_upload_repeated_files(self):
         for i in range(1, 3):
@@ -161,8 +169,9 @@ class CombineTracksTest(StaticLiveServerTestCase):
 
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
 
-        self.assertEqual(error_msg.text,
-                         'Repeated file is selected: Inaccessible_Island_part1.gpx')
+        self.assertEqual(
+            error_msg.text,
+            'Repeated file is selected: Inaccessible_Island_part1.gpx')
 
     def test_upload_big_file(self):
         self.driver. \
@@ -173,8 +182,9 @@ class CombineTracksTest(StaticLiveServerTestCase):
 
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
 
-        self.assertEqual(error_msg.text,
-                         'File over_10mb.gpx is 14 Mb. It must be smaller than 10 Mb')
+        self.assertEqual(
+            error_msg.text,
+            'File over_10mb.gpx is 14 Mb. It must be smaller than 10 Mb')
 
     def test_combine_no_file(self):
         self.driver.find_element_by_id('input_btn_combine').click()

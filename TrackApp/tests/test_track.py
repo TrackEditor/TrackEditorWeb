@@ -316,27 +316,27 @@ class TrackTest(TestCase):
     
         # Apply method
         obj_track.remove_segment(2)
-    
+
         # Check
         self.assertTrue(2 not in obj_track.df_track.segment.unique())
 
     def test_get_segment(self):
         # Load data
         obj_track = track.Track()
-    
+
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part3.gpx')
-    
+
         # Reference segment
         ref_df = obj_track.df_track[obj_track.df_track.segment == 2].copy()
-    
+
         # Get segment 2
         seg_df = obj_track.get_segment(2)
-    
+
         # Compare segment 2 and copy
         # Take care of NaN since np.nan == np.nan is false
         self.assertTrue((ref_df.fillna(0) == seg_df.fillna(0)).all().all())
@@ -344,14 +344,14 @@ class TrackTest(TestCase):
     def test_insert_timestamp(self):
         # Load data
         obj_track = track.Track()
-    
+
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Apply method
         initial_time = dt.datetime(2010, 1, 1)
         obj_track.insert_timestamp(initial_time, 1.0)
-    
+
         # Checks
         def datetime_to_integer(dt_time):
             return 3600 * 24 * dt_time.days + dt_time.seconds
@@ -363,17 +363,17 @@ class TrackTest(TestCase):
                 list(map(datetime_to_integer,
                          obj_track.df_track.time.diff().to_list()))[1:]))
         # timestamp is increasing
-    
+
     def test_columns_type(self):
         # Load data
         obj_track = track.Track()
-    
+
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Apply method
         obj_track._force_columns_type()
-    
+
         # Checks
         types = obj_track.df_track.dtypes
         self.assertTrue(types.lat == np.float32)
@@ -387,19 +387,19 @@ class TrackTest(TestCase):
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Insert timestamp, no timestamp is checked in file_menu.py wrapper
         initial_time = dt.datetime(2010, 1, 1)
         obj_track.insert_timestamp(initial_time, 1.0)
-    
+
         # Apply method
         filename = f'test_save_gpx_{np.random.randint(1e+6 - 1, 1e+6)}.gpx'
         obj_track.save_gpx(filename)
-    
+
         # Load saved file
         saved_track = track.Track()
         saved_track.add_gpx(filename)
-    
+
         # Check
         self.assertTrue((obj_track.df_track.lat == saved_track.df_track.lat).all())
         self.assertTrue((obj_track.df_track.lon == saved_track.df_track.lon).all())

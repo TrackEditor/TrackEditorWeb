@@ -27,7 +27,9 @@ class LayoutTest(StaticLiveServerTestCase):
         return user
 
     def setUp(self):
-        self.driver = webdriver.Firefox()
+        options = webdriver.FirefoxOptions()
+        options.headless = True
+        self.driver = webdriver.Firefox(options=options)
         self.driver.get(self.live_server_url)
         self.user = self.create_user()
 
