@@ -66,3 +66,32 @@ body {
     background-color: #3C565B;
     border-color: #3C565B;
 }
+
+.btn-select-file {
+    background-color: #f5f7f3;
+    border-color: #7C565B;
+    color: #7C565B;
+    width: 130px;
+    border: 2px solid #d0d0d0;
+    display: inline-block;
+}
+
+.btn-select-file:hover {
+    border: 2px solid #7C565B;
+}
+
+
+.btn-combine {
+    width: 130px;
+    margin-top: 30px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+#file-name, #file-list {
+    font-size: 18px;
+    vertical-align: middle;
+    margin-left: 10px;
+}
