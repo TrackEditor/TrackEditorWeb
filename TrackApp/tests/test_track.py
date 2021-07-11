@@ -16,7 +16,7 @@ class TrackTest(TestCase):
         obj_track = track.Track()
     
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Check that the file is properly loaded
         self.assertTrue(obj_track.df_track.lat.iloc[0] == pytest.approx(-37.30945))
@@ -34,7 +34,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part1.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
     
         # Initial data
         total_distance = obj_track.total_distance
@@ -43,7 +43,7 @@ class TrackTest(TestCase):
     
         # Force to update summary
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part2.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
     
         # Check that every summary number is updated
         self.assertNotEqual(total_distance, obj_track.total_distance)
@@ -57,7 +57,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Overall initial information
         total_pos_elevation = obj_track.df_track.ele_pos_cum.iloc[-1]
@@ -71,7 +71,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Overall initial information
         total_neg_elevation = obj_track.df_track.ele_neg_cum.iloc[-1]
@@ -85,7 +85,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Overall initial information
         total_distance = obj_track.df_track.distance.iloc[-1]
@@ -99,7 +99,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part1.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
     
         # Get reference data
         extremes = obj_track.extremes
@@ -107,7 +107,7 @@ class TrackTest(TestCase):
         # Load more data
         for i in range(2, 6):
             obj_track.add_gpx(
-                f'{self.test_path}/samples/Innacessible_Island_part{i}.gpx')
+                f'{self.test_path}/samples/Inaccessible_Island_part{i}.gpx')
     
         new_extremes = obj_track.extremes
     
@@ -125,7 +125,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part1.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
     
         # Overal initial information
         initial_shape = obj_track.df_track.shape
@@ -159,7 +159,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Overall initial information
         initial_total_distance = obj_track.df_track.distance.iloc[-1]
@@ -186,7 +186,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Overal initial information
         initial_total_distance = obj_track.df_track.distance.iloc[-1]
@@ -219,11 +219,11 @@ class TrackTest(TestCase):
         obj_track = track.Track()
     
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part1.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part2.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part3.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part3.gpx')
     
         # Get initial data
         init_segment = {}
@@ -285,7 +285,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Get initial data
         initial_std = np.std(obj_track.df_track.ele)
@@ -308,11 +308,11 @@ class TrackTest(TestCase):
         obj_track = track.Track()
     
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part1.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part2.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part3.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part3.gpx')
     
         # Apply method
         obj_track.remove_segment(2)
@@ -325,11 +325,11 @@ class TrackTest(TestCase):
         obj_track = track.Track()
     
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part1.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part2.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_part3.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_part3.gpx')
     
         # Reference segment
         ref_df = obj_track.df_track[obj_track.df_track.segment == 2].copy()
@@ -346,7 +346,7 @@ class TrackTest(TestCase):
         obj_track = track.Track()
     
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Apply method
         initial_time = dt.datetime(2010, 1, 1)
@@ -369,7 +369,7 @@ class TrackTest(TestCase):
         obj_track = track.Track()
     
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Apply method
         obj_track._force_columns_type()
@@ -386,7 +386,7 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
-            f'{self.test_path}/samples/Innacessible_Island_Full.gpx')
+            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
     
         # Insert timestamp, no timestamp is checked in file_menu.py wrapper
         initial_time = dt.datetime(2010, 1, 1)

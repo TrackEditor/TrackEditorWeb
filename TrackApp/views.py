@@ -81,7 +81,7 @@ def combine_tracks(request):
         fs = FileSystemStorage()
 
         if len(request.FILES.getlist("document")) == 0:
-            warning = 'No file has been selected'
+            warning = 'No file has been selected.'
             return render(request, 'TrackApp/combine_tracks.html',
                           {'download': False,
                            'warning': warning,
@@ -93,7 +93,7 @@ def combine_tracks(request):
                 filepath = os.path.join(fs.location, filename)
                 obj_track.add_gpx(filepath)
         except Exception as e:
-            error = f'Error loading files'
+            error = 'Error loading files'
             return render(request, 'TrackApp/combine_tracks.html',
                           {'download': False,
                            'error': error,

@@ -39,6 +39,7 @@ function check_file_size(file) {
         element_alert.style.display = 'block';
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
+        element_alert.setAttribute('id', 'div_error_msg_js');
         element_alert.innerHTML = `File ${file.name} is ${Math.floor(file.size/1e6)} Mb. It must be smaller than ${maximum_file_size/1e6} Mb`;
         return false;
     }
@@ -57,6 +58,7 @@ function check_number_files(count) {
         element_alert.style.display = 'block';
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
+        element_alert.setAttribute('id', 'div_error_msg_js');
         element_alert.innerHTML = `No more than ${maximum_files} files are allowed.`;
         return false;
     }
@@ -75,6 +77,7 @@ function check_repeated_element(files, new_file){
         element_alert.style.display = 'block';
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
+        element_alert.setAttribute('id', 'div_error_msg_js');
         element_alert.innerHTML = `Repeated file is selected: ${new_file.name}`;
         return false;
     }
@@ -96,6 +99,7 @@ function check_extension(new_file){
         element_alert.style.display = 'block';
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
+        element_alert.setAttribute('id', 'div_error_msg_js');
         element_alert.innerHTML = `Extension for ${new_file.name} is not valid ${valid_extensions}`;
         return false;
     }
