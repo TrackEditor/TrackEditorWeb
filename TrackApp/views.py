@@ -109,7 +109,7 @@ def combine_tracks(request):
             output_url = fs.url(output_filename)
             obj_track.save_gpx(output_location)
         except Exception as e:
-            error = f'Error processing files'
+            error = 'Error processing files'
             print(e)
             return render(request, 'TrackApp/combine_tracks.html',
                           {'download': False,

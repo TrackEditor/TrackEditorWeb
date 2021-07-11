@@ -165,7 +165,7 @@ class CombineTracksTest(StaticLiveServerTestCase):
                 find_element_by_id(f'select-file-{i}'). \
                 send_keys(os.path.join(self.test_path,
                                        'samples',
-                                       f'Inaccessible_Island_part1.gpx'))
+                                       'Inaccessible_Island_part1.gpx'))
 
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
 
@@ -175,7 +175,7 @@ class CombineTracksTest(StaticLiveServerTestCase):
 
     def test_upload_big_file(self):
         self.driver. \
-            find_element_by_id(f'select-file-1'). \
+            find_element_by_id('select-file-1'). \
             send_keys(os.path.join(self.test_path,
                                    'samples',
                                    'over_10mb.gpx'))
@@ -194,7 +194,7 @@ class CombineTracksTest(StaticLiveServerTestCase):
 
     def test_bad_formed_file(self):
         self.driver. \
-            find_element_by_id(f'select-file-1'). \
+            find_element_by_id('select-file-1'). \
             send_keys(os.path.join(self.test_path,
                                    'samples',
                                    'bad_formed.gpx'))
