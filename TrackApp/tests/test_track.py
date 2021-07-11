@@ -10,14 +10,14 @@ from TrackApp import track
 class TrackTest(TestCase):
     def setUp(self):
         self.test_path = os.path.dirname(__file__)
-        
+
     def test_add_gpx(self):
         # Load data
         obj_track = track.Track()
-    
+
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Check that the file is properly loaded
         self.assertTrue(obj_track.df_track.lat.iloc[0] == pytest.approx(-37.30945))
         self.assertTrue(obj_track.df_track.lon.iloc[0] == pytest.approx(-12.69670))
@@ -26,7 +26,7 @@ class TrackTest(TestCase):
         self.assertTrue(obj_track.df_track.lon.iloc[-1] == pytest.approx(-12.69775))
         self.assertTrue(obj_track.df_track.ele.iloc[-1] == pytest.approx(550.0200))
         self.assertTrue(obj_track.df_track.shape[0] == pytest.approx(141))
-    
+
     def test_update_summary(self):
         """
         Private method test: executed within add_gpx
@@ -35,16 +35,16 @@ class TrackTest(TestCase):
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
-    
+
         # Initial data
         total_distance = obj_track.total_distance
         total_uphill = obj_track.total_uphill
         total_downhill = obj_track.total_downhill
-    
+
         # Force to update summary
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
-    
+
         # Check that every summary number is updated
         self.assertNotEqual(total_distance, obj_track.total_distance)
         self.assertNotEqual(total_uphill, obj_track.total_uphill)
@@ -58,12 +58,12 @@ class TrackTest(TestCase):
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Overall initial information
         total_pos_elevation = obj_track.df_track.ele_pos_cum.iloc[-1]
-    
+
         self.assertTrue(total_pos_elevation == pytest.approx(909.71997))
-    
+
     def test_insert_negative_elevation(self):
         """
         Private method test: executed within add_gpx
@@ -72,10 +72,10 @@ class TrackTest(TestCase):
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Overall initial information
         total_neg_elevation = obj_track.df_track.ele_neg_cum.iloc[-1]
-    
+
         self.assertTrue(total_neg_elevation == pytest.approx(-897.31000))
 
     def test_insert_distance(self):
@@ -86,10 +86,10 @@ class TrackTest(TestCase):
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Overall initial information
         total_distance = obj_track.df_track.distance.iloc[-1]
-    
+
         self.assertTrue(total_distance == pytest.approx(12.121018))
 
     def test_update_extremes(self):
@@ -100,17 +100,17 @@ class TrackTest(TestCase):
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
-    
+
         # Get reference data
         extremes = obj_track.extremes
-    
+
         # Load more data
         for i in range(2, 6):
             obj_track.add_gpx(
                 f'{self.test_path}/samples/Inaccessible_Island_part{i}.gpx')
-    
+
         new_extremes = obj_track.extremes
-    
+
         self.assertNotEqual(new_extremes, extremes)
         self.assertTrue(new_extremes[0] == pytest.approx(obj_track.df_track["lat"].min()))
         self.assertTrue(new_extremes[1] == pytest.approx(obj_track.df_track["lat"].max()))
@@ -126,18 +126,18 @@ class TrackTest(TestCase):
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
-    
+
         # Overal initial information
         initial_shape = obj_track.df_track.shape
-    
+
         # Copy for comparison
         lat_comp = obj_track.df_track.lat.copy().to_numpy().astype('float32')
         lon_comp = obj_track.df_track.lon.copy().to_numpy().astype('float32')
         ele_comp = obj_track.df_track.ele.copy().to_numpy().astype('float32')
-    
+
         # Apply method
         obj_track.reverse_segment(1)
-    
+
         # Specific checks
         import pytest
         self.assertTrue(np.all(obj_track.df_track.lat.to_numpy() ==
@@ -146,7 +146,7 @@ class TrackTest(TestCase):
                                pytest.approx(lon_comp[::-1])))
         self.assertTrue(np.all(obj_track.df_track.ele.to_numpy() ==
                                pytest.approx(ele_comp[::-1])))
-    
+
         # Non-regression checks, total_distance is not applicable
         self.assertEqual(initial_shape, obj_track.df_track.shape)
 
@@ -155,55 +155,55 @@ class TrackTest(TestCase):
         Split the segment in the index 100, before the segment id must be 1,
         at and after it must be 2.
         """
-    
+
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Overall initial information
         initial_total_distance = obj_track.df_track.distance.iloc[-1]
         initial_shape = obj_track.df_track.shape
-    
+
         # Apply method
         obj_track.divide_segment(100)
-    
+
         # Specific checks
-        self.assertEqual( obj_track.df_track.segment.iloc[99], 1)
-        self.assertEqual( obj_track.df_track.segment.iloc[100], 2)
-    
+        self.assertEqual(obj_track.df_track.segment.iloc[99], 1)
+        self.assertEqual(obj_track.df_track.segment.iloc[100], 2)
+
         # Non-regression checks
-        self.assertEqual( initial_total_distance, obj_track.df_track.distance.iloc[-1])
-        self.assertEqual( initial_shape, obj_track.df_track.shape)
-        self.assertEqual( obj_track.size, 2)
-    
+        self.assertEqual(initial_total_distance, obj_track.df_track.distance.iloc[-1])
+        self.assertEqual(initial_shape, obj_track.df_track.shape)
+        self.assertEqual(obj_track.size, 2)
+
     def test_multi_divide_segment(self):
         """
         Split the segment at different indexes and check that the segment id
         is properly updated
         """
-    
+
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Overal initial information
         initial_total_distance = obj_track.df_track.distance.iloc[-1]
         initial_shape = obj_track.df_track.shape
-    
+
         # Apply method
         obj_track.divide_segment(80)
         obj_track.divide_segment(120)
         obj_track.divide_segment(40)
-    
+
         # Specific checks
         self.assertEqual(obj_track.df_track.segment.iloc[39], 1)
         self.assertEqual(obj_track.df_track.segment.iloc[40], 2)
         self.assertEqual(obj_track.df_track.segment.iloc[80], 3)
         self.assertEqual(obj_track.df_track.segment.iloc[120], 4)
         self.assertEqual(obj_track.df_track.segment.iloc[-1], 4)
-    
+
         # Non-regression checks
         self.assertEqual(initial_total_distance, obj_track.df_track.distance.iloc[-1])
         self.assertEqual(initial_shape, obj_track.df_track.shape)
@@ -214,17 +214,17 @@ class TrackTest(TestCase):
         Check that the order has been properly changed by looking at first and
         last row elements of the segment.
         """
-    
+
         # Load data
         obj_track = track.Track()
-    
+
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part3.gpx')
-    
+
         # Get initial data
         init_segment = {}
         end_segment = {}
@@ -237,24 +237,24 @@ class TrackTest(TestCase):
             end_segment[seg_idx] = {'lat': segment.iloc[-1].lat,
                                     'lon': segment.iloc[-1].lon,
                                     'ele': segment.iloc[-1].ele}
-    
+
         # Apply function
         new_order = {1: 3, 2: 1, 3: 2}
         obj_track.change_order(new_order)
-    
+
         # Checks
         for i in new_order:
             new_i = new_order[i]
             old_i = i
             segment = obj_track.get_segment(new_i)  # after the re-ordering
-    
+
             self.assertTrue(init_segment[old_i]['lat'], segment.iloc[0].lat)
             self.assertTrue(init_segment[old_i]['lon'], segment.iloc[0].lon)
             self.assertTrue(init_segment[old_i]['ele'], segment.iloc[0].ele)
             self.assertTrue(end_segment[old_i]['lat'], segment.iloc[-1].lat)
             self.assertTrue(end_segment[old_i]['lon'], segment.iloc[-1].lon)
             self.assertTrue(end_segment[old_i]['ele'], segment.iloc[-1].ele)
-    
+
     def test_fix_elevation(self):
         """
         The established criteria is to check that the standard deviation and
@@ -263,20 +263,20 @@ class TrackTest(TestCase):
         # Load data
         obj_track = track.Track()
         obj_track.add_gpx(f'{self.test_path}/samples/fix_elevation.gpx')
-    
+
         # Get initial data
         initial_std = np.std(obj_track.df_track.ele)
         initial_max_peak = max(obj_track.df_track.ele)
-    
+
         # Apply function
         obj_track.fix_elevation(1)
-    
+
         final_std = np.std(obj_track.df_track.ele)
         final_max_peak = max(obj_track.df_track.ele)
-    
+
         self.assertTrue(initial_max_peak > final_max_peak)
         self.assertTrue(initial_std > final_std)
-    
+
     def test_smooth_elevation(self):
         """
         The established criteria is to check that the standard deviation and
@@ -286,17 +286,17 @@ class TrackTest(TestCase):
         obj_track = track.Track()
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
-    
+
         # Get initial data
         initial_std = np.std(obj_track.df_track.ele)
         initial_max_peak = max(obj_track.df_track.ele)
-    
+
         # Apply function
         obj_track.smooth_elevation(1)
-    
+
         final_std = np.std(obj_track.df_track.ele)
         final_max_peak = max(obj_track.df_track.ele)
-    
+
         self.assertTrue(initial_max_peak > final_max_peak)
         self.assertTrue(initial_std > final_std)
 
@@ -306,14 +306,14 @@ class TrackTest(TestCase):
         """
         # Load data
         obj_track = track.Track()
-    
+
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part3.gpx')
-    
+
         # Apply method
         obj_track.remove_segment(2)
 
