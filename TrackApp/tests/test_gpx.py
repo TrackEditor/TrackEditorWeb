@@ -16,12 +16,9 @@ class GpxTest(TestCase):
 
     def test_load_file_big(self):
         file = os.path.join(self.test_path, 'samples/over_10mb.gpx')
-        try:
+
+        with self.assertRaises(gpx.LoadGpxError):
             gpx.Gpx(file)
-        except gpx.LoadGpxError:
-            self.assertTrue(True)
-        else:
-            self.assertTrue(False)
 
     def test_to_dict(self):
         file = os.path.join(self.test_path, 'samples/basic_sample.gpx')
