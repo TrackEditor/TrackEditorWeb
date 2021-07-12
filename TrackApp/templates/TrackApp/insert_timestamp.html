@@ -1,0 +1,73 @@
+{% extends "TrackApp/layout.html" %}
+{% load static %}
+
+{% block script %}
+    <script src="{% static 'TrackApp/insert_timestamp.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+    <h2>Insert Timestamp</h2>
+    <div class="container" id="div_alerts_box">
+        <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-maximum_speed="{{maximum_speed}}" data-valid_extensions="{{valid_extensions}}">
+            {% if error %}
+                <div class="alert alert-danger" id="div_error_msg" role="alert">
+                    {{error}}
+                </div>
+            {% elif warning %}
+                <div class="alert alert-warning" id="div_warning_msg" role="alert">
+                    {{warning}}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container">
+        {% if not download %}
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div id="div_form" class="form-group" style="margin-bottom: 10px; margin-top: 10px; display: inline-block;">
+
+                    <label id="label-select-file-1" class="btn btn-lg btn-select-file">
+                        Select gpx
+                        <input id="select-file-1" type="file" accept=".gpx" name="document">
+                    </label>
+                    <span id="file-list" style="display: inline-block; vertical-align: 0px; margin-left: 10px;"></span>
+
+                    <ul id="ul_insert_time" style="list-style-type:none">
+                        <li>
+                            <label>Activity Start Time</label>
+                            <input type="date" id="input_date">
+                            <input type="time" id="input_time">
+                        </li>
+
+                        <li>
+                            <label>Desired Average Speed</label>
+                            <input type="number" id="input_desired_speed" min="0" max="100" size="5"> km/h
+                        </li>
+
+                        <li>
+                            Use Elevation in Calculating Speed
+                            <label class="container_checkbox" style="display: inline-block;  margin-left: 5px; vertical-align: 8px;">
+                                <input type="checkbox" id="input_elevation_speed">
+                                <span class="checkmark"></span>
+                            </label>
+
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
+                    <input class="btn btn-lg btn-primary btn-combine" type="submit" id="input_btn_insert_timestamp" value="Insert Timestamp" style="width: 190px; margin-bottom: 10px; display: inline-block; vertical-align: middle;">
+                    <div class="spinner-border" id="div_spinner" role="status" style="display: none; vertical-align: -20px; margin-left: 30px; color: #3C565B">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+            </form>
+
+        {% else %}
+            <a href="{{file}}" download class="btn btn-lg btn-primary btn-combine" id="input_btn_download">Download</a>
+        {% endif %}
+
+    </div>
+
+{% endblock %}

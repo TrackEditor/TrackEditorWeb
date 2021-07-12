@@ -127,4 +127,57 @@ def combine_tracks(request):
 
 
 def insert_timestamp(request):
-    return HttpResponse('Insert Timestamp')
+    config = {'maximum_file_size': c.maximum_file_size,
+              'maximum_speed': c.maximum_speed,
+              'valid_extensions': c.valid_extensions}
+
+    if request.method == 'POST':
+        obj_track = track.Track()
+        fs = FileSystemStorage()
+
+        if len(request.FILES.getlist("document")) == 0:
+            warning = 'No file has been selected.'
+            return render(request, 'TrackApp/insert_timestamp.html',
+                          {'download': False,
+                           'warning': warning,
+                           **config})
+
+        try:
+            # TODO one single file to be processed
+            # TODO insert timestamp
+            for uploaded_file in request.FILES.getlist('document'):
+                filename = fs.save(uploaded_file.name, uploaded_file)
+                filepath = os.path.join(fs.location, filename)
+                obj_track.add_gpx(filepath)
+        except Exception as e:
+            error = 'Error loading files'
+            print(e)
+            return render(request, 'TrackApp/insert_timestamp.html',
+                          {'download': False,
+                           'error': error,
+                           **config})
+
+        try:
+            output_filename = \
+                c.tool + '_' + \
+                datetime.now().strftime("%d%m%Y_%H%M%S") + '_' + \
+                id_generator(size=8) + '.gpx'
+            output_location = os.path.join(fs.location, output_filename)
+            output_url = fs.url(output_filename)
+            obj_track.save_gpx(output_location)
+        except Exception as e:
+            error = 'Error processing file'
+            print(e)
+            return render(request, 'TrackApp/insert_timestamp.html',
+                          {'download': False,
+                           'error': error,
+                           **config})
+
+        return render(request, 'TrackApp/insert_timestamp.html',
+                      {'download': True,
+                       'file': output_url,
+                       **config})
+
+    return render(request, 'TrackApp/insert_timestamp.html',
+                  {'download': False,
+                   **config})

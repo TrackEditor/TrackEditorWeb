@@ -10,6 +10,7 @@ maximum_file_size = 10e+6
 maximum_files = 5
 valid_extensions = ['gpx']
 default_datetime = datetime.datetime(2000, 1, 1, 0, 0, 0)
+maximum_speed = 100  # km/h
 
 # fix elevation
 steep_distance = 0.2  # steep zone is always longer than X m
