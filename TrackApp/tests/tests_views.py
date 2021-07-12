@@ -122,7 +122,7 @@ class CombineTracksTest(StaticLiveServerTestCase):
     def setUp(self):
         options = webdriver.FirefoxOptions()
         options.headless = True
-        self.driver = webdriver.Firefox(options=options)
+        self.driver = webdriver.Firefox(firefox_options=options)
         self.test_path = os.path.dirname(__file__)
         self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
 
