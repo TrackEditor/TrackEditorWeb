@@ -8,7 +8,6 @@ import os
 import pandas as pd
 import numpy as np
 import gpxpy
-import datetime
 
 from . import constants as c
 
