@@ -139,6 +139,7 @@ class ViewsTest(StaticLiveServerTestCase):
         # self.driver.find_element_by_id('input_elevation_speed').click()  # TODO
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        time.sleep(1)  # processing time
         self.driver.find_element_by_id('input_btn_download').click()
         time.sleep(2)  # time to download file
 
@@ -294,6 +295,8 @@ class InsertTimestampTest(StaticLiveServerTestCase):
                          speed='1')
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        time.sleep(1)
+        
         error_msg = self.driver.find_element_by_id('div_error_msg')
         self.assertEqual(error_msg.text, 'Error loading files')
 
