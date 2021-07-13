@@ -13,10 +13,6 @@
                 <div class="alert alert-danger" id="div_error_msg" role="alert">
                     {{error}}
                 </div>
-            {% elif warning %}
-                <div class="alert alert-warning" id="div_warning_msg" role="alert">
-                    {{warning}}
-                </div>
             {% endif %}
         </div>
     </div>
@@ -48,7 +44,6 @@
                         <li>
                             Use Elevation in Calculating Speed
                             <label class="container_checkbox" style="display: inline-block;  margin-left: 5px; vertical-align: 8px;">
-                                <input type="hidden" name="input_elevation_speed" value="False"> <!-- return false if checkbox is not selected -->
                                 <input type="checkbox" id="input_elevation_speed" name="input_elevation_speed" value="True">
                                 <span class="checkmark"></span>
                             </label>

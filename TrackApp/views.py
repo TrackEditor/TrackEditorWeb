@@ -143,7 +143,7 @@ def insert_timestamp(request):
             time = request.POST['input_time']
             date = request.POST['input_date']
             speed = float(request.POST['input_desired_speed'])
-            elevation_speed = request.POST['input_elevation_speed'] == 'True'
+            # elevation_speed = request.POST['input_elevation_speed'] == 'True'
             # TODO elevation_speed is not considered by insert_timestamp method
 
             initial_time = \

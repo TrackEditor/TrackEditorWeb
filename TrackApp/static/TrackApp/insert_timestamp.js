@@ -66,7 +66,7 @@ function check_extension(new_file, element_alert) {
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
         element_alert.setAttribute('id', 'div_error_msg_js');
-        element_alert.innerHTML = `Extension for ${new_file.name} is not valid ${valid_extensions}`;
+        element_alert.innerHTML = `Extension for ${new_file.name} is not valid ${valid_extensions}.`;
         return false;
     }
     else {
@@ -85,7 +85,7 @@ function check_speed(element_speed, element_alert) {
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
         element_alert.setAttribute('id', 'div_error_msg_js');
-        element_alert.innerHTML = 'The maximum desired average speed is blank';
+        element_alert.innerHTML = 'The maximum desired average speed is blank.';
         return false;
     }
     else if (parseFloat(element_speed.value) > parseFloat(maximum_speed)){
@@ -93,7 +93,15 @@ function check_speed(element_speed, element_alert) {
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
         element_alert.setAttribute('id', 'div_error_msg_js');
-        element_alert.innerHTML = `The maximum desired average speed cannot exceed ${maximum_speed} km/h`;
+        element_alert.innerHTML = `The maximum desired average speed cannot exceed ${maximum_speed} km/h.`;
+        return false;
+    }
+    else if (parseFloat(element_speed.value) <= 0){
+        element_alert.style.display = 'block';
+        element_alert.className = 'alert alert-danger';
+        element_alert.setAttribute('role', 'alert');
+        element_alert.setAttribute('id', 'div_error_msg_js');
+        element_alert.innerHTML = 'The maximum desired average speed must be > 0 km/h.';
         return false;
     }
     else {
@@ -113,7 +121,7 @@ function check_date(element_date, element_alert) {
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
         element_alert.setAttribute('id', 'div_error_msg_js');
-        element_alert.innerHTML = 'Date has wrong format';
+        element_alert.innerHTML = 'Date has wrong format.';
         return false;
     }
     else {
@@ -125,13 +133,13 @@ function check_date(element_date, element_alert) {
             element_alert.setAttribute('role', 'alert');
             element_alert.setAttribute('id', 'div_error_msg_js');
             if ( !((date_array[1] < 2100) && (date_array[1] > 1900))) {
-                element_alert.innerHTML = `Year ${date_array[1]} is not in range 1900 to 2100`;
+                element_alert.innerHTML = `Year ${date_array[1]} is not in range 1900 to 2100.`;
             }
             else if (!((date_array[2] < 13) && !(date_array[2] > 0))) {
-                element_alert.innerHTML = `Month ${date_array[2]} is not in range 1 to 12`;
+                element_alert.innerHTML = `Month ${date_array[2]} is not in range 1 to 12.`;
             }
             else if (!((date_array[3] < 32) && !(date_array[3] > 0))) {
-                element_alert.innerHTML = `Day ${date_array[3]} is not in range 1 to 31`;
+                element_alert.innerHTML = `Day ${date_array[3]} is not in range 1 to 31.`;
             }
             return false;
         }
@@ -151,7 +159,7 @@ function check_time(element_time, element_alert) {
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
         element_alert.setAttribute('id', 'div_error_msg_js');
-        element_alert.innerHTML = 'Time has wrong format';
+        element_alert.innerHTML = 'Time has wrong format.';
         return false;
     }
     else {
@@ -162,10 +170,10 @@ function check_time(element_time, element_alert) {
             element_alert.setAttribute('role', 'alert');
             element_alert.setAttribute('id', 'div_error_msg_js');
             if ( !((date_array[1] < 24) && (date_array[1] > 0)) ) {
-                element_alert.innerHTML = `Hour ${time_array[1]} is not in range 00 to 23`;
+                element_alert.innerHTML = `Hour ${time_array[1]} is not in range 00 to 23.`;
             }
             else if ( !((time_array[2] < 60) && !(time_array[2] > 0)) ) {
-                element_alert.innerHTML = `Minute ${time_array[2]} is not in range 00 to 59`;
+                element_alert.innerHTML = `Minute ${time_array[2]} is not in range 00 to 59.`;
             }
 
             return false;
