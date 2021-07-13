@@ -135,13 +135,6 @@ def insert_timestamp(request):
         obj_track = track.Track()
         fs = FileSystemStorage()
 
-        if len(request.FILES.getlist('document')) == 0:
-            warning = 'No file has been selected.'
-            return render(request, 'TrackApp/insert_timestamp.html',
-                          {'download': False,
-                           'warning': warning,
-                           **config})
-
         try:
             uploaded_file = request.FILES['document']
             filename = fs.save(uploaded_file.name, uploaded_file)

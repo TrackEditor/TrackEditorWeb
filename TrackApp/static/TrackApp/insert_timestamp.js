@@ -55,7 +55,7 @@ function check_file_size(file, element_alert) {
 }
 
 
-function check_extension(new_file, element_alert){
+function check_extension(new_file, element_alert) {
     let valid_extensions = element_alert.dataset.valid_extensions;
 
     let extension = new_file.name.split('.').pop();
@@ -80,7 +80,15 @@ function check_extension(new_file, element_alert){
 function check_speed(element_speed, element_alert) {
     let maximum_speed = element_alert.dataset.maximum_speed;
 
-    if (parseFloat(element_speed.value) > parseFloat(maximum_speed)){
+    if (element_speed.value === "") {
+        element_alert.style.display = 'block';
+        element_alert.className = 'alert alert-danger';
+        element_alert.setAttribute('role', 'alert');
+        element_alert.setAttribute('id', 'div_error_msg_js');
+        element_alert.innerHTML = 'The maximum desired average speed is blank';
+        return false;
+    }
+    else if (parseFloat(element_speed.value) > parseFloat(maximum_speed)){
         element_alert.style.display = 'block';
         element_alert.className = 'alert alert-danger';
         element_alert.setAttribute('role', 'alert');
@@ -95,7 +103,7 @@ function check_speed(element_speed, element_alert) {
 }
 
 
-function check_date(element_date, element_alert){
+function check_date(element_date, element_alert) {
     var date_reg = /^(\d{4})[-/](\d{2})[-/](\d{2})$/;
     var date = element_date.value;
     var date_array = date.match(date_reg);
@@ -133,7 +141,7 @@ function check_date(element_date, element_alert){
     return true;
 }
 
-function check_time(element_time, element_alert){
+function check_time(element_time, element_alert) {
     var time_reg = /^(\d{2})[-/:](\d{2})$/;
     var time = element_time.value;
     var time_array = time.match(time_reg);
@@ -168,22 +176,46 @@ function check_time(element_time, element_alert){
     return true;
 }
 
-function btn_insert_timestamp(){
-    let element_combine_btn = document.querySelector('#input_btn_insert_timestamp');
+
+function check_file(element_file, element_alert) {
+    var file = element_file.files[0];
+
+    if (typeof file === "undefined"){
+        element_alert.style.display = 'block';
+        element_alert.className = 'alert alert-danger';
+        element_alert.setAttribute('role', 'alert');
+        element_alert.setAttribute('id', 'div_error_msg_js');
+        element_alert.innerHTML = 'No file has been selected.';
+        return false;
+    }
+    else {
+        element_alert.style.display = 'none';
+        return true;
+    }
+}
+
+
+function btn_insert_timestamp() {
+    let element_insert_btn = document.querySelector('#input_btn_insert_timestamp');
     let element_alert = document.querySelector('#div_alert');
     let element_speed = document.querySelector('#input_desired_speed');
+    let element_elevation_speed = document.querySelector('#input_elevation_speed');
     let element_date = document.querySelector('#input_date');
     let element_time = document.querySelector('#input_time');
+    let element_form = document.querySelector('#form');
+    let element_file = document.querySelector('#select-file-1');
 
-    element_combine_btn.onclick = function() {
+    element_insert_btn.onclick = function() {
         if ( check_speed(element_speed, element_alert) &&
              check_date(element_date, element_alert) &&
-             check_time(element_time, element_alert)) {
-
+             check_time(element_time, element_alert) &&
+             check_file(element_file, element_alert)) {
+            element_form.submit();
             activate_spinner();
         }
     }
 }
+
 
 function activate_spinner(){
     let spinner = document.querySelector('#div_spinner');
