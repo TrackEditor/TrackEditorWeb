@@ -4,6 +4,8 @@ from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from glob import glob
+
+import TrackApp.constants as c
 from TrackApp.utils import md5sum
 from TrackApp.models import User
 
@@ -117,12 +119,44 @@ class ViewsTest(StaticLiveServerTestCase):
             md5sum(downloaded_file),
             'd0730d6a0d813b3b62b11f58ff3b9edb')
 
+    def test_insert_time(self):
+        # Remove previous testing files
+        for file in glob(os.path.join(self.downloads_dir,
+                                      'TrackEditor_insert_timestamp_*.gpx')):
+            os.remove(file)
+
+        self.driver.get(urljoin(self.live_server_url, 'insert_timestamp'))
+
+        self.driver.\
+            find_element_by_id('select-file-1').\
+            send_keys(os.path.join(self.test_path,
+                                   'samples',
+                                   'Inaccessible_Island_part1.gpx'))
+
+        self.driver.find_element_by_id('input_date').send_keys('01012011')
+        self.driver.find_element_by_id('input_time').send_keys('0150')
+        self.driver.find_element_by_id('input_desired_speed').send_keys('1')
+        # self.driver.find_element_by_id('input_elevation_speed').click()  # TODO
+
+        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        time.sleep(1)  # processing time
+        self.driver.find_element_by_id('input_btn_download').click()
+        time.sleep(2)  # time to download file
+
+        downloaded_file = \
+            glob(os.path.join(self.downloads_dir,
+                              'TrackEditor_insert_timestamp_*.gpx'))[-1]
+
+        self.assertTrue(
+            md5sum(downloaded_file),
+            '02616defc1ff9a73c1e473fbde908512')
+
 
 class CombineTracksTest(StaticLiveServerTestCase):
     def setUp(self):
         options = webdriver.FirefoxOptions()
         options.headless = True
-        self.driver = webdriver.Firefox(options=options)
+        self.driver = webdriver.Firefox(firefox_options=options)
         self.test_path = os.path.dirname(__file__)
         self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
 
@@ -202,3 +236,116 @@ class CombineTracksTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('input_btn_combine').click()
         error_msg = self.driver.find_element_by_id('div_error_msg')
         self.assertEqual(error_msg.text, 'Error loading files')
+
+
+class InsertTimestampTest(StaticLiveServerTestCase):
+    def setUp(self):
+        # Using chrome since firefox does not properly work to input date and
+        # time with selenium
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.driver = webdriver.Chrome(chrome_options=options)
+        self.test_path = os.path.dirname(__file__)
+        self.driver.get(urljoin(self.live_server_url, 'insert_timestamp'))
+
+    def tearDown(self):
+        self.driver.quit()
+
+    def insert_data(self, file, date, time, speed):
+        if file:
+            self.driver.\
+                find_element_by_id('select-file-1').\
+                send_keys(os.path.join(self.test_path, 'samples', file))
+
+        if date:
+            self.driver.find_element_by_id('input_date').send_keys(date)
+
+        if time:
+            self.driver.find_element_by_id('input_time').send_keys(time)
+
+        if speed:
+            self.driver.find_element_by_id('input_desired_speed').send_keys(speed)
+
+    def test_upload_wrong_extension(self):
+        self.driver.\
+            find_element_by_id('select-file-1').\
+            send_keys(os.path.join(self.test_path,
+                                   'samples',
+                                   'wrong_extension.txt'))
+
+        error_msg = self.driver.find_element_by_id('div_error_msg_js')
+
+        self.assertEqual(
+            error_msg.text,
+            "Extension for wrong_extension.txt is not valid ['gpx'].")
+
+    def test_no_file(self):
+        self.insert_data(file=None,
+                         date='01012011',
+                         time='0150',
+                         speed='1')
+        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        error_msg = self.driver.find_element_by_id('div_error_msg_js')
+        self.assertEqual(error_msg.text, 'No file has been selected.')
+
+    def test_bad_formed_file(self):
+        self.insert_data(file='bad_formed.gpx',
+                         date='01012011',
+                         time='0150',
+                         speed='1')
+
+        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        time.sleep(1)
+        
+        error_msg = self.driver.find_element_by_id('div_error_msg')
+        self.assertEqual(error_msg.text, 'Error loading files')
+
+    def test_missing_desired_speed(self):
+        self.insert_data(file='Inaccessible_Island_part1.gpx',
+                         date='01012011',
+                         time='0150',
+                         speed=None)
+        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        error_msg = self.driver.find_element_by_id('div_error_msg_js')
+        self.assertEqual(error_msg.text,
+                         'The maximum desired average speed is blank.')
+
+    def test_missing_time(self):
+        self.insert_data(file='Inaccessible_Island_part1.gpx',
+                         date='01012011',
+                         time=None,
+                         speed='1')
+        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        error_msg = self.driver.find_element_by_id('div_error_msg_js')
+        self.assertEqual(error_msg.text, 'Time has wrong format.')
+        time.sleep(5)
+
+    def test_missing_date(self):
+        self.insert_data(file='Inaccessible_Island_part1.gpx',
+                         date=None,
+                         time='0150',
+                         speed='1')
+        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        error_msg = self.driver.find_element_by_id('div_error_msg_js')
+        self.assertEqual(error_msg.text, 'Date has wrong format.')
+
+    def test_high_speed(self):
+        self.insert_data(file='Inaccessible_Island_part1.gpx',
+                         date='01012011',
+                         time='0150',
+                         speed='500')
+        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        error_msg = self.driver.find_element_by_id('div_error_msg_js')
+        self.assertEqual(
+            error_msg.text,
+            f'The maximum desired average speed cannot exceed {c.maximum_speed} km/h.')
+
+    def test_low_speed(self):
+        self.insert_data(file='Inaccessible_Island_part1.gpx',
+                         date='01012011',
+                         time='0150',
+                         speed='0')
+        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+        error_msg = self.driver.find_element_by_id('div_error_msg_js')
+        self.assertEqual(error_msg.text,
+                         'The maximum desired average speed must be > 0 km/h.')
