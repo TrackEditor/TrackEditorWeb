@@ -26,4 +26,5 @@ jobs:
         python manage.py migrate
     - name: Test
       run: |
-        python manage.py test
+        coverage run --source=TrackApp manage.py test
+        coverage report --omit=TrackApp/tests/*
