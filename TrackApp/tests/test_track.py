@@ -11,6 +11,9 @@ class TrackTest(TestCase):
     def setUp(self):
         self.test_path = os.path.dirname(__file__)
 
+    def datetime_to_integer(self, dt_time):
+        return 3600 * 24 * dt_time.days + dt_time.seconds
+
     def test_add_gpx(self):
         # Load data
         obj_track = track.Track()
@@ -350,19 +353,44 @@ class TrackTest(TestCase):
 
         # Apply method
         initial_time = dt.datetime(2010, 1, 1)
-        obj_track.insert_timestamp(initial_time, 1.0)
+        speed = 1.0
+        obj_track.insert_timestamp(initial_time, speed)
 
         # Checks
-        def datetime_to_integer(dt_time):
-            return 3600 * 24 * dt_time.days + dt_time.seconds
-
+        resulting_speed = \
+            obj_track.df_track['distance'].iloc[-1] / \
+            ((obj_track.df_track['time'].iloc[-1] - obj_track.df_track['time'].iloc[0]).seconds/3600.0)
         self.assertTrue(not obj_track.df_track.time.isnull().values.any())  # no NaN
         self.assertEqual(obj_track.df_track.time.iloc[0], initial_time)
         self.assertTrue(
             all(x > 0 for x in
-                list(map(datetime_to_integer,
-                         obj_track.df_track.time.diff().to_list()))[1:]))
-        # timestamp is increasing
+                list(map(self.datetime_to_integer,
+                         obj_track.df_track.time.diff().to_list()))[1:]))  # timestamp is increasing
+        self.assertTrue(abs(resulting_speed - speed) < 1.5)
+
+    def test_insert_timestamp_consider_elevation(self):
+        # Load data
+        obj_track = track.Track()
+        obj_track.add_gpx(
+            f'{self.test_path}/samples/bike_ride.gpx')
+
+        # Apply method
+        initial_time = dt.datetime(2010, 1, 1)
+        speed = 40.0
+        obj_track.insert_timestamp(initial_time, 40.0, consider_elevation=True)
+
+        # Checks
+        resulting_speed = \
+            obj_track.df_track['distance'].iloc[-1] / \
+            ((obj_track.df_track['time'].iloc[-1] - obj_track.df_track['time'].iloc[0]).seconds/3600.0)
+
+        self.assertTrue(not obj_track.df_track.time.isnull().values.any())  # no NaN
+        self.assertEqual(obj_track.df_track.time.iloc[0], initial_time)
+        self.assertTrue(
+            all(x >= 0 for x in
+                list(map(self.datetime_to_integer,
+                         obj_track.df_track.time.diff().to_list()))[1:]))  # timestamp is increasing
+        self.assertTrue(abs(resulting_speed - speed) < 1.5)
 
     def test_columns_type(self):
         # Load data
