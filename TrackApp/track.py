@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 import geopy.distance
 import gpxpy.gpx
+import time
 
 from . import gpx
 from . import constants as c
@@ -76,12 +77,86 @@ class Track:
 
         self._update_summary()  # for full track
 
-    def insert_timestamp(self, initial_time, speed):
-        self.df_track['time'] = \
-            self.df_track.apply(
-                lambda row:
-                initial_time + dt.timedelta(hours=row['distance']/speed),
-                axis=1)
+    def _get_speed_factor_to_slope(self, slope: float) -> float:
+        """
+        Get a speed factor to compensate the mean speed with slope effects.
+        Uphill the speed is reduced up to 1/3 when slope is -20%.
+        Downhill the speed is increased up to 3 times when slops is +20%.
+        The equation has been got using the matlab fitting tool in the set of
+        inputs values:
+        Flat terrain: x = linspace(-0.5, 0.5, 10);
+                      y = linspace(1.05, 0.95, 10);
+        Uphill terrain: x = linspace(-18, -20, 10);
+                        y = linspace(2.8, 3.0, 10);
+        Downhill terrain: x = linspace(18, 20, 10);
+                          y = linspace(1/2.8, 1/3, 10);
+        Formula to express slope in %:
+            angle % = tan(angle) * 100%
+
+        :param slope: in %
+        :return: speed factor
+        """
+
+        a = 1.005
+        b = -0.05725
+        c = -1.352e-8
+        d = 0.8164
+
+        if slope < 0:
+            b = -0.07  # accelerate the model when downhill
+
+        if slope > 17.8:  # at this point the speed is x1/3
+            speed_factor = 1 / 3
+        elif slope < -15.9:    # at this point the speed is x3
+            speed_factor = 3
+        else:
+            speed_factor = a * np.exp(b * slope) + c * np.exp(d * slope)
+
+        return speed_factor
+
+    def insert_timestamp(self, initial_time: dt.datetime,
+                         desired_speed: float,
+                         consider_elevation: bool = False):
+        if not consider_elevation:
+            self.df_track['time'] = \
+                self.df_track.apply(
+                    lambda row:
+                    initial_time + dt.timedelta(hours=row['distance']/desired_speed),
+                    axis=1)
+        else:
+            ele_diff = np.diff(self.df_track['ele'].values)
+            dist_diff = np.diff(self.df_track['distance'].values)
+
+            # Remove 0 diff distances, not moving
+            self.df_track = self.df_track[np.append(dist_diff != 0, True)]
+            ele_diff = ele_diff[dist_diff != 0]
+            dist_diff = dist_diff[dist_diff != 0]
+
+            slope = np.tan(np.arcsin(1e-3 * ele_diff/dist_diff)) * 100
+            slope -= np.mean(slope)  # when mean slope mean speed
+            speed_factor = np.array(
+                list(map(self._get_speed_factor_to_slope, slope))
+            )
+            speed_elevation = desired_speed * speed_factor
+
+            used_time = 0
+            start = time.time()
+            avg_speed = desired_speed * 10
+
+            while abs(avg_speed - desired_speed) > 0.05 * desired_speed and \
+                    used_time < 0.5:
+                time_delta = dist_diff / speed_elevation
+                avg_speed = sum(dist_diff)/sum(time_delta)
+                speed_elevation -= avg_speed - desired_speed
+                used_time = time.time() - start
+
+            relative_time = np.append(0, np.cumsum(time_delta))
+            self.df_track['relative_time'] = relative_time
+            self.df_track['time'] = \
+                self.df_track.apply(
+                    lambda row:
+                    initial_time + dt.timedelta(hours=row['relative_time']),
+                    axis=1)
 
     def save_gpx(self, gpx_filename: str):
         # Create track

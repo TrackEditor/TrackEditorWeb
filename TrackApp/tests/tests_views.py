@@ -131,12 +131,12 @@ class ViewsTest(StaticLiveServerTestCase):
             find_element_by_id('select-file-1').\
             send_keys(os.path.join(self.test_path,
                                    'samples',
-                                   'Inaccessible_Island_part1.gpx'))
+                                   'bike_ride.gpx'))
 
         self.driver.find_element_by_id('input_date').send_keys('01012011')
         self.driver.find_element_by_id('input_time').send_keys('0150')
-        self.driver.find_element_by_id('input_desired_speed').send_keys('1')
-        # self.driver.find_element_by_id('input_elevation_speed').click()  # TODO
+        self.driver.find_element_by_id('input_desired_speed').send_keys('15')
+        self.driver.find_element_by_id('span_checkmark').click()
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         time.sleep(1)  # processing time
@@ -147,16 +147,16 @@ class ViewsTest(StaticLiveServerTestCase):
             glob(os.path.join(self.downloads_dir,
                               'TrackEditor_insert_timestamp_*.gpx'))[-1]
 
-        self.assertTrue(
+        self.assertEqual(
             md5sum(downloaded_file),
-            '02616defc1ff9a73c1e473fbde908512')
+            '7287b44e033f5a80c0d295f94697c67d')
 
 
 class CombineTracksTest(StaticLiveServerTestCase):
     def setUp(self):
-        options = webdriver.FirefoxOptions()
+        options = webdriver.ChromeOptions()
         options.headless = True
-        self.driver = webdriver.Firefox(firefox_options=options)
+        self.driver = webdriver.Chrome(chrome_options=options)
         self.test_path = os.path.dirname(__file__)
         self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
 
@@ -240,8 +240,7 @@ class CombineTracksTest(StaticLiveServerTestCase):
 
 class InsertTimestampTest(StaticLiveServerTestCase):
     def setUp(self):
-        # Using chrome since firefox does not properly work to input date and
-        # time with selenium
+        # Firefox does not properly work to input date and time with selenium
         options = webdriver.ChromeOptions()
         options.headless = True
         self.driver = webdriver.Chrome(chrome_options=options)

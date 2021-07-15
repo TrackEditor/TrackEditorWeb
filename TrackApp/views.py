@@ -143,14 +143,14 @@ def insert_timestamp(request):
             time = request.POST['input_time']
             date = request.POST['input_date']
             speed = float(request.POST['input_desired_speed'])
-            # elevation_speed = request.POST['input_elevation_speed'] == 'True'
-            # TODO elevation_speed is not considered by insert_timestamp method
+            elevation_speed = request.POST['input_elevation_speed'] == 'True'
 
             initial_time = \
                 datetime.strptime(f'{date}T{time}:00', '%Y-%m-%dT%H:%M:%S')
 
             obj_track.add_gpx(filepath)
-            obj_track.insert_timestamp(initial_time, speed)
+            obj_track.insert_timestamp(initial_time, speed,
+                                       consider_elevation=elevation_speed)
 
         except Exception as e:
             error = 'Error loading files'
