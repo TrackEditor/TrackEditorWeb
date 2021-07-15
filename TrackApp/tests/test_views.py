@@ -134,7 +134,10 @@ class ViewsTest(StaticLiveServerTestCase):
                                    'bike_ride.gpx'))
 
         self.driver.find_element_by_id('input_date').send_keys('01012011')
-        self.driver.find_element_by_id('input_time').send_keys('0150')
+        if os.name == 'nt':
+            self.driver.find_element_by_id('input_time').send_keys('0150')
+        else:
+            self.driver.find_element_by_id('input_time').send_keys('0150AM')
         self.driver.find_element_by_id('input_desired_speed').send_keys('15')
         self.driver.find_element_by_id('span_checkmark').click()
 
@@ -149,7 +152,7 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.assertEqual(
             md5sum(downloaded_file),
-            '7287b44e033f5a80c0d295f94697c67d')
+            '5db822d744c323d6b17b0e78ddc4e6bb')
 
 
 class CombineTracksTest(StaticLiveServerTestCase):
@@ -260,6 +263,11 @@ class InsertTimestampTest(StaticLiveServerTestCase):
             self.driver.find_element_by_id('input_date').send_keys(date)
 
         if time:
+            if os.name == 'posix':
+                if int(time[:2]) > 12:
+                    time += 'AM'
+                else:
+                    time += 'PM'
             self.driver.find_element_by_id('input_time').send_keys(time)
 
         if speed:
