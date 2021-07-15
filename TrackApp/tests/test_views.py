@@ -152,7 +152,7 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.assertEqual(
             md5sum(downloaded_file),
-            '7287b44e033f5a80c0d295f94697c67d')
+            '5db822d744c323d6b17b0e78ddc4e6bb')
 
 
 class CombineTracksTest(StaticLiveServerTestCase):
