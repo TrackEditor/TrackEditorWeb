@@ -1,4 +1,5 @@
 import os
+import traceback
 from datetime import datetime
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
@@ -157,7 +158,8 @@ def insert_timestamp(request):
 
         except Exception as e:
             error = 'Error loading files'
-            print(e)
+            print(f'Exception: {e}')
+            traceback.print_exc()
             return render(request, 'TrackApp/insert_timestamp.html',
                           {'download': False,
                            'error': error,
