@@ -47,7 +47,7 @@
         {% else %}
             <a href="{{file}}" download class="btn btn-lg btn-primary btn-combine" id="input_btn_download">Download</a>
             {% if user.is_authenticated %}
-                <div id="js-map" class="map" data-file="{{file}}" data-lat='{{lat}}' data-lon='{{lon}}' data-ele="{{ele}}" style="height: 40vh; margin-top: 20px;"></div>
+                <div id="js-map" class="map" data-map_center="{{map_center}}" data-map_zoom="{{map_zoom}}" data-lat='{{lat}}' data-lon='{{lon}}' data-ele="{{ele}}" style="height: 40vh; margin-top: 20px;"></div>
             {% endif %}
         {% endif %}
     </div>

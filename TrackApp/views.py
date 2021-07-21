@@ -12,7 +12,7 @@ from django.core.files.storage import FileSystemStorage
 from . import track
 from . import constants as c
 from .models import User
-from .utils import id_generator
+from .utils import id_generator, auto_zoom
 
 
 def index_view(request):
@@ -117,12 +117,17 @@ def combine_tracks(request):
                            'error': error,
                            **config})
 
+        map_center = [sum(obj_track.extremes[2:])/2,
+                      sum(obj_track.extremes[:2])/2]
+
         return render(request, 'TrackApp/combine_tracks.html',
                       {'download': True,
                        'file': output_url,
                        'lat': list(obj_track.df_track.lat.values),
                        'lon': list(obj_track.df_track.lon.values),
                        'ele': list(obj_track.df_track.ele.values),
+                       'map_center': map_center,
+                       'map_zoom': auto_zoom(*obj_track.extremes),
                        **config})
 
     return render(request, 'TrackApp/combine_tracks.html',

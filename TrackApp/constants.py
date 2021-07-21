@@ -18,6 +18,10 @@ steep_gap = 0.6  # threshold to consider a steep zone in elevation
 steep_k_moving_average = 20  # step for moving average if needed
 fix_thr = 1000  # under 1000 points smoothing is used instead of fixing
 
+# map options
+max_zoom = 16
+map_size = 2  # number of tiles for auto zoom
+
 # OSM request options
 version = "v0.0"
 email = "alguerre@outlook.com"

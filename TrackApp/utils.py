@@ -7,6 +7,8 @@ License: MIT
 import hashlib
 import string
 import random
+import math
+from . import constants as c
 
 
 def md5sum(file: str) -> str:
@@ -35,3 +37,48 @@ def id_generator(size=6):
     """
     chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
     return ''.join(random.choice(chars) for _ in range(size))
+
+
+def deg2num(lat_deg: float, lon_deg: float, zoom: int) -> (int, int):
+    """
+    Get OSM tiles from coordinates and zoom.
+    :param lat_deg: latitude in degrees
+    :param lon_deg: longitude in degrees
+    :param zoom: zoom grade
+    :return: x-y tile
+    """
+    lat_rad = math.radians(lat_deg)
+    n = 2.0 ** zoom
+    xtile = int((lon_deg + 180.0) / 360.0 * n)
+    ytile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
+    return xtile, ytile
+
+
+def auto_zoom(lat_min: float, lat_max: float,
+              lon_min: float, lon_max: float) -> int:
+    """
+    Compute the best zoom to show a complete track. It must contain the full
+    track in a box of nxn tails (n is specified in constants.py).
+    :param lat_min: furthest south point
+    :param lon_min: furthest west point
+    :param lat_max: furthest north point
+    :param lon_max: furthest east point
+    :return: zoom to use to show full track
+    """
+
+    for zoom in range(c.max_zoom):
+        num_x_min, num_y_min = deg2num(lat_min, lon_min, zoom)
+        num_x_max, num_y_max = deg2num(lat_max, lon_max, zoom)
+
+        width = abs(num_x_max - num_x_min)
+        height = abs(num_y_max - num_y_min)
+
+        if width > c.map_size or height > c.map_size:
+            return zoom - 1  # in this case previous zoom is the good one
+
+        if (width == c.map_size and height < c.map_size) or \
+                (width < c.map_size and height == c.map_size):
+            # this provides bigger auto_zoom than using >= in previous case
+            return zoom
+
+    return c.max_zoom
