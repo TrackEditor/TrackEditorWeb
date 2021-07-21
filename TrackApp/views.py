@@ -116,19 +116,12 @@ def combine_tracks(request):
                            'error': error,
                            **config})
 
-        lat = list(obj_track.df_track.lat.values)
-        lon = list(obj_track.df_track.lon.values)
-        ele = list(obj_track.df_track.ele.values)
-        print(f'{lat=}')
-        print(f'{lon=}')
-        print(f'{ele=}')
-
         return render(request, 'TrackApp/combine_tracks.html',
                       {'download': True,
                        'file': output_url,
-                       'lat': repr(lat),
-                       'lon': repr(lon),
-                       'ele': repr(ele),
+                       'lat': list(obj_track.df_track.lat.values),
+                       'lon': list(obj_track.df_track.lon.values),
+                       'ele': list(obj_track.df_track.ele.values),
                        **config})
 
     return render(request, 'TrackApp/combine_tracks.html',
@@ -186,18 +179,12 @@ def insert_timestamp(request):
                            'error': error,
                            **config})
 
-        lat = list(obj_track.df_track.lat)
-        lon = list(obj_track.df_track.lon)
-        ele = list(obj_track.df_track.ele)
-        print(f'{lat=}')
-        print(f'{lon=}')
-        print(f'{ele=}')
         return render(request, 'TrackApp/insert_timestamp.html',
                       {'download': True,
                        'file': output_url,
-                       'lat': lat,
-                       'lon': lon,
-                       'ele': ele,
+                       'lat': list(obj_track.df_track.lat.values),
+                       'lon': list(obj_track.df_track.lon.values),
+                       'ele': list(obj_track.df_track.ele.values),
                        **config})
 
     return render(request, 'TrackApp/insert_timestamp.html',
