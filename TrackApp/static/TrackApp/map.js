@@ -1,17 +1,33 @@
 document.addEventListener('DOMContentLoaded', function() {
-    points_vector = get_points();
-    insert_map(points_vector);
+    insert_map();
 });
 
 
-function insert_map(points_vector) {
+function insert_map() {
+    const points_style = new ol.style.Style({
+            image: new ol.style.Circle({
+                fill: new ol.style.Fill({color: 'rgba(255,255,0,0.4)'}),  // inner color
+                radius: 5,  // edge radius
+                stroke: new ol.style.Stroke({  // edge definition
+                    color: 'red',  // edge color
+                    width: 2,  // edge size
+                })
+            }),
+        });
+
     // Points to vector layer
     const points_vector_layer = new ol.layer.Vector({
-        source: points_vector,
+        source: get_points(),
+        style: points_style
+    });
+
+    // Lines to vector layer
+    const lines_vector_layer = new ol.layer.Vector({
+        source: get_lines(),
         style: new ol.style.Style({
-            image: new ol.style.Circle({
-                radius: 2,
-                fill: new ol.style.Fill({color: 'red'})
+            stroke: new ol.style.Stroke({
+                color: 'red',
+                width: 2,
             })
         })
     });
@@ -28,7 +44,8 @@ function insert_map(points_vector) {
             new ol.layer.Tile({
                 source: new ol.source.OSM()
             }),
-            points_vector_layer
+            points_vector_layer,
+            lines_vector_layer
         ],
         target: "js-map"
     })
@@ -55,5 +72,29 @@ function get_points() {
     });
 
     return vectorSource;
+}
+
+function get_lines() {
+    const element_div_map = document.querySelector('#js-map');
+    var lat = eval(element_div_map.dataset.lat);
+    var lon = eval(element_div_map.dataset.lon);
+
+    // create points
+    const points = [];
+    for (i = 0; i < lat.length; i++) {
+        console.log(ol.proj.fromLonLat([lon[i], lat[i]]));
+        points.push(ol.proj.fromLonLat([lon[i], lat[i]]));
+    }
+
+    const featureLine = new ol.Feature({
+        geometry: new ol.geom.LineString(points)
+    });
+
+    // create the source and layer for features
+    var lineSource = new ol.source.Vector({
+        features: [featureLine]
+    });
+
+    return lineSource;
 }
 
