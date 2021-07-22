@@ -144,7 +144,7 @@ class ViewsTest(StaticLiveServerTestCase):
             find_element_by_id('select-file-1').\
             send_keys(os.path.join(self.test_path,
                                    'samples',
-                                   'bike_ride.gpx'))
+                                   'Inaccessible_Island_Full.gpx'))
 
         self.driver.find_element_by_id('input_date').send_keys('01012011')
         if os.name == 'nt':
