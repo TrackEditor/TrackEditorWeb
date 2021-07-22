@@ -29,7 +29,7 @@ def register_view(request):
         confirmation = request.POST['confirmation']
         if password != confirmation:
             return render(request, 'TrackApp/register.html', {
-                'message': 'Passwords must match.'
+                'error': 'Passwords must match.'
             })
 
         # Attempt to create new user
@@ -38,7 +38,7 @@ def register_view(request):
             user.save()
         except IntegrityError:
             return render(request, 'TrackApp/register.html', {
-                'message': 'Username already taken.'
+                'error': 'Username already taken.'
             })
         login(request, user)
         return HttpResponseRedirect(reverse('index'))
@@ -60,7 +60,7 @@ def login_view(request):
             return HttpResponseRedirect(reverse('index'))
         else:
             return render(request, 'TrackApp/login.html', {
-                'message': 'Invalid username and/or password.'
+                'error': 'Invalid username and/or password.'
             })
     else:
         return render(request, 'TrackApp/login.html')
@@ -210,3 +210,9 @@ def insert_timestamp(request):
 
 def editor(request):
     return render(request, 'TrackApp/editor.html')
+
+
+def users_only(request):
+    return render(request, 'TrackApp/login.html', {
+        'warning': 'The selected option is only available for users. Please, login or register.'
+    })

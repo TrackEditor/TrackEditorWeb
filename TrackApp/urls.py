@@ -11,6 +11,7 @@ urlpatterns = [
     path('combine_tracks', views.combine_tracks, name='combine_tracks'),
     path('insert_timestamp', views.insert_timestamp, name='insert_timestamp'),
     path('editor', views.editor, name='editor'),
+    path('users_only', views.users_only, name='users_only'),
 ]
 
 # DEBUG will only be available during development in other case a more powerful
