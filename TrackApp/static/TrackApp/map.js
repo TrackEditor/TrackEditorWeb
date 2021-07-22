@@ -46,6 +46,31 @@ function create_map(map_center, map_zoom) {
 }
 
 
+function get_link_style() {
+    const link_style = new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: 'rgb(0, 0, 128, 0.1)',
+                width: 3,
+            })
+        });
+    return link_style;
+}
+
+
+function get_points_style(color_index) {
+    const points_style = new ol.style.Style({
+            image: new ol.style.Circle({
+                fill: new ol.style.Fill({color: get_color(color_index)}),  // inner color
+                radius: 3,  // circle radius
+//                stroke: new ol.style.Stroke({  // edge definition
+//                    color:  new ol.style.Fill({color: get_color(color_index, '0.8')}),  // edge color
+//                    width: 1,  // edge size
+//                })
+            }),
+        });
+    return points_style;
+}
+
 function get_line_style(color_index) {
     const line_style = new ol.style.Style({
             stroke: new ol.style.Stroke({
@@ -54,21 +79,6 @@ function get_line_style(color_index) {
             })
         });
     return line_style;
-}
-
-
-function get_points_style(color_index) {
-    const points_style = new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({color: get_color(color_index)}),  // inner color
-                radius: 2,  // edge radius
-//                stroke: new ol.style.Stroke({  // edge definition
-//                    color:  new ol.style.Fill({color: get_color(color_index, '0.8')}),  // edge color
-//                    width: 1,  // edge size
-//                })
-            }),
-        });
-    return points_style;
 }
 
 
@@ -92,18 +102,27 @@ function insert_map() {
             source: get_points_source(lat[i], lon[i]),
             style: get_points_style(i)
         });
+        map.addLayer(points_vector_layer);
 
         // Lines to vector layer
         const lines_vector_layer = new ol.layer.Vector({
             source: get_lines_source(lat[i], lon[i]),
             style: get_line_style(i)
         });
-
-        map.addLayer(points_vector_layer);
         map.addLayer(lines_vector_layer);
+
+        // Lines to vector layer
+        if (i < lon.length-1){
+            const link_vector_layer = new ol.layer.Vector({
+                source: get_links_source(lat[i], lon[i], lat[i+1], lon[i+1]),
+                style: get_link_style()
+            });
+            map.addLayer(link_vector_layer);
+        }
     }
 
 }
+
 
 function get_points_source(lat, lon) {
     // create points
@@ -124,6 +143,7 @@ function get_points_source(lat, lon) {
     return vectorSource;
 }
 
+
 function get_lines_source(lat, lon) {
     // create points
     const points = [];
@@ -143,3 +163,21 @@ function get_lines_source(lat, lon) {
     return lineSource;
 }
 
+
+function get_links_source(lat, lon, lat_next, lon_next) {
+    // create points
+    const points = [];
+    points.push(ol.proj.fromLonLat([lon[lon.length-1], lat[lat.length-1]]));
+    points.push(ol.proj.fromLonLat([lon_next[0], lat_next[0]]));
+
+    const featureLink = new ol.Feature({
+        geometry: new ol.geom.LineString(points)
+    });
+
+    // create the source and layer for features
+    var linkSource = new ol.source.Vector({
+        features: [featureLink]
+    });
+
+    return linkSource;
+}
