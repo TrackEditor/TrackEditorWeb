@@ -121,7 +121,8 @@ class Track:
             self.df_track['time'] = \
                 self.df_track.apply(
                     lambda row:
-                    initial_time + dt.timedelta(hours=row['distance']/desired_speed),
+                    initial_time +
+                    dt.timedelta(seconds=round(3600 * row['distance']/desired_speed, 3)),
                     axis=1)
         else:
             ele_diff = np.diff(self.df_track['ele'].values)
@@ -155,7 +156,8 @@ class Track:
             self.df_track['time'] = \
                 self.df_track.apply(
                     lambda row:
-                    initial_time + dt.timedelta(hours=row['relative_time']),
+                    initial_time +
+                    dt.timedelta(seconds=round(3600*row['relative_time'], 3)),
                     axis=1)
 
     def save_gpx(self, gpx_filename: str):
