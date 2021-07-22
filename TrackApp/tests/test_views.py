@@ -172,6 +172,32 @@ class ViewsTest(StaticLiveServerTestCase):
         )
         self.assertIsNotNone(self.driver.find_element_by_id('js-map'))
 
+    def test_editor_no_logged(self):
+        self.driver.get(self.live_server_url)
+
+        link = self.driver.find_element_by_id('a_editor')
+        link.click()
+
+        warning_msg = self.driver.find_element_by_id('div_warning_msg')
+
+        self.assertIn('only available for users', warning_msg.text)
+
+        self.assertEqual(self.driver.current_url.rstrip('/'),
+                         urljoin(self.live_server_url, 'users_only'))
+
+    def test_editor_logged(self):
+        self.login(driver=self.driver,
+                   live_server_url=self.live_server_url,
+                   username='default_user',
+                   password='default_password_1234')
+
+        self.driver.get(self.live_server_url)
+
+        link = self.driver.find_element_by_id('a_editor')
+        link.click()
+        self.assertEqual(self.driver.current_url.rstrip('/'),
+                         urljoin(self.live_server_url, 'editor'))
+
 
 class CombineTracksTest(StaticLiveServerTestCase):
     def setUp(self):

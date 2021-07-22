@@ -1,0 +1,42 @@
+{% extends "TrackApp/layout.html" %}
+{% load static %}
+
+{% block script %}
+    <script src="{% static 'TrackApp/insert_timestamp.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+    <h2>Editor</h2>
+    <div class="container" id="div_alerts_box">
+        <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-maximum_speed="{{maximum_speed}}" data-valid_extensions="{{valid_extensions}}">
+            {% if error %}
+                <div class="alert alert-danger" id="div_error_msg" role="alert">
+                    {{error}}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container">
+        <button type="button" class="btn btn-secondary">Save session</button>
+        <button type="button" class="btn btn-secondary">Save & Download</button>
+        <button type="button" class="btn btn-secondary">Add track</button>
+    </div>
+
+    <div class="container" style="margin-top: 15px;">
+        <button type="button" class="btn btn-select-file">Reverse</button>
+        <button type="button" class="btn btn-select-file">Split</button>
+        <button type="button" class="btn btn-select-file">Remove track</button>
+        <button type="button" class="btn btn-select-file">Change order</button>
+        <button type="button" class="btn btn-select-file">Insert time</button>
+    </div>
+
+    <div class="container" style="margin-top: 15px;">List of loaded tracks</div>
+
+    <div id="js-map" class="map" style="height: 40vh; margin-top: 20px;"></div>
+
+    <div class="container" style="margin-top: 15px;">Elevation profile</div>
+
+    <script src="{% static 'TrackApp/editor.js' %}"></script>
+    <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
+{% endblock %}

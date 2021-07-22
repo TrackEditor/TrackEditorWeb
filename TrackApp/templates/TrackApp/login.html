@@ -4,8 +4,12 @@
 
     <h2>Login</h2>
 
-    {% if message %}
-        <div>{{ message }}</div>
+    {% if warning %}
+        <div id="div_warning_msg" class="alert alert-warning" role="alert">{{ warning }}</div>
+    {% endif %}
+
+    {% if error %}
+        <div id="div_error_msg" class="alert alert-danger" role="alert">{{ error }}</div>
     {% endif %}
 
     <div class="col-8">

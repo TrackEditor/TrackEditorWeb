@@ -19,6 +19,12 @@
             <a href="combine_tracks" id="a_combine_tracks">Combine Tracks</a>
             <a href="insert_timestamp" id="a_insert_timestamp">Insert Timestamp</a>
             {% if user.is_authenticated %}
+                <a href="editor" id="a_editor">Editor</a>
+            {% else %}
+                <a href="users_only" id="a_editor" onmouseover="this.style.color='#4169E1';" onmouseout="this.style.color='';">Editor</a>
+            {% endif %}
+
+            {% if user.is_authenticated %}
                 <a id="a_logout" href="log_out">Log Out</a>
             {% else %}
                 <a href="login" id="a_login">Log In</a>
