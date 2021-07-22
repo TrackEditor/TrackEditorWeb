@@ -49,7 +49,7 @@ function create_map(map_center, map_zoom) {
 function get_link_style() {
     const link_style = new ol.style.Style({
             stroke: new ol.style.Stroke({
-                color: 'rgb(0, 0, 128, 0.1)',
+                color: 'rgb(0, 0, 128, 0.1)',  // navy color
                 width: 3,
             })
         });
@@ -90,11 +90,8 @@ function insert_map() {
     var map_center = eval(element_div_map.dataset.map_center);
     var map_zoom = element_div_map.dataset.map_zoom;
 
+    // Map generation
     var map = create_map(map_center, map_zoom);
-    console.log('insert_map()');
-    console.log('length', lon.length);
-    console.log('lat', lat);
-    console.log('lon', lon);
 
     for (var i = 0; i < lon.length; i++) {
         // Points to vector layer
