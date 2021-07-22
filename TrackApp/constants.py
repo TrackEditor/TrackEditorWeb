@@ -3,6 +3,7 @@
 Author: alguerre
 License: MIT
 """
+import os
 import datetime
 
 # gpx file parser options
@@ -17,6 +18,14 @@ steep_distance = 0.2  # steep zone is always longer than X m
 steep_gap = 0.6  # threshold to consider a steep zone in elevation
 steep_k_moving_average = 20  # step for moving average if needed
 fix_thr = 1000  # under 1000 points smoothing is used instead of fixing
+
+# map options
+max_zoom = 16
+map_size = 2  # number of tiles for auto zoom
+
+# location
+app_path = os.path.dirname(os.path.realpath(__file__))
+test_path = os.path.join(app_path, 'tests')
 
 # OSM request options
 version = "v0.0"

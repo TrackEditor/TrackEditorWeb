@@ -76,7 +76,6 @@ class ViewsTest(StaticLiveServerTestCase):
                    password='default_password_1234')
 
         self.assertEqual(self.driver.current_url.rstrip('/'), self.live_server_url)
-        # TODO extra check is needed to verify that there is a logged user
 
     def test_log_out(self):
         self.login(driver=self.driver,
@@ -87,11 +86,15 @@ class ViewsTest(StaticLiveServerTestCase):
         link = self.driver.find_element_by_id('a_logout')
         link.click()
         self.assertEqual(self.driver.current_url.rstrip('/'), self.live_server_url)
-        # TODO extra check is needed to verify that there is no logged user
 
     def test_combine_tracks(self):
+        self.login(driver=self.driver,
+                   live_server_url=self.live_server_url,
+                   username='default_user',
+                   password='default_password_1234')
+
         # Remove previous testing files
-        for file in glob(os.path.join(self.downloads_dir, 'TrackEditor*.gpx')):
+        for file in glob(os.path.join(self.downloads_dir, 'TrackEditor_combine_tracks*.gpx')):
             os.remove(file)
 
         self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
@@ -113,13 +116,23 @@ class ViewsTest(StaticLiveServerTestCase):
         time.sleep(2)  # some time is needed to download the file
 
         downloaded_file = \
-            glob(os.path.join(self.downloads_dir, 'TrackEditor*.gpx'))[-1]
+            glob(os.path.join(self.downloads_dir, 'TrackEditor_combine_tracks*.gpx'))[-1]
 
-        self.assertTrue(
+        self.assertEqual(
             md5sum(downloaded_file),
-            'd0730d6a0d813b3b62b11f58ff3b9edb')
+            md5sum(os.path.join(c.test_path,
+                                'references',
+                                'test_combine_tracks.gpx')
+                   )
+        )
+        self.assertIsNotNone(self.driver.find_element_by_id('js-map'))
 
     def test_insert_time(self):
+        self.login(driver=self.driver,
+                   live_server_url=self.live_server_url,
+                   username='default_user',
+                   password='default_password_1234')
+
         # Remove previous testing files
         for file in glob(os.path.join(self.downloads_dir,
                                       'TrackEditor_insert_timestamp_*.gpx')):
@@ -131,7 +144,7 @@ class ViewsTest(StaticLiveServerTestCase):
             find_element_by_id('select-file-1').\
             send_keys(os.path.join(self.test_path,
                                    'samples',
-                                   'bike_ride.gpx'))
+                                   'Inaccessible_Island_Full.gpx'))
 
         self.driver.find_element_by_id('input_date').send_keys('01012011')
         if os.name == 'nt':
@@ -152,7 +165,12 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.assertEqual(
             md5sum(downloaded_file),
-            '5db822d744c323d6b17b0e78ddc4e6bb')
+            md5sum(os.path.join(c.test_path,
+                                'references',
+                                'test_insert_time.gpx')
+                   )
+        )
+        self.assertIsNotNone(self.driver.find_element_by_id('js-map'))
 
 
 class CombineTracksTest(StaticLiveServerTestCase):
@@ -253,7 +271,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.driver.quit()
 
-    def insert_data(self, file, date, time, speed):
+    def insert_data(self, file, date, init_time, speed):
         if file:
             self.driver.\
                 find_element_by_id('select-file-1').\
@@ -262,13 +280,13 @@ class InsertTimestampTest(StaticLiveServerTestCase):
         if date:
             self.driver.find_element_by_id('input_date').send_keys(date)
 
-        if time:
+        if init_time:
             if os.name == 'posix':
-                if int(time[:2]) > 12:
-                    time += 'AM'
+                if int(init_time[:2]) > 12:
+                    init_time += 'AM'
                 else:
-                    time += 'PM'
-            self.driver.find_element_by_id('input_time').send_keys(time)
+                    init_time += 'PM'
+            self.driver.find_element_by_id('input_time').send_keys(init_time)
 
         if speed:
             self.driver.find_element_by_id('input_desired_speed').send_keys(speed)
@@ -289,7 +307,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
     def test_no_file(self):
         self.insert_data(file=None,
                          date='01012011',
-                         time='0150',
+                         init_time='0150',
                          speed='1')
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
@@ -298,7 +316,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
     def test_bad_formed_file(self):
         self.insert_data(file='bad_formed.gpx',
                          date='01012011',
-                         time='0150',
+                         init_time='0150',
                          speed='1')
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
@@ -310,7 +328,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
     def test_missing_desired_speed(self):
         self.insert_data(file='Inaccessible_Island_part1.gpx',
                          date='01012011',
-                         time='0150',
+                         init_time='0150',
                          speed=None)
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
@@ -320,7 +338,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
     def test_missing_time(self):
         self.insert_data(file='Inaccessible_Island_part1.gpx',
                          date='01012011',
-                         time=None,
+                         init_time=None,
                          speed='1')
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
@@ -330,7 +348,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
     def test_missing_date(self):
         self.insert_data(file='Inaccessible_Island_part1.gpx',
                          date=None,
-                         time='0150',
+                         init_time='0150',
                          speed='1')
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
@@ -339,7 +357,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
     def test_high_speed(self):
         self.insert_data(file='Inaccessible_Island_part1.gpx',
                          date='01012011',
-                         time='0150',
+                         init_time='0150',
                          speed='500')
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
@@ -350,7 +368,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
     def test_low_speed(self):
         self.insert_data(file='Inaccessible_Island_part1.gpx',
                          date='01012011',
-                         time='0150',
+                         init_time='0150',
                          speed='0')
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')

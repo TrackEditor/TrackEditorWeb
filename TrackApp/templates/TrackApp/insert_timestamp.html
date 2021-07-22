@@ -44,6 +44,7 @@
                         <li>
                             Use Elevation in Calculating Speed
                             <label class="container_checkbox" style="display: inline-block;  margin-left: 5px; vertical-align: 8px;">
+                                <input type="hidden" name="input_elevation_speed" value="False">
                                 <input type="checkbox" id="input_elevation_speed" name="input_elevation_speed" value="True">
                                 <span class="checkmark" id="span_checkmark"></span>
                             </label>
@@ -62,8 +63,13 @@
 
         {% else %}
             <a href="{{file}}" download class="btn btn-lg btn-primary btn-combine" id="input_btn_download">Download</a>
+            {% if user.is_authenticated %}
+                <div id="js-map" class="map" data-file="{{file}}" data-lat='{{lat}}' data-lon='{{lon}}' data-ele="{{ele}}" style="height: 60vh; margin-top: 20px;"></div>
+            {% endif %}
         {% endif %}
 
     </div>
 
+    <script src="{% static 'TrackApp/map.js' %}"></script>
+    <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
 {% endblock %}
