@@ -177,6 +177,11 @@ class ViewsTest(StaticLiveServerTestCase):
 
         link = self.driver.find_element_by_id('a_editor')
         link.click()
+
+        warning_msg = self.driver.find_element_by_id('div_warning_msg')
+
+        self.assertIn('only available for users', warning_msg.text)
+
         self.assertEqual(self.driver.current_url.rstrip('/'),
                          urljoin(self.live_server_url, 'users_only'))
 
