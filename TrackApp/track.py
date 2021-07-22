@@ -189,7 +189,8 @@ class Track:
                 gpx_segment.points.append(gpx_point)
 
         # Write file
-        with open(gpx_filename, 'w') as f:
+        import io
+        with io.open(gpx_filename, 'w', newline='\n') as f:
             f.write(ob_gpxpy.to_xml())
 
     def smooth_elevation(self, index: int):

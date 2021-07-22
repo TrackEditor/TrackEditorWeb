@@ -94,7 +94,7 @@ class ViewsTest(StaticLiveServerTestCase):
                    password='default_password_1234')
 
         # Remove previous testing files
-        for file in glob(os.path.join(self.downloads_dir, 'TrackEditor*.gpx')):
+        for file in glob(os.path.join(self.downloads_dir, 'TrackEditor_combine_tracks*.gpx')):
             os.remove(file)
 
         self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
@@ -116,7 +116,7 @@ class ViewsTest(StaticLiveServerTestCase):
         time.sleep(2)  # some time is needed to download the file
 
         downloaded_file = \
-            glob(os.path.join(self.downloads_dir, 'TrackEditor*.gpx'))[-1]
+            glob(os.path.join(self.downloads_dir, 'TrackEditor_combine_tracks*.gpx'))[-1]
 
         self.assertEqual(
             md5sum(downloaded_file),
