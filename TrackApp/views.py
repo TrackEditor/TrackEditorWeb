@@ -206,3 +206,7 @@ def insert_timestamp(request):
     return render(request, 'TrackApp/insert_timestamp.html',
                   {'download': False,
                    **config})
+
+
+def editor(request):
+    return render(request, 'TrackApp/editor.html')
