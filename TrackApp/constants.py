@@ -3,6 +3,7 @@
 Author: alguerre
 License: MIT
 """
+import os
 import datetime
 
 # gpx file parser options
@@ -21,6 +22,10 @@ fix_thr = 1000  # under 1000 points smoothing is used instead of fixing
 # map options
 max_zoom = 16
 map_size = 2  # number of tiles for auto zoom
+
+# location
+app_path = os.path.dirname(os.path.realpath(__file__))
+test_path = os.path.join(app_path, 'tests')
 
 # OSM request options
 version = "v0.0"

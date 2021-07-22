@@ -120,7 +120,11 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.assertEqual(
             md5sum(downloaded_file),
-            'd0730d6a0d813b3b62b11f58ff3b9edb')
+            md5sum(os.path.join(c.test_path,
+                                'references',
+                                'test_combine_tracks.gpx')
+                   )
+        )
         self.assertIsNotNone(self.driver.find_element_by_id('js-map'))
 
     def test_insert_time(self):
@@ -161,8 +165,13 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.assertEqual(
             md5sum(downloaded_file),
-            '5db822d744c323d6b17b0e78ddc4e6bb')
+            md5sum(os.path.join(c.test_path,
+                                'references',
+                                'test_insert_time.gpx')
+                   )
+        )
         self.assertIsNotNone(self.driver.find_element_by_id('js-map'))
+
 
 class CombineTracksTest(StaticLiveServerTestCase):
     def setUp(self):
