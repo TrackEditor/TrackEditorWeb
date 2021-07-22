@@ -120,12 +120,21 @@ def combine_tracks(request):
         map_center = [sum(obj_track.extremes[2:])/2,
                       sum(obj_track.extremes[:2])/2]
 
+        lat = []
+        lon = []
+        ele = []
+        for s in obj_track.df_track.segment.unique():
+            segment = obj_track.df_track[obj_track.df_track['segment'] == s]
+            lat.append(list(segment['lat'].values))
+            lon.append(list(segment['lon'].values))
+            ele.append(list(segment['ele'].values))
+
         return render(request, 'TrackApp/combine_tracks.html',
                       {'download': True,
                        'file': output_url,
-                       'lat': list(obj_track.df_track.lat.values),
-                       'lon': list(obj_track.df_track.lon.values),
-                       'ele': list(obj_track.df_track.ele.values),
+                       'lat': lat,
+                       'lon': lon,
+                       'ele': ele,
                        'map_center': map_center,
                        'map_zoom': auto_zoom(*obj_track.extremes),
                        **config})
