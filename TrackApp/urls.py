@@ -10,8 +10,9 @@ urlpatterns = [
     path('log_out', views.logout_view, name='log_out'),
     path('combine_tracks', views.combine_tracks, name='combine_tracks'),
     path('insert_timestamp', views.insert_timestamp, name='insert_timestamp'),
-    path('editor', views.editor, name='editor'),
     path('users_only', views.users_only, name='users_only'),
+    path('editor', views.editor, name='editor'),
+    # path('add_gpx', views.editor_add_gpx, name='editor_add_gpx'),
 ]
 
 # DEBUG will only be available during development in other case a more powerful

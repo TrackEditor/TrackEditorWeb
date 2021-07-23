@@ -1,13 +1,16 @@
 import os
 import traceback
+import pandas as pd
 from datetime import datetime
+
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect  # , JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
 
 from . import track
 from . import constants as c
@@ -208,11 +211,64 @@ def insert_timestamp(request):
                    **config})
 
 
-def editor(request):
-    return render(request, 'TrackApp/editor.html')
-
-
 def users_only(request):
     return render(request, 'TrackApp/login.html', {
         'warning': 'The selected option is only available for users. Please, login or register.'
     })
+
+
+@login_required
+def editor(request):
+    config = {'maximum_file_size': c.maximum_file_size,
+              'maximum_files': c.maximum_files,
+              'valid_extensions': c.valid_extensions}
+
+    if request.method == 'POST':
+        fs = FileSystemStorage()
+        uploaded_file = request.FILES['document']
+        filename = fs.save(uploaded_file.name, uploaded_file)
+        filepath = os.path.join(fs.location, filename)
+
+        obj_track = track.Track()
+        obj_track.df_track = pd.read_json(request.session['json_track'])
+        obj_track._force_columns_type()  # TODO json conversions remove timeformat
+
+        obj_track.add_gpx(filepath)
+        obj_track._force_columns_type()
+
+        json_track = obj_track.df_track.to_json()
+        request.session['json_track'] = json_track
+        request.session['files'].append(filename)
+
+        # debug prints
+        print(f'{obj_track.df_track.shape=}')
+        print(f"{request.session['files']=}")
+
+        return render(request, 'TrackApp/editor.html',
+                      {'track_list': request.session['files'],
+                       **config})
+
+        # TODO control exceptions
+
+    else:  # create object
+        request.session['json_track'] = track.Track().df_track.to_json()
+        request.session['files'] = []
+        return render(request, 'TrackApp/editor.html', {**config})
+
+
+# @csrf_exempt
+# @login_required
+# def editor_add_gpx(request):
+#     if request.method == 'POST':
+#         fs = FileSystemStorage()
+#         uploaded_file = request.FILES['document']
+#         filename = fs.save(uploaded_file.name, uploaded_file)
+#         filepath = os.path.join(fs.location, filename)
+#
+#         obj_track = request.session['obj_track']
+#         obj_track.add_gpx(filepath)
+#
+#         return JsonResponse({'message': 'New gpx properly added.'},
+#                             status=201)
+#     else:
+#         return JsonResponse({"error": "POST request required."}, status=400)

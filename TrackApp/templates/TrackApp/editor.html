@@ -2,13 +2,14 @@
 {% load static %}
 
 {% block script %}
-    <script src="{% static 'TrackApp/insert_timestamp.js' %}"></script>
+    <script src="{% static 'TrackApp/editor.js' %}"></script>
+    <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
 {% endblock %}
 
 {% block body %}
-    <h2>Editor</h2>
+    <h2>Track Editor</h2>
     <div class="container" id="div_alerts_box">
-        <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-maximum_speed="{{maximum_speed}}" data-valid_extensions="{{valid_extensions}}">
+        <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-valid_extensions="{{valid_extensions}}">
             {% if error %}
                 <div class="alert alert-danger" id="div_error_msg" role="alert">
                     {{error}}
@@ -20,7 +21,17 @@
     <div class="container">
         <button type="button" class="btn btn-secondary">Save session</button>
         <button type="button" class="btn btn-secondary">Save & Download</button>
-        <button type="button" class="btn btn-secondary">Add track</button>
+
+        <form method="post" enctype="multipart/form-data" id="form" style="display: inline;">
+            {% csrf_token %}
+            <label id="label-select-file" class="btn btn-secondary">
+                Add track
+                <input id="select-file" type="file" accept=".gpx" name="document">
+            </label>
+        </form>
+        <div class="spinner-border" id="div_spinner" role="status" style="display: none; vertical-align: -10px; margin-left: 30px; color: #3C565B">
+            <span class="sr-only"></span>
+        </div>
     </div>
 
     <div class="container" style="margin-top: 15px;">
@@ -31,12 +42,15 @@
         <button type="button" class="btn btn-select-file">Insert time</button>
     </div>
 
-    <div class="container" style="margin-top: 15px;">List of loaded tracks</div>
 
-    <div id="js-map" class="map" style="height: 40vh; margin-top: 20px;"></div>
+    <div id="div_track_list" class="container" style="margin-top: 15px;" data-track_list="{{track_list}}">
+    </div>
+
+
+    <div id="js-map" class="map" style="height: 40vh; width: 72vh; margin-top: 20px;"></div>
 
     <div class="container" style="margin-top: 15px;">Elevation profile</div>
 
-    <script src="{% static 'TrackApp/editor.js' %}"></script>
-    <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
+<!--    <script src="{% static 'TrackApp/editor.js' %}"></script>-->
+<!--    <script src="{% static 'TrackApp/libs/ol.js' %}"></script>-->
 {% endblock %}
