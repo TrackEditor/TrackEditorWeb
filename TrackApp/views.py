@@ -229,20 +229,16 @@ def editor(request):
         filename = fs.save(uploaded_file.name, uploaded_file)
         filepath = os.path.join(fs.location, filename)
 
-        obj_track = track.Track()
-        obj_track.df_track = pd.read_json(request.session['json_track'])
-        obj_track._force_columns_type()  # TODO json conversions remove timeformat
-
+        obj_track = track.Track(track_json=request.session['json_track'])
         obj_track.add_gpx(filepath)
-        obj_track._force_columns_type()
 
-        json_track = obj_track.df_track.to_json()
+        json_track = obj_track.to_json()
         request.session['json_track'] = json_track
         request.session['files'].append(filename)
 
         # debug prints
-        print(f'{obj_track.df_track.shape=}')
         print(f"{request.session['files']=}")
+        print(obj_track)
 
         return render(request, 'TrackApp/editor.html',
                       {'track_list': request.session['files'],
@@ -251,7 +247,7 @@ def editor(request):
         # TODO control exceptions
 
     else:  # create object
-        request.session['json_track'] = track.Track().df_track.to_json()
+        request.session['json_track'] = None
         request.session['files'] = []
         return render(request, 'TrackApp/editor.html', {**config})
 

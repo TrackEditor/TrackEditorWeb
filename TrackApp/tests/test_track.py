@@ -3,6 +3,7 @@ import pytest
 import numpy as np
 import datetime as dt
 import os
+import json
 
 from TrackApp import track
 
@@ -130,7 +131,7 @@ class TrackTest(TestCase):
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
 
-        # Overal initial information
+        # Overall initial information
         initial_shape = obj_track.df_track.shape
 
         # Copy for comparison
@@ -191,7 +192,7 @@ class TrackTest(TestCase):
         obj_track.add_gpx(
             f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
 
-        # Overal initial information
+        # Overall initial information
         initial_total_distance = obj_track.df_track.distance.iloc[-1]
         initial_shape = obj_track.df_track.shape
 
@@ -283,7 +284,7 @@ class TrackTest(TestCase):
     def test_smooth_elevation(self):
         """
         The established criteria is to check that the standard deviation and
-        maximum peak are lower than at the beggining.
+        maximum peak are lower than at the beginning.
         """
         # Load data
         obj_track = track.Track()
@@ -433,3 +434,41 @@ class TrackTest(TestCase):
         self.assertTrue((obj_track.df_track.lon == saved_track.df_track.lon).all())
         self.assertTrue((obj_track.df_track.ele == saved_track.df_track.ele).all())
         self.assertTrue((obj_track.df_track.time == saved_track.df_track.time).all())
+
+    def test_to_json(self):
+        obj_track = track.Track()
+        obj_track.add_gpx('TrackApp/tests/samples/simple_numbers.gpx')
+        json_track = json.loads(obj_track.to_json())
+
+        dataframe_keys = ['lat', 'lon', 'ele', 'segment', 'ele_pos_cum', 'ele_neg_cum', 'distance']
+        for k in dataframe_keys:
+            self.assertIn(k, json_track)
+            self.assertEqual(len(json_track[k]), 5)
+
+        metadata_keys = ['size', 'last_segment_idx', 'extremes', 'total_distance', 'total_uphill', 'total_downhill']
+        for k in metadata_keys:
+            self.assertIn(k, json_track)
+
+    def test_from_json(self):
+        json_string = '{"lat": {"0": 1.0, "1": 1.0, "2": 1.0, "3": 1.0, "4": 1.0},' + \
+                      ' "lon": {"0": 1.0, "1": 2.0, "2": 3.0, "3": 4.0, "4": 5.0},' + \
+                      ' "ele": {"0": 10.0, "1": 20.0, "2": 30.0, "3": 20.0, "4": 10.0},' + \
+                      ' "segment": {"0": 1, "1": 1, "2": 1, "3": 1, "4": 1},' + \
+                      ' "ele_pos_cum": {"0": NaN, "1": 10.0, "2": 20.0, "3": 20.0, "4": 20.0},' + \
+                      ' "ele_neg_cum": {"0": NaN, "1": 0.0, "2": 0.0, "3": -10.0, "4": -20.0},' + \
+                      ' "distance": {"0": 0.0, "1": 111.30265045166016, "2": 222.6053009033203, "3": 333.907958984375, "4": 445.2106018066406},' + \
+                      ' "size": 1,' + \
+                      ' "last_segment_idx": 1,' + \
+                      ' "extremes": [1.0, 1.0, 1.0, 5.0],' +  \
+                      ' "total_distance": 445.2106018066406,' + \
+                      ' "total_uphill": 20.0,' + \
+                      ' "total_downhill": -20.0}'
+
+        obj_track = track.Track(track_json=json_string)
+
+        self.assertEqual(obj_track.df_track.shape, (5, 8))
+        self.assertEqual(obj_track.size, 1)
+        self.assertEqual(obj_track.extremes, [1.0, 1.0, 1.0, 5.0])
+        self.assertAlmostEqual(obj_track.total_distance, 445.2106018066406)
+        self.assertEqual(obj_track.total_uphill, 20.0)
+        self.assertEqual(obj_track.total_downhill, -20.0)
