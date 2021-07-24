@@ -17,6 +17,13 @@ from . import constants as c
 from .models import User
 from .utils import id_generator, auto_zoom
 
+# DEBUGGING
+import pandas
+pandas.set_option('display.max_rows', None)
+pandas.set_option('display.max_columns', None)
+pandas.set_option('display.max_colwidth', None)
+pandas.set_option('display.expand_frame_repr', False)
+
 
 def index_view(request):
     return render(request, 'TrackApp/index.html')
@@ -235,6 +242,7 @@ def editor(request):
         request.session['json_track'] = obj_track.to_json()
 
         # debug prints
+        print('--- ADD GPX ---')
         print(obj_track)
 
         return render(request, 'TrackApp/editor.html',
@@ -260,6 +268,43 @@ def editor_rename_segment(request):
         dict_track['segment_names'][index] = new_name
         request.session['json_track'] = json.dumps(dict_track)
 
+        return JsonResponse({'message': 'Segment is successfully renamed'},
+                            status=201)
+
+        # TODO manage exceptions ->
+        # TODO at the same time implement manage error in js fetch
+
+    else:
+        return JsonResponse({'error': 'POST request required'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def editor_remove_segment(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        index = data['index']
+
+        # # TODO how faster is working with the dictionary?
+        # # TODO update extremes and distance
+        # dict_track = json.loads(request.session['json_track'])
+        # segment_init_idx = dict_track['segment'].index(index)
+        # segment_end_idx = len(dict_track['segment']) - \
+        #                   dict_track['segment'][::-1].index(index)
+        #
+        # df_keys = ['lat', 'lon', 'ele', 'segment',
+        #            'ele_pos_cum', 'ele_neg_cum', 'distance']
+        # for k in df_keys:
+        #     del dict_track[k][segment_init_idx:segment_end_idx]
+        #
+        # request.session['json_track'] = json.dumps(dict_track)
+
+        obj_track = track.Track(track_json=request.session['json_track'])
+        obj_track.remove_segment(index)
+        request.session['json_track'] = obj_track.to_json()
+
+        print('--- REMOVE SEGMENT ---')
+        print(obj_track.df_track)
         return JsonResponse({'message': 'Segment is successfully renamed'},
                             status=201)
 

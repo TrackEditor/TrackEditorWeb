@@ -41,7 +41,7 @@ class Track:
         # General purpose properties
         self.size = 0  # number of gpx in track
         self.last_segment_idx = 0
-        self.extremes = (0, 0, 0, 0)  # lat min, lat max, lon min, lon max
+        self.extremes = [0, 0, 0, 0]  # lat min, lat max, lon min, lon max
         self.total_distance = 0
         self.total_uphill = 0
         self.total_downhill = 0
@@ -63,18 +63,21 @@ class Track:
                f'segment_names: {self.segment_names}\n'
 
     def to_json(self) -> str:
-        # Convert objet to json file
-        copy_df_track = self.df_track.copy().drop(columns=['time'])
-        # TODO manage time
-        track_dict = copy_df_track.to_dict()
-        track_dict['size'] = self.size
-        track_dict['last_segment_idx'] = self.last_segment_idx
-        track_dict['extremes'] = self.extremes
-        track_dict['total_distance'] = float(self.total_distance)
-        track_dict['total_uphill'] = float(self.total_uphill)
-        track_dict['total_downhill'] = float(self.total_downhill)
-        track_dict['segment_names'] = self.segment_names
-        return json.dumps(track_dict)
+        if self.size > 0:
+            # Convert objet to json file
+            copy_df_track = self.df_track.copy().drop(columns=['time'])
+            # TODO manage time
+            track_dict = copy_df_track.to_dict('list')
+            track_dict['size'] = float(self.size)
+            track_dict['last_segment_idx'] = float(self.last_segment_idx)
+            track_dict['extremes'] = list(map(float, self.extremes))
+            track_dict['total_distance'] = float(self.total_distance)
+            track_dict['total_uphill'] = float(self.total_uphill)
+            track_dict['total_downhill'] = float(self.total_downhill)
+            track_dict['segment_names'] = self.segment_names
+            return json.dumps(track_dict)
+
+        return ''  # when no segment is loaded
 
     def from_json(self, json_string: str) -> bool:
         json_dict = json.loads(json_string)

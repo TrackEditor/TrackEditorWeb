@@ -14,6 +14,8 @@ urlpatterns = [
     path('editor', views.editor, name='editor'),
     path('editor/rename_segment', views.editor_rename_segment,
          name='editor_rename_segment'),
+    path('editor/remove_segment', views.editor_remove_segment,
+         name='editor_remove_segment'),
 ]
 
 # DEBUG will only be available during development in other case a more powerful

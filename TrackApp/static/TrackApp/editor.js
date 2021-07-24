@@ -57,12 +57,20 @@ function insert_track_name() {
             button_remove.setAttribute('type', 'button');
             button_remove.setAttribute('aria-label', 'Close');
             button_remove.style = 'font-size: 18px; vertical-align: -3px; margin-left: 20px;';
+            button_remove.setAttribute('data-index', i);
+
             button_remove.addEventListener('click', function() {
                 console.log('Remove track ', i);
                 p_name.style.display = 'none';
-                // TODO remove segment from pandas
+
+                fetch('/editor/remove_segment', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        index:  parseInt(button_remove.getAttribute('data-index')) + 1  // segments start to count in 1, not 0
+                    })
+                });
+                // TODO reverse the display='none' if response is NOK
                 // TODO remove segment plot
-                // TODO create fetch for remove_segment endpoint
             });
 
             p_name.appendChild(span_marker);
