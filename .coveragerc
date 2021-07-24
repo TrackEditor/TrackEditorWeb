@@ -1,0 +1,8 @@
+[run]
+parallel = True
+concurrency=multiprocessing
+omit =
+    */site-packages/*
+    */distutils/*
+    */dist-packages/*
+    */tests/*
