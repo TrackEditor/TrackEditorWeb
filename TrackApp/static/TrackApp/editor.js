@@ -1,11 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
-    insert_map();
+    let map = create_map();
     submit_file();
-    insert_track_name();
+    manage_track_names();
+    plot_tracks(map);
+//    plot_last_segment(map);
 });
 
 
 function submit_file() {
+    /*
+    SUBMIT_FILE submit the file when it is selected, not when a submit button
+    is clicked. A spinner is activated while the uploading.
+    */
     document.querySelector('#select-file').onchange = function() {
         document.querySelector('form').submit();
         document.querySelector('#div_spinner').style.display = 'inline-block';
@@ -13,13 +19,33 @@ function submit_file() {
 }
 
 
-function insert_track_name() {
+function plot_tracks(map) {
+    /*
+    PLOT_TRACKS plots all available segments in the map
+    */
+    let div_track_list = document.querySelector('#div_track_list');  // TODO modify with API endpoint
+    let track_list = eval(div_track_list.dataset.track_list);
+
+    if (typeof track_list !== 'undefined') {
+        for (var i = 1; i < track_list.length+1; i++) {
+            console.log('plot_tracks', i);
+            plot_segment(map, i);
+        }
+    }
+}
+
+
+function manage_track_names() {
+    /*
+    MANAGE_TRACK_NAMES displays the name of the track as soon as the
+    corresponding GPX file. 
+    It also manage the call to remove a track and renaming.
+    */
     let div_track_list = document.querySelector('#div_track_list');
     let track_list = eval(div_track_list.dataset.track_list);
 
     if (typeof track_list !== 'undefined') {
         for (var i = 0; i < track_list.length; i++) {
-            console.log('i', i);
             let color = get_color(i, alpha='-1');
 
             const p_name = document.createElement('p');
@@ -37,7 +63,6 @@ function insert_track_name() {
             span_name.setAttribute('data-original_name', span_name.innerHTML);
 
             span_name.addEventListener('blur', function() {
-//                console.log('Change track name ', i, span_name.innerHTML);
                 console.log('Change track name ',
                              parseInt(span_name.getAttribute('data-index')),
                              span_name.innerHTML);
@@ -83,6 +108,10 @@ function insert_track_name() {
 
 
 function get_color(color_index, alpha='0.5') {
+    /*
+    GET_COLOR returns the rgb string corresponding to a number of predefined
+    colors
+    */
     const colors = ['255, 127, 80',  // coral
                     '30, 144, 255',  // dodgerblue
                     '50, 205, 50', // limegreen
@@ -108,9 +137,12 @@ function get_color(color_index, alpha='0.5') {
 }
 
 
-function insert_map() {
-    // Create map
-    const map = new ol.Map({
+function create_map() {
+    /*
+    CREATE_MAP produces the basic map object when track layers will be
+    displayed
+    */
+    let map = new ol.Map({
         view: new ol.View({
             center: ol.proj.fromLonLat([0, 0]),
             zoom: 1,
@@ -124,4 +156,129 @@ function insert_map() {
         ],
         target: 'js-map'
     });
+
+    return map;
+}
+
+function plot_segment(map, index) {
+    /*
+    PLOT_LAST_SEGMENT create the source layer
+    Fetched data:
+        - size: total number of elements in arrays lat/lon/ele
+        - lat
+        - lon
+        - ele
+        - map_center
+        - map_zoom
+        - index
+    The API end point /editor/get_segment/<int:index> returns the information
+    of each segment by index. When index=0 the last available segment is
+    returned.
+    */
+
+    // Get data
+    fetch(`/editor/get_segment/${index}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('plot_segment', index);
+            if (data.size === 0) {  // do nothing if no data
+                console.log('plot_segment: size=0');
+                return;
+            }
+
+            // Points to vector layer
+            const points_vector_layer = new ol.layer.Vector({
+                source: get_points_source(data.lat, data.lon),
+                style: get_points_style(data.index - 1)
+            });
+            map.addLayer(points_vector_layer);
+
+            // Lines to vector layer
+            const lines_vector_layer = new ol.layer.Vector({
+                source: get_lines_source(data.lat, data.lon),
+                style: get_lines_style(data.index - 1)
+            });
+            map.addLayer(lines_vector_layer);
+
+            // Adjust display
+            map.getView().setZoom(data.map_zoom);
+            map.getView().setCenter(ol.proj.fromLonLat(data.map_center));
+        });
+}
+
+function get_points_source(lat, lon) {
+    /*
+    GET_POINTS_SOURCE generates a vector source with points of pairs
+    latitude-longitude
+    */
+
+    // create points
+    const features = [];
+    for (i = 0; i < lat.length; i++) {
+        features.push(new ol.Feature({
+            geometry: new ol.geom.Point(ol.proj.fromLonLat([
+                lon[i], lat[i]
+            ]))
+        }));
+    }
+
+    // create the source and layer for features
+    const vectorSource = new ol.source.Vector({
+        features
+    });
+
+    return vectorSource;
+}
+
+
+function get_lines_source(lat, lon) {
+    /*
+    GET_LINES_SOURCE generates a vector source with a line joining pairs
+    of coordinates latitude-longitude
+    */
+
+    // create points
+    const points = [];
+    for (i = 0; i < lat.length; i++) {
+        points.push(ol.proj.fromLonLat([lon[i], lat[i]]));
+    }
+
+    const featureLine = new ol.Feature({
+        geometry: new ol.geom.LineString(points)
+    });
+
+    // create the source and layer for features
+    var lineSource = new ol.source.Vector({
+        features: [featureLine]
+    });
+
+    return lineSource;
+}
+
+
+function get_points_style(color_index) {
+    /*
+    GET_POINTS_STYLE provides a style for points
+    */
+    const points_style = new ol.style.Style({
+            image: new ol.style.Circle({
+                fill: new ol.style.Fill({color: get_color(color_index)}),  // inner color
+                radius: 3,  // circle radius
+            }),
+        });
+    return points_style;
+}
+
+
+function get_lines_style(color_index) {
+    /*
+    GET_LINES_STYLE provides a style for lines
+    */
+    const line_style = new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: get_color(color_index),
+                width: 5,
+            })
+        });
+    return line_style;
 }

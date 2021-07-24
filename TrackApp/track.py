@@ -69,7 +69,7 @@ class Track:
             # TODO manage time
             track_dict = copy_df_track.to_dict('list')
             track_dict['size'] = float(self.size)
-            track_dict['last_segment_idx'] = float(self.last_segment_idx)
+            track_dict['last_segment_idx'] = int(self.last_segment_idx)
             track_dict['extremes'] = list(map(float, self.extremes))
             track_dict['total_distance'] = float(self.total_distance)
             track_dict['total_uphill'] = float(self.total_uphill)

@@ -313,3 +313,41 @@ def editor_remove_segment(request):
 
     else:
         return JsonResponse({'error': 'POST request required'}, status=400)
+
+
+def get_segment(request, index):
+    if request.method == 'GET':
+        if request.session['json_track']:
+            json_track = json.loads(request.session['json_track'])
+
+            if index != 0 and index not in json_track['segment']:
+                return JsonResponse(
+                    {'error': 'Invalid index request', 'size': 0},
+                    status=400)
+
+            if index == 0:
+                index = json_track['last_segment_idx']
+
+            segment_init_idx = json_track['segment'].index(index)
+            segment_end_idx = \
+                len(json_track['segment']) - \
+                json_track['segment'][::-1].index(index)
+
+            lat = json_track['lat'][segment_init_idx:segment_end_idx]
+            lon = json_track['lon'][segment_init_idx:segment_end_idx]
+            ele = json_track['ele'][segment_init_idx:segment_end_idx]
+            extremes = json_track['extremes']
+
+            return JsonResponse({'size': len(lat),
+                                 'lat': lat,
+                                 'lon': lon,
+                                 'ele': ele,
+                                 'map_center': [sum(extremes[2:])/2,
+                                                sum(extremes[:2])/2],
+                                 'map_zoom': int(auto_zoom(*extremes)),
+                                 'index': index
+                                 })
+        else:
+            JsonResponse({'warning': 'No track is loaded', 'size': 0})
+    else:
+        return JsonResponse({'error': 'GET request required'}, status=400)
