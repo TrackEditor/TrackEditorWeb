@@ -1,5 +1,6 @@
 import os
 import time
+import unittest
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
@@ -57,6 +58,7 @@ class EditorTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.driver.quit()
 
+    @unittest.skip('Created for debugging')
     def test_debug(self):
         self.open_editor()
 

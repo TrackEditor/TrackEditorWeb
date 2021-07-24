@@ -462,7 +462,8 @@ class TrackTest(TestCase):
                       ' "extremes": [1.0, 1.0, 1.0, 5.0],' +  \
                       ' "total_distance": 445.2106018066406,' + \
                       ' "total_uphill": 20.0,' + \
-                      ' "total_downhill": -20.0}'
+                      ' "total_downhill": -20.0,' + \
+                      ' "segment_names": ["simple_numbers.gpx"]}'
 
         obj_track = track.Track(track_json=json_string)
 
