@@ -12,10 +12,12 @@ urlpatterns = [
     path('insert_timestamp', views.insert_timestamp, name='insert_timestamp'),
     path('users_only', views.users_only, name='users_only'),
     path('editor', views.editor, name='editor'),
-    # path('add_gpx', views.editor_add_gpx, name='editor_add_gpx'),
+    path('editor/rename_segment', views.editor_rename_segment,
+         name='editor_rename_segment'),
 ]
 
 # DEBUG will only be available during development in other case a more powerful
 # server, like nginx, would be use
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)

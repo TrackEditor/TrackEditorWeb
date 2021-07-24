@@ -1,6 +1,6 @@
 import os
 import traceback
-import pandas as pd
+import json
 from datetime import datetime
 
 from django.contrib.auth import authenticate, login, logout
@@ -232,39 +232,39 @@ def editor(request):
         obj_track = track.Track(track_json=request.session['json_track'])
         obj_track.add_gpx(filepath)
 
-        json_track = obj_track.to_json()
-        request.session['json_track'] = json_track
-        request.session['files'].append(filename)
+        request.session['json_track'] = obj_track.to_json()
 
         # debug prints
-        print(f"{request.session['files']=}")
         print(obj_track)
 
         return render(request, 'TrackApp/editor.html',
-                      {'track_list': request.session['files'],
+                      {'track_list': obj_track.segment_names,
                        **config})
 
         # TODO control exceptions
 
     else:  # create object
         request.session['json_track'] = None
-        request.session['files'] = []
         return render(request, 'TrackApp/editor.html', {**config})
 
 
-# @csrf_exempt
-# @login_required
-# def editor_add_gpx(request):
-#     if request.method == 'POST':
-#         fs = FileSystemStorage()
-#         uploaded_file = request.FILES['document']
-#         filename = fs.save(uploaded_file.name, uploaded_file)
-#         filepath = os.path.join(fs.location, filename)
-#
-#         obj_track = request.session['obj_track']
-#         obj_track.add_gpx(filepath)
-#
-#         return JsonResponse({'message': 'New gpx properly added.'},
-#                             status=201)
-#     else:
-#         return JsonResponse({"error": "POST request required."}, status=400)
+@login_required
+@csrf_exempt
+def editor_rename_segment(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        index = data['index']
+        new_name = data['new_name']
+
+        dict_track = json.loads(request.session['json_track'])
+        dict_track['segment_names'][index] = new_name
+        request.session['json_track'] = json.dumps(dict_track)
+
+        return JsonResponse({'message': 'Segment is successfully renamed'},
+                            status=201)
+
+        # TODO manage exceptions ->
+        # TODO at the same time implement manage error in js fetch
+
+    else:
+        return JsonResponse({'error': 'POST request required'}, status=400)

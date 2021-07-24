@@ -19,6 +19,7 @@ function insert_track_name() {
 
     if (typeof track_list !== 'undefined') {
         for (var i = 0; i < track_list.length; i++) {
+            console.log('i', i);
             let color = get_color(i, alpha='-1');
 
             const p_name = document.createElement('p');
@@ -32,11 +33,24 @@ function insert_track_name() {
             span_name.style = 'font-size: 18px; margin-left: 5px;';
             span_name.setAttribute('contenteditable', 'true');
             span_name.innerHTML = track_list[i];
+            span_name.setAttribute('data-index', i);
+            span_name.setAttribute('data-original_name', span_name.innerHTML);
+
             span_name.addEventListener('blur', function() {
-                console.log('Change track name ', i, span_name.innerHTML);
-                // TODO create fetch for change_segment_name endpoint
-                // TODO store in track a name for each segment
-                // TODO convert track segment to JSON
+//                console.log('Change track name ', i, span_name.innerHTML);
+                console.log('Change track name ',
+                             parseInt(span_name.getAttribute('data-index')),
+                             span_name.innerHTML);
+
+                fetch('/editor/rename_segment', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        index:  parseInt(span_name.getAttribute('data-index')),
+                        new_name: span_name.innerHTML
+                    })
+                });
+                // TODO use the data-original_name if response is not OK
+
             });
 
             button_remove.setAttribute('class', 'btn-close');
