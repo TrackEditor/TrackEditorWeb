@@ -472,3 +472,19 @@ class TrackTest(TestCase):
         self.assertAlmostEqual(obj_track.total_distance, 445.2106018066406)
         self.assertEqual(obj_track.total_uphill, 20.0)
         self.assertEqual(obj_track.total_downhill, -20.0)
+
+    def test_rename_segment(self):
+        # Load data
+        obj_track = track.Track()
+        obj_track.add_gpx(
+            f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
+        obj_track.add_gpx(
+            f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
+        obj_track.add_gpx(
+            f'{self.test_path}/samples/Inaccessible_Island_part3.gpx')
+
+        obj_track.rename_segment(0, 'seg0')
+        obj_track.rename_segment(1, 'seg1')
+        obj_track.rename_segment(2, 'seg2')
+        self.assertEqual(obj_track.segment_names, ['seg0', 'seg1', 'seg2'])
+        self.assertFalse(obj_track.rename_segment(4, 'seg_4'))

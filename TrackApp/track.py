@@ -13,6 +13,7 @@ import numpy as np
 import geopy.distance
 import gpxpy.gpx
 import json
+import os
 from time import time
 
 from . import gpx
@@ -44,6 +45,7 @@ class Track:
         self.total_distance = 0
         self.total_uphill = 0
         self.total_downhill = 0
+        self.segment_names = []
 
         if track_json:
             self.from_json(track_json)
@@ -57,7 +59,8 @@ class Track:
                f'extremes: {self.extremes}\n' + \
                f'total_distance: {self.total_distance}\n' + \
                f'total_uphill: {self.total_uphill}\n' + \
-               f'total_downhill: {self.total_downhill}\n'
+               f'total_downhill: {self.total_downhill}\n' + \
+               f'segment_names: {self.segment_names}\n'
 
     def to_json(self) -> str:
         # Convert objet to json file
@@ -70,6 +73,7 @@ class Track:
         track_dict['total_distance'] = float(self.total_distance)
         track_dict['total_uphill'] = float(self.total_uphill)
         track_dict['total_downhill'] = float(self.total_downhill)
+        track_dict['segment_names'] = self.segment_names
         return json.dumps(track_dict)
 
     def from_json(self, json_string: str) -> bool:
@@ -93,6 +97,7 @@ class Track:
         self.total_distance = json_dict['total_distance']
         self.total_uphill = json_dict['total_uphill']
         self.total_downhill = json_dict['total_downhill']
+        self.segment_names = json_dict['segment_names']
 
         return True
 
@@ -107,6 +112,7 @@ class Track:
         self.df_track = pd.concat([self.df_track, df_gpx])
         self.df_track = self.df_track.reset_index(drop=True)
         self._update_summary()  # for full track
+        self.segment_names.append(os.path.basename(file))
         self._force_columns_type()
 
     def get_segment(self, index: int):
@@ -380,6 +386,13 @@ class Track:
         self.df_track = self.df_track.drop(labels=['index1'], axis=1)
         self.df_track = self.df_track.reset_index(drop=True)
         self._update_summary()  # for full track
+
+    def rename_segment(self, index: int, new_name: str) -> bool:
+        try:
+            self.segment_names[index] = new_name
+        except IndexError:
+            return False
+        return True
 
     def _moving_average(self, a, n: int = 3):
         """
