@@ -54,8 +54,8 @@ class EditorTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.driver.quit()
 
-    @unittest.expectedFailure  # created for debugging
+    @unittest.skip('Created for debugging')
     def test_debug(self):
         self.open_editor()
 
-        self.assertTrue(False)
+        assert False
