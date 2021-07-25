@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     submit_file();
     manage_track_names();
     plot_tracks();
-//    plot_last_segment(map);
 });
 
 
@@ -30,33 +29,9 @@ function plot_tracks() {
 
     if (typeof track_list !== 'undefined') {
         for (var i = 1; i < track_list.length+1; i++) {
-            console.log('plot_tracks', i);
             plot_segment(map, i);
-            console.log('------------');
         }
     }
-
-    let array = map.getLayers().getArray();
-    console.log('debug type array', typeof map.getLayers().getArray());
-    console.log('debug type layers', typeof map.getLayers());
-
-    console.log(Object.getPrototypeOf(map.getLayers().getArray()));
-    console.log(Object.getPrototypeOf(map.getLayers()));
-    console.log(map.getLayers().getLength());
-
-    map.getLayers().forEach(layer => {
-        console.log('woooola', layer.get('name'));
-    });
-
-//    console.log('debug length', array.getLength());
-//    console.log('debug [0]', array[0]);
-//    console.log('debug [1] get(name)', array[1].get('name'));
-//    console.log('debug', map.getLayers().getArray());
-//    console.log('debug', map.getLayers().getLength())
-//    map.getLayers().forEach(layer => {
-//        console.log(layer.get('name'));
-//    });
-
 }
 
 
@@ -88,9 +63,10 @@ function manage_track_names() {
             span_name.setAttribute('data-original_name', span_name.innerHTML);
 
             span_name.addEventListener('blur', function() {
-                console.log('Change track name ',
-                             parseInt(span_name.getAttribute('data-index')),
-                             span_name.innerHTML);
+                console.log('Change track name',
+                             `segment id: ${1 + parseInt(span_name.getAttribute('data-index'))}\n`,
+                             `old_name: ${span_name.getAttribute('data-original_name')}\n`,
+                             `new_name: ${span_name.innerHTML}`);
 
                 fetch('/editor/rename_segment', {
                     method: 'POST',
@@ -112,25 +88,27 @@ function manage_track_names() {
             button_remove.addEventListener('click', function() {
                 let segment_id = parseInt(button_remove.getAttribute('data-index')) + 1;
 
-                console.log('Remove track ', segment_id);
+                // Remove track name from list
                 p_name.style.display = 'none';
 
-                console.log('(debug) remove segment', map.getLayers());
-
+                // Remove layer
+                console.log(`Remove track with index: ${segment_id}`);
                 var layersToRemove = [];
                 map.getLayers().forEach(layer => {
                     if ((layer.get('name') === `layer_points_${segment_id}`) ||
                         (layer.get('name') === `layer_lines_${segment_id}`)) {
-                            console.log('(debug) remove segment', layer.get('name'));
                             layersToRemove.push(layer);
                         }
                 });
 
                 var len = layersToRemove.length;
                 for(var i = 0; i < len; i++) {
+                    let layer_name = layersToRemove[i].get('name');
+                    console.log(`Removing layer ${layer_name}`);
                     map.removeLayer(layersToRemove[i]);
                 }
 
+                // Remove segment in back end
                 fetch('/editor/remove_segment', {
                     method: 'POST',
                     body: JSON.stringify({
@@ -219,7 +197,6 @@ function plot_segment(map, index) {
     returned.
     */
 
-    console.log('index', index);
     // Get data
     fetch(`/editor/get_segment/${index}`)
         .then(response => response.json())
@@ -234,9 +211,8 @@ function plot_segment(map, index) {
                 style: get_points_style(data.index - 1),
                 name: `layer_points_${index}`,
             });
-            console.log('[debug] plot_segment', points_vector_layer.get('name'));
             map.addLayer(points_vector_layer);
-
+            console.log(`New layer: ${points_vector_layer.get('name')}`);
 
             // Lines to vector layer
             const lines_vector_layer = new ol.layer.Vector({
@@ -245,11 +221,7 @@ function plot_segment(map, index) {
                 name: `layer_lines_${index}`,
             });
             map.addLayer(lines_vector_layer);
-
-//            map.getLayers().extend([points_vector_layer, lines_vector_layer]);
-            map.getLayers().forEach(layer => {
-                console.log('holi', layer.get('name'));
-            });
+            console.log(`New layer: ${lines_vector_layer.get('name')}`);
 
             // Adjust display
             map.getView().setZoom(data.map_zoom);
