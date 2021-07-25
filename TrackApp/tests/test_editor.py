@@ -1,13 +1,9 @@
 import os
-import time
 import unittest
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
-from glob import glob
 
-import TrackApp.constants as c
-from TrackApp.utils import md5sum
 from TrackApp.models import User
 
 

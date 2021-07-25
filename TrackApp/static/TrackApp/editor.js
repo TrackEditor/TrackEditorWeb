@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     submit_file();
     manage_track_names();
     plot_tracks();
+    show_summary();
 });
 
 
@@ -304,4 +305,79 @@ function get_lines_style(color_index) {
             })
         });
     return line_style;
+}
+
+
+function show_summary() {
+    // Get elements
+    var modal = document.getElementById("div_summary_modal");
+    var btn = document.getElementById("btn_summary");
+    var span = document.getElementsByClassName("close")[0];  // <span> element that closes the modal
+    var summary_content = document.getElementById("div_summary_content");
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // When the user clicks on the button, open the modal
+    btn.onclick = function() {
+      modal.style.display = "block";
+      summary_content.innerHTML = '';
+
+        // Table definition
+        var table = document.createElement('table');
+        table.setAttribute('class', 'table');
+        var tblHead = document.createElement('thead');
+        var tblBody = document.createElement('tbody');
+
+        // Fill header
+        let row = document.createElement("tr");
+        ['Track Name', 'Distance', 'Uphill', 'Downhill'].forEach(element => {
+            let cell = document.createElement("th");
+            cell.innerHTML = element;
+            row.appendChild(cell);
+        });
+        tblHead.appendChild(row);
+        table.appendChild(tblHead);
+
+        // Fill body
+        fetch('/editor/get_summary')
+            .then(response => response.json())
+            .then(data => {
+                let summary = data['summary'];
+
+                Object.getOwnPropertyNames(summary).forEach( file => {
+                    let row = document.createElement("tr");
+                    ['file', 'distance', 'uphill', 'downhill'].forEach(element => {
+                        let cell = document.createElement("td");
+                        if (element === 'file'){
+                            if (file === 'total') {
+                                cell.innerHTML = '<b>TOTAL</b>';
+                            }
+                            else {
+                                cell.innerHTML = file;
+                            }
+                        }
+                        else {
+                            cell.innerHTML = summary[file][element];
+                        }
+                        row.appendChild(cell);
+                    })
+                    tblBody.appendChild(row);
+                })
+                table.appendChild(tblBody);
+                summary_content.appendChild(table);
+            })
+        // TODO manage errors
+
+    }
+
 }
