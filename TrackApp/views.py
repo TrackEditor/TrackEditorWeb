@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 
 from . import track
 from . import constants as c
-from .models import User
+from .models import User, Track
 from .utils import id_generator, auto_zoom
 
 # DEBUGGING
@@ -367,3 +367,29 @@ def get_summary(request):
             return JsonResponse({'error': 'No track is loaded'}, status=400)
 
     return JsonResponse({'error': 'GET request required'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def save_session(request):
+    if request.method == 'POST':
+        if request.session['json_track']:
+            data = json.loads(request.body)
+            save = data['save'] == 'True'
+
+            if save:
+                obj_track = track.Track(track_json=request.session['json_track'])
+                json_track = obj_track.to_json()
+
+                new_track = Track(user=request.user, track=json_track)
+                new_track.save()
+
+                return JsonResponse({'message': 'Session has been saved'},
+                                    status=201)
+            else:
+                return JsonResponse({'error': 'save is not True'},
+                                    status=492)
+        else:
+            return JsonResponse({'error': 'No track is loaded'}, status=491)
+
+    return JsonResponse({'error': 'POST request required'}, status=400)
