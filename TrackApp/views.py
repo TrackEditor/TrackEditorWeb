@@ -315,6 +315,7 @@ def editor_remove_segment(request):
         return JsonResponse({'error': 'POST request required'}, status=400)
 
 
+@login_required
 def get_segment(request, index):
     if request.method == 'GET':
         if request.session['json_track']:
@@ -346,8 +347,23 @@ def get_segment(request, index):
                                                 sum(extremes[:2])/2],
                                  'map_zoom': int(auto_zoom(*extremes)),
                                  'index': index
-                                 })
+                                 }, status=200)
         else:
-            JsonResponse({'warning': 'No track is loaded', 'size': 0})
+            return JsonResponse({'error': 'No track is loaded'}, status=400)
     else:
         return JsonResponse({'error': 'GET request required'}, status=400)
+
+
+@login_required
+def get_summary(request):
+    if request.method == 'GET':
+        if request.session['json_track']:
+            obj_track = track.Track(track_json=request.session['json_track'])
+            obj_track.update_summary()
+            summary = obj_track.get_summary()
+
+            return JsonResponse({'summary': summary}, status=200)
+        else:
+            return JsonResponse({'error': 'No track is loaded'}, status=400)
+
+    return JsonResponse({'error': 'GET request required'}, status=400)

@@ -45,7 +45,7 @@ class Track:
         self.total_distance = 0
         self.total_uphill = 0
         self.total_downhill = 0
-        self.segment_names = []
+        self.segment_names = []  # indexing in line with segment index, diff 1
 
         if track_json:
             self.from_json(track_json)
@@ -114,7 +114,7 @@ class Track:
 
         self.df_track = pd.concat([self.df_track, df_gpx])
         self.df_track = self.df_track.reset_index(drop=True)
-        self._update_summary()  # for full track
+        self.update_summary()  # for full track
         self.segment_names.append(os.path.basename(file))
         self._force_columns_type()
 
@@ -134,7 +134,7 @@ class Track:
         self.df_track.loc[self.df_track['segment'] == index] = rev_segment
         self._force_columns_type()  # ensure proper type for columns
 
-        self._update_summary()  # for full track
+        self.update_summary()  # for full track
 
     def _get_speed_factor_to_slope(self, slope: float) -> float:
         """
@@ -349,7 +349,7 @@ class Track:
         self.size -= 1
 
         # Update metadata
-        self._update_summary()
+        self.update_summary()
 
         # Clean full track if needed
         if self.size == 0:
@@ -388,7 +388,7 @@ class Track:
         self.df_track = self.df_track.sort_values(by=['segment', 'index1'])
         self.df_track = self.df_track.drop(labels=['index1'], axis=1)
         self.df_track = self.df_track.reset_index(drop=True)
-        self._update_summary()  # for full track
+        self.update_summary()  # for full track
 
     def rename_segment(self, index: int, new_name: str) -> bool:
         try:
@@ -408,7 +408,7 @@ class Track:
         ret[n:] = ret[n:] - ret[:-n]
         return ret[n - 1:] / n
 
-    def _update_summary(self):
+    def update_summary(self):
         self._insert_positive_elevation()
         self._insert_negative_elevation()
         self._insert_distance()
@@ -416,6 +416,38 @@ class Track:
         self.total_distance = self.df_track.distance.iloc[-1]
         self.total_uphill = self.df_track.ele_pos_cum.iloc[-1]
         self.total_downhill = self.df_track.ele_neg_cum.iloc[-1]
+
+    def get_summary(self):
+        summary = {}
+
+        for seg_id in self.df_track.segment.unique():
+            distance_lbl = \
+                SummaryUtils.get_distance_label(self, segment_id=seg_id)
+            gained_elevation_lbl = \
+                SummaryUtils.get_elevation_label(self,
+                                                 'ele_pos_cum',
+                                                 segment_id=seg_id)
+            lost_elevation_lbl = \
+                SummaryUtils.get_elevation_label(self,
+                                                 'ele_neg_cum',
+                                                 segment_id=seg_id)
+            summary[self.segment_names[seg_id-1]] = \
+                {'distance': distance_lbl,
+                 'uphill': gained_elevation_lbl,
+                 'downhill': lost_elevation_lbl}
+
+        distance_lbl = SummaryUtils.get_distance_label(self, -1, total=True)
+        gained_elevation_lbl = \
+            SummaryUtils.get_elevation_label(self, 'ele_pos_cum', total=True)
+        lost_elevation_lbl = \
+            SummaryUtils.get_elevation_label(self, 'ele_neg_cum', total=True)
+
+        summary['total'] = \
+            {'distance': distance_lbl,
+             'uphill': gained_elevation_lbl,
+             'downhill': lost_elevation_lbl}
+
+        return summary
 
     def _force_columns_type(self):
         # At some points it is needed to ensure the data type of each column
@@ -480,3 +512,57 @@ class Track:
         self.extremes = \
             (self.df_track["lat"].min(), self.df_track["lat"].max(),
              self.df_track["lon"].min(), self.df_track["lon"].max())
+
+
+class SummaryUtils:
+    @staticmethod
+    def get_distance_label(ob_track: Track, segment_id: int = 1,
+                           total: bool = False) -> str:
+        if total:
+            distance = ob_track.total_distance
+        else:
+            segment = ob_track.get_segment(segment_id)
+            first = segment.iloc[0]
+            last = segment.iloc[-1]
+
+            if np.isnan(first['distance']):
+                distance = last['distance']
+            else:
+                distance = last['distance'] - first['distance']
+
+        if distance < 5:
+            label = f'{distance:.2f} km'
+        else:
+            label = f'{distance:.1f} km'
+
+        return label
+
+    @staticmethod
+    def get_elevation_label(ob_track: Track, magnitude: str,
+                            segment_id: int = 1, total: bool = False) -> str:
+        if total:
+            if 'pos' in magnitude:
+                elevation = ob_track.total_uphill
+            elif 'neg' in magnitude:
+                elevation = ob_track.total_downhill
+            else:
+                elevation = 0
+        else:
+            segment = ob_track.get_segment(segment_id)
+            first = segment.iloc[0]
+            last = segment.iloc[-1]
+
+            if np.isnan(first[magnitude]):
+                elevation = last[magnitude]
+            else:
+                elevation = last[magnitude] - first[magnitude]
+
+        if abs(elevation) < 10:
+            label = f'{elevation:.1f} m'
+        else:
+            label = f'{int(elevation)} m'
+
+        if elevation > 0:
+            label = f'+{label}'
+
+        return label

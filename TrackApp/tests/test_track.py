@@ -489,3 +489,31 @@ class TrackTest(TestCase):
         obj_track.rename_segment(2, 'seg2')
         self.assertEqual(obj_track.segment_names, ['seg0', 'seg1', 'seg2'])
         self.assertFalse(obj_track.rename_segment(4, 'seg_4'))
+
+    def test_get_summary(self):
+        # Load data
+        obj_track = track.Track()
+        obj_track.add_gpx(f'{self.test_path}/samples/simple_numbers.gpx')
+        obj_track.add_gpx(f'{self.test_path}/samples/simple_numbers.gpx')
+        obj_track.rename_segment(0, 'seg0')
+        obj_track.rename_segment(1, 'seg1')
+
+        expected_dict = {
+            'seg0': {
+                'distance': '445.2 km',
+                'uphill': '+20 m',
+                'downhill': '-20 m'
+            },
+            'seg1': {
+                'distance': '445.2 km',
+                'uphill': '+20 m',
+                'downhill': '-20 m'
+            },
+            'total': {
+                'distance': '1335.6 km',
+                'uphill': '+40 m',
+                'downhill': '-40 m'
+            }
+        }
+        summary = obj_track.get_summary()
+        self.assertEqual(expected_dict, summary)
