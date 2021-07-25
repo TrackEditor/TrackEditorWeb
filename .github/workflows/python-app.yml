@@ -20,7 +20,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Flake8
       run: |
-        flake8 . --max-line-length=100 --max-complexity 10 --exit-zero
+        flake8 . --max-line-length=100 --max-complexity 10
     - name: Test
       run: |
         coverage run --parallel-mode --rcfile=./.coveragerc --source=TrackApp manage.py test --parallel 8

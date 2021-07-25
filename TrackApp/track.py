@@ -282,6 +282,7 @@ class Track:
         df_segment['ele'] = smooth_elevation
         self.df_track.loc[self.df_track['segment'] == index] = df_segment
 
+    # flake8: noqa: E712
     def fix_elevation(self, index: int):
         df_segment = self.get_segment(index)
 

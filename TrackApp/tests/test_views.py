@@ -347,7 +347,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         time.sleep(1)
-        
+
         error_msg = self.driver.find_element_by_id('div_error_msg')
         self.assertEqual(error_msg.text, 'Error loading files')
 
