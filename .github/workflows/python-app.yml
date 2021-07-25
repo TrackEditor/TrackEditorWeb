@@ -16,15 +16,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-cov
+        pip install flake8
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Flake8
       run: |
         flake8 . --max-line-length=100 --max-complexity 10 --exit-zero
-    - name: Run migrations
-      run: |
-        python manage.py migrate
     - name: Test
       run: |
-        coverage run --source=TrackApp manage.py test
-        coverage report --omit=TrackApp/tests/*
+        coverage run --parallel-mode --rcfile=./.coveragerc --source=TrackApp manage.py test --parallel 8
+        coverage combine --rcfile=./.coveragerc
+        coverage report -m --rcfile=./.coveragerc
