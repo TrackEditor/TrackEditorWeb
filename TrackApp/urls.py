@@ -12,13 +12,11 @@ urlpatterns = [
     path('insert_timestamp', views.insert_timestamp, name='insert_timestamp'),
     path('users_only', views.users_only, name='users_only'),
     path('editor', views.editor, name='editor'),
-    path('editor/rename_segment', views.editor_rename_segment,
-         name='editor_rename_segment'),
-    path('editor/remove_segment', views.editor_remove_segment,
-         name='editor_remove_segment'),
-    path('editor/get_segment/<int:index>', views.get_segment,
-         name='get_segment'),
+    path('editor/rename_segment', views.rename_segment, name='rename_segment'),
+    path('editor/remove_segment', views.remove_segment, name='remove_segment'),
+    path('editor/get_segment/<int:index>', views.get_segment, name='get_segment'),
     path('editor/get_summary', views.get_summary, name='get_summary'),
+    path('editor/save_session', views.save_session, name='save_session'),
 ]
 
 # DEBUG will only be available during development in other case a more powerful

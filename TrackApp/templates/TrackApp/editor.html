@@ -8,7 +8,7 @@
 
 {% block body %}
     <h2>Track Editor</h2>
-    <div class="container" id="div_alerts_box">
+    <div class="container" id="div_alerts_box" style="width: 72vh; margin-left: 0px;">
         <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-valid_extensions="{{valid_extensions}}">
             {% if error %}
                 <div class="alert alert-danger" id="div_error_msg" role="alert">
@@ -20,8 +20,8 @@
 
     <!-- Management buttons -->
     <div class="container">
-        <button type="button" class="btn btn-secondary">Save session</button>
-        <button type="button" class="btn btn-secondary">Save & Download</button>
+        <button type="button" class="btn btn-secondary" id="btn_save">Save </button>
+        <button type="button" class="btn btn-secondary">Download</button>
 
         <form method="post" enctype="multipart/form-data" id="form" style="display: inline;">
             {% csrf_token %}

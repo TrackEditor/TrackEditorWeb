@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     manage_track_names();
     plot_tracks();
     show_summary();
+    save_session();
 });
 
 
@@ -62,6 +63,7 @@ function manage_track_names() {
             span_name.innerHTML = track_list[i];
             span_name.setAttribute('data-index', i);
             span_name.setAttribute('data-original_name', span_name.innerHTML);
+            span_name.setAttribute('id', `span_rename_${i}`);
 
             span_name.addEventListener('blur', function() {
                 console.log('Change track name',
@@ -85,6 +87,7 @@ function manage_track_names() {
             button_remove.setAttribute('aria-label', 'Close');
             button_remove.style = 'font-size: 18px; vertical-align: -3px; margin-left: 20px;';
             button_remove.setAttribute('data-index', i);
+            button_remove.setAttribute('id', `btn_remove_${i}`);
 
             button_remove.addEventListener('click', function() {
                 let segment_id = parseInt(button_remove.getAttribute('data-index')) + 1;
@@ -309,6 +312,11 @@ function get_lines_style(color_index) {
 
 
 function show_summary() {
+    /*
+    SHOW_SUMMARY display on a modal box overall information of each segment
+    and the full track.
+    */
+
     // Get elements
     var modal = document.getElementById("div_summary_modal");
     var btn = document.getElementById("btn_summary");
@@ -380,4 +388,44 @@ function show_summary() {
 
     }
 
+}
+
+function save_session() {
+    /*
+    SAVE_SESSION save the current track object in backend when clicking the
+    save button
+    */
+    let btn_save = document.getElementById('btn_save');
+
+    btn_save.addEventListener('click', function() {
+        document.querySelector('#div_spinner').style.display = 'inline-block';
+        fetch('/editor/save_session', {
+            method: 'POST',
+                body: JSON.stringify({
+                    save:  'True',
+                })
+        })
+        .then(response => {
+            document.querySelector('#div_spinner').style.display = 'none';
+
+            let div = document.getElementById('div_alerts_box');
+            if (response.status === 201){
+                div.innerHTML = '<div class="alert alert-success" role="alert">Session has been saved</div>';
+            }
+            else if (response.status === 491){
+                div.innerHTML = '<div class="alert alert-warning" role="alert">No track is loaded</div>';
+            }
+            else if (response.status === 492){
+                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Code: 492</div>';
+            }
+            else {
+                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Unable to save</div>';
+            }
+
+            setTimeout(function(){
+                div.innerHTML = '';
+            }, 3000);
+
+        })
+    });
 }
