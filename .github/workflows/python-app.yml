@@ -36,7 +36,7 @@ jobs:
         flake8 . --max-line-length=100 --max-complexity 10
     - name: Run tests
       env:
-          DB_NAME: postgres
+          DB_NAME: track_db
           DB_USER: postgres
           DB_PASSWORD: postgres
           DB_PORT: 5432

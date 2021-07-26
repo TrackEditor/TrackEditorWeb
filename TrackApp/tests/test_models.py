@@ -31,7 +31,8 @@ class ModelsTest(TestCase):
         self.assertEqual(new_track.track, json_track)
         self.assertIsNotNone(new_track.id)
         self.assertIsInstance(new_track.id, int)
-        self.assertEqual(new_track.last_edit, new_track.creation)
+        self.assertTrue(
+            new_track.last_edit - new_track.creation < dt.timedelta(microseconds=50))
 
     def test_last_edit(self):
         new_track, _, _ = self.record_track()
