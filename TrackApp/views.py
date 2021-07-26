@@ -258,7 +258,7 @@ def editor(request):
 
 @login_required
 @csrf_exempt
-def editor_rename_segment(request):
+def rename_segment(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         index = data['index']
@@ -280,7 +280,7 @@ def editor_rename_segment(request):
 
 @login_required
 @csrf_exempt
-def editor_remove_segment(request):
+def remove_segment(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         index = data['index']
