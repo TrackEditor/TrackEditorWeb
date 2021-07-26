@@ -6,3 +6,4 @@ omit =
     */distutils/*
     */dist-packages/*
     */tests/*
+    */migrations/*

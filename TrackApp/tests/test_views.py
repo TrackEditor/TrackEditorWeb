@@ -38,7 +38,7 @@ class ViewsTest(StaticLiveServerTestCase):
         options.headless = True
         self.downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
         preferences = \
-            {'download.default_directory':  self.downloads_dir,
+            {'download.default_directory': self.downloads_dir,
              'safebrowsing.enabled': 'false'}
         options.add_experimental_option('prefs', preferences)
 

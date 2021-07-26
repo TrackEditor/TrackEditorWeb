@@ -74,9 +74,7 @@ class EditorTest(StaticLiveServerTestCase):
         for k in saved_track:
             if k == 'segment_names':
                 for saved, reference in zip(saved_track[k], reference_track[k]):
-                    saved_normalized = ''.join(saved.split('_')[:-1])
-                    ref_normalized = ''.join(''.join(reference.split('.gpx')).split('_'))
-                    self.assertEqual(saved_normalized, ref_normalized)
+                    self.assertIn(os.path.splitext(reference)[0], saved)
             else:
                 self.assertEqual(saved_track[k], reference_track[k])
 
@@ -102,9 +100,7 @@ class EditorTest(StaticLiveServerTestCase):
         for k in saved_track:
             if k == 'segment_names':
                 for saved, reference in zip(saved_track[k], reference_track[k]):
-                    saved_normalized = ''.join(saved.split('_')[:-1])
-                    ref_normalized = ''.join(''.join(reference.split('.gpx')).split('_'))
-                    self.assertEqual(saved_normalized, ref_normalized)
+                    self.assertIn(os.path.splitext(reference)[0], saved)
             elif k == 'last_segment_idx':
                 self.assertEqual(saved_track[k], 2)
             elif k == 'segment':
