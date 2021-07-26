@@ -63,6 +63,7 @@ function manage_track_names() {
             span_name.innerHTML = track_list[i];
             span_name.setAttribute('data-index', i);
             span_name.setAttribute('data-original_name', span_name.innerHTML);
+            span_name.setAttribute('id', `span_rename_${i}`);
 
             span_name.addEventListener('blur', function() {
                 console.log('Change track name',
@@ -86,6 +87,7 @@ function manage_track_names() {
             button_remove.setAttribute('aria-label', 'Close');
             button_remove.style = 'font-size: 18px; vertical-align: -3px; margin-left: 20px;';
             button_remove.setAttribute('data-index', i);
+            button_remove.setAttribute('id', `btn_remove_${i}`);
 
             button_remove.addEventListener('click', function() {
                 let segment_id = parseInt(button_remove.getAttribute('data-index')) + 1;
