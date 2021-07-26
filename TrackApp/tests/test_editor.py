@@ -1,13 +1,15 @@
 import os
 import unittest
 from urllib.parse import urljoin
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 
-from TrackApp.models import User
+from django.test import TestCase
+from django.test.client import RequestFactory
+
+from TrackApp.models import User, Track
 
 
-class EditorTest(StaticLiveServerTestCase):
+class EditorTest(TestCase):
 
     @staticmethod
     def login(driver, live_server_url, username, password):
@@ -59,3 +61,8 @@ class EditorTest(StaticLiveServerTestCase):
         self.open_editor()
 
         assert False
+
+    def test_save_session(self):
+        rf = RequestFactory()
+        get_request = rf.get('/editor/')
+        post_request = rf.post('/submit/', {'foo': 'bar'})
