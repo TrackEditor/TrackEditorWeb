@@ -23,11 +23,10 @@
     color: #3C565B;
 }
 
-.spinner {
+#div_spinner {
     display: none;
     color: #3C565B;
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 20px;
 }
 
 .page-link-selected, .page-link-selected:hover {
