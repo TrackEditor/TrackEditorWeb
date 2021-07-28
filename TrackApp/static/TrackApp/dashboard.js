@@ -54,13 +54,13 @@ function load_tracks(page) {
                 const td_track = document.createElement('td');
                 const td_last_edit = document.createElement('td');
 
-                const button_edit = document.createElement('button');
+                const button_edit = document.createElement('a');
                 const button_remove = document.createElement('button');
 
+                button_edit.setAttribute('href', `editor/session/${track.id}`);
                 button_edit.setAttribute('class', 'btn');
                 button_edit.setAttribute('title', 'Edit');
                 button_edit.innerHTML = '<span class="btn-edit">&#9998</span>';
-                button_edit.addEventListener('click', e => edit_session(track.id));
                 td_buttons.appendChild(button_edit);
 
                 button_remove.setAttribute('class', 'btn-close');
@@ -123,8 +123,4 @@ function remove_session(id, page) {
         })
     };
     document.querySelector('#div_spinner_modal').style.display = 'none';
-}
-
-function edit_session(id) {
-    console.log('function edit_session', id);
 }

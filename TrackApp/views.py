@@ -270,6 +270,21 @@ def editor(request):
 
 
 @login_required
+def load_session(request, index):
+    config = {'maximum_file_size': c.maximum_file_size,
+              'maximum_files': c.maximum_files,
+              'valid_extensions': c.valid_extensions}
+
+    request.session['json_track'] = Track.objects.get(id=index).track
+    json_track = json.loads(request.session['json_track'])
+
+    return render(request, 'TrackApp/editor.html',
+                  {'track_list': json_track['segment_names'],
+                   'title': json_track['title'],
+                   **config})
+
+
+@login_required
 @csrf_exempt
 def rename_segment(request):
     if request.method == 'POST':

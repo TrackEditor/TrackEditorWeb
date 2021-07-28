@@ -20,7 +20,8 @@ urlpatterns = [
     path('editor/get_summary', views.get_summary, name='get_summary'),
     path('editor/save_session', views.save_session, name='save_session'),
     path('editor/remove_session/<int:index>', views.remove_session, name='remove_session'),
-    path('editor/rename_session', views.rename_session, name='rename_session')
+    path('editor/rename_session', views.rename_session, name='rename_session'),
+    path('editor/session/<int:index>', views.load_session, name='load_session')
 ]
 
 # DEBUG will only be available during development in other case a more powerful
