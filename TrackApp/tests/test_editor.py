@@ -34,7 +34,7 @@ class EditorTest(StaticLiveServerTestCase):
     def setUp(self):
         # Selenium configuration
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
         preferences = \
             {'download.default_directory':  self.downloads_dir,

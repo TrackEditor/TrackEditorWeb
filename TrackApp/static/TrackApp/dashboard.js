@@ -69,7 +69,7 @@ function load_tracks(page) {
                 button_remove.addEventListener('click', e => remove_session(track.id, page));
                 td_buttons.appendChild(button_remove);
 
-                td_track.innerHTML = `<span class="track">track_${track.id}</span>`;
+                td_track.innerHTML = `<span class="track">${track.title}</span>`;
                 td_last_edit.innerHTML = `<span class="track">${track.last_edit}</span>`;
 
                 tr.appendChild(td_buttons);

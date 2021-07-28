@@ -419,6 +419,7 @@ def get_tracks_from_db(request, page):
     for page in page_tracks:
         response.append(
             {'id': page.id,
+             'title': page.title,
              'last_edit': page.last_edit.strftime('%d %B %Y %H:%M')}
         )
 
