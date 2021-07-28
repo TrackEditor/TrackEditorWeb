@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     plot_tracks();
     show_summary();
     save_session();
+    update_session_name();
 });
 
 
@@ -428,4 +429,20 @@ function save_session() {
 
         })
     });
+}
+
+function update_session_name() {
+    let e_title = document.querySelector('#h_session_name');
+
+    e_title.addEventListener('blur', function() {
+
+        fetch('/editor/rename_session', {
+            method: 'POST',
+            body: JSON.stringify({
+                new_name: e_title.innerHTML
+            })
+        })
+        .then(response => console.log(response));
+    });
+    // TODO manage error
 }

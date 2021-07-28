@@ -46,12 +46,14 @@ class Track:
         self.total_uphill = 0
         self.total_downhill = 0
         self.segment_names = []  # indexing in line with segment index, diff 1
+        self.title = 'track_name (edit me)'
 
         if track_json:
             self.from_json(track_json)
 
     def __str__(self):
-        return f'df_track: \n{self.df_track.head(3)}\n' + \
+        return f'title: {self.title}\n' + \
+               f'df_track: \n{self.df_track.head(3)}\n' + \
                f'{self.df_track.tail(3)}\n\n' + \
                f'shape: {self.df_track.shape}\n' + \
                f'size: {self.size}\n' + \
@@ -75,12 +77,24 @@ class Track:
             track_dict['total_uphill'] = float(self.total_uphill)
             track_dict['total_downhill'] = float(self.total_downhill)
             track_dict['segment_names'] = self.segment_names
+            track_dict['title'] = self.title
             return json.dumps(track_dict)
-
-        return ''  # when no segment is loaded
+        else:
+            track_dict = {'lat': {}, 'lon': {}, 'ele': {}, 'segment': {},
+                          'ele_pos_cum': {}, 'ele_neg_cum': {}, 'distance': {},
+                          'size': 0, 'last_segment_idx': 0,
+                          'extremes': [0, 0, 0, 0], 'total_distance': 0,
+                          'total_uphill': 0, 'total_downhill': 0,
+                          'segment_names': [], 'title': self.title}
+            return json.dumps(track_dict)
 
     def from_json(self, json_string: str) -> bool:
         json_dict = json.loads(json_string)
+        if json_dict['size'] == 0:
+            if 'title' in json_dict:
+                if json_dict['title']:
+                    self.title = json_dict['title']
+            return False  # there are no data to load
 
         df_keys = ['lat', 'lon', 'ele', 'segment',
                    'ele_pos_cum', 'ele_neg_cum', 'distance']
@@ -101,6 +115,7 @@ class Track:
         self.total_uphill = json_dict['total_uphill']
         self.total_downhill = json_dict['total_downhill']
         self.segment_names = json_dict['segment_names']
+        self.title = json_dict['title']
 
         return True
 

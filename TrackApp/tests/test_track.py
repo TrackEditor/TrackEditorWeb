@@ -446,7 +446,20 @@ class TrackTest(TestCase):
             self.assertIn(k, json_track)
             self.assertEqual(len(json_track[k]), 5)
 
-        metadata_keys = ['size', 'last_segment_idx', 'extremes', 'total_distance', 'total_uphill', 'total_downhill']
+        metadata_keys = ['size', 'last_segment_idx', 'extremes', 'total_distance', 'total_uphill', 'total_downhill', 'title']
+        for k in metadata_keys:
+            self.assertIn(k, json_track)
+
+    def test_to_json_empty(self):
+        obj_track = track.Track()
+        json_track = json.loads(obj_track.to_json())
+
+        dataframe_keys = ['lat', 'lon', 'ele', 'segment', 'ele_pos_cum', 'ele_neg_cum', 'distance']
+        for k in dataframe_keys:
+            self.assertIn(k, json_track)
+            self.assertEqual(len(json_track[k]), 0)
+
+        metadata_keys = ['size', 'last_segment_idx', 'extremes', 'total_distance', 'total_uphill', 'total_downhill', 'title']
         for k in metadata_keys:
             self.assertIn(k, json_track)
 
@@ -464,7 +477,8 @@ class TrackTest(TestCase):
                       ' "total_distance": 445.2106018066406,' + \
                       ' "total_uphill": 20.0,' + \
                       ' "total_downhill": -20.0,' + \
-                      ' "segment_names": ["simple_numbers.gpx"]}'
+                      ' "segment_names": ["simple_numbers.gpx"],' \
+                      ' "title": "tesing track"}'
 
         obj_track = track.Track(track_json=json_string)
 
@@ -474,6 +488,24 @@ class TrackTest(TestCase):
         self.assertAlmostEqual(obj_track.total_distance, 445.2106018066406)
         self.assertEqual(obj_track.total_uphill, 20.0)
         self.assertEqual(obj_track.total_downhill, -20.0)
+
+    def test_from_json_empty(self):
+        json_string = '{"lat": {}, "lon": {}, "ele": {}, "segment": {}, ' + \
+                      ' "ele_pos_cum": {}, "ele_neg_cum": {}, ' +  \
+                      ' "distance": {}, "size": 0, "last_segment_idx": 0, ' + \
+                      ' "extremes": [0, 0, 0, 0], "total_distance": 0, ' + \
+                      ' "total_uphill": 0, "total_downhill": 0, ' + \
+                      ' "segment_names": [], "title": "my_track_name"}'
+
+        obj_track = track.Track(track_json=json_string)
+
+        self.assertEqual(obj_track.df_track.shape, (0, 5))
+        self.assertEqual(obj_track.size, 0)
+        self.assertEqual(obj_track.extremes, [0, 0, 0, 0])
+        self.assertAlmostEqual(obj_track.total_distance, 0)
+        self.assertEqual(obj_track.total_uphill, 0)
+        self.assertEqual(obj_track.total_downhill, 0)
+        self.assertEqual(obj_track.title, "my_track_name")
 
     def test_rename_segment(self):
         # Load data

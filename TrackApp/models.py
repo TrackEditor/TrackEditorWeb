@@ -11,7 +11,8 @@ class Track(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     last_edit = models.DateTimeField(auto_now_add=True)
     creation = models.DateTimeField(auto_now_add=True)
-    track = models.JSONField()
+    track = models.JSONField(blank=False)
+    title = models.TextField(blank=False)
 
     def __str__(self):
         return f'{self.user.username} - {self.id} - {self.creation}'

@@ -7,7 +7,13 @@
 {% endblock %}
 
 {% block body %}
-    <h2>Track Editor</h2>
+    <h2 contenteditable="true" id="h_session_name">
+        {% if title %}
+        {{title}}
+        {% else %}
+        track_name (edit me)
+        {% endif %}
+    </h2>
     <div class="container" id="div_alerts_box" style="width: 72vh; margin-left: 0px;">
         <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-valid_extensions="{{valid_extensions}}">
             {% if error %}

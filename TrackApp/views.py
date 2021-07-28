@@ -259,12 +259,13 @@ def editor(request):
 
         return render(request, 'TrackApp/editor.html',
                       {'track_list': obj_track.segment_names,
+                       'title': obj_track.title,
                        **config})
 
         # TODO control exceptions
 
     else:  # create object
-        request.session['json_track'] = None
+        request.session['json_track'] = track.Track().to_json()
         return render(request, 'TrackApp/editor.html', {**config})
 
 
@@ -393,7 +394,9 @@ def save_session(request):
                 obj_track = track.Track(track_json=request.session['json_track'])
                 json_track = obj_track.to_json()
 
-                new_track = Track(user=request.user, track=json_track)
+                new_track = Track(user=request.user,
+                                  track=json_track,
+                                  title=obj_track.title)
                 new_track.save()
 
                 return JsonResponse({'message': 'Session has been saved'},
@@ -442,6 +445,30 @@ def remove_session(request, index):
                                 status=201)
         except Exception:
             return JsonResponse({'message': 'Unable to remove track'},
+                                status=500)
+    else:
+        return JsonResponse({'error': 'POST request required'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def rename_session(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            new_name = data['new_name']
+
+            dict_track = json.loads(request.session['json_track'])
+            dict_track['title'] = new_name.replace('\n', '').strip()
+            request.session['json_track'] = json.dumps(dict_track)
+
+            print('--- RENAME SESSION ---')
+            print(dict_track)
+
+            return JsonResponse({'message': 'Session is successfully renamed'},
+                                status=201)
+        except Exception:
+            return JsonResponse({'error': 'Unable to rename session'},
                                 status=500)
     else:
         return JsonResponse({'error': 'POST request required'}, status=400)
