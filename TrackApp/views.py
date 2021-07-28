@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.contrib import messages
 
 from . import track
 from . import constants as c
@@ -28,6 +29,14 @@ pandas.set_option('display.expand_frame_repr', False)
 
 
 def index_view(request):
+    if request.user.is_authenticated:
+        number_pages = math.ceil(Track.objects.order_by("-last_edit").
+                                 filter(user=request.user).count() / 10)
+        return render(request, 'TrackApp/dashboard.html',
+                      {'pages': list(range(1, number_pages + 1)),
+                       'number_pages': number_pages,
+                       'welcome': f'Hi, {request.user.username}!'})
+
     return render(request, 'TrackApp/index.html')
 
 
@@ -80,6 +89,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
+    messages.success(request, 'See you soon!')
     return HttpResponseRedirect(reverse('index'))
 
 

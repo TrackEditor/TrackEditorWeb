@@ -1,6 +1,12 @@
 {% extends "TrackApp/layout.html" %}
 
 {% block body %}
-    <h2>Welcome!</h2>
+    {% if messages %}
+        {% for m in messages %}
+            <h2>{{m}}</h2>
+        {% endfor %}
+    {% else %}
+        <h2>Welcome!</h2>
+    {% endif %}
 
 {% endblock %}

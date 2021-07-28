@@ -10,7 +10,12 @@
 {% endblock %}
 
 {% block body %}
-    <h2 style="display: inline-block;">Dashboard</h2>
+    {% if welcome %}
+        <h2 style="display: inline-block;">{{welcome}}</h2>
+    {% else %}
+        <h2 style="display: inline-block;">Dashboard</h2>
+    {% endif %}
+
     <div class="spinner spinner-border" id="div_spinner" role="status">
         <span class="sr-only"></span>
     </div>

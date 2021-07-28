@@ -34,7 +34,7 @@ class EditorTest(StaticLiveServerTestCase):
     def setUp(self):
         # Selenium configuration
         options = webdriver.ChromeOptions()
-        options.headless = True
+        options.headless = False
         self.downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
         preferences = \
             {'download.default_directory':  self.downloads_dir,
@@ -130,3 +130,6 @@ class EditorTest(StaticLiveServerTestCase):
         reference_track = json.loads(obj_track.to_json())
 
         self.assertEqual(saved_track, reference_track)
+
+    def test_open_editor(self):
+        print()
