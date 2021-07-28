@@ -23,7 +23,7 @@
     color: #3C565B;
 }
 
-#div_spinner {
+#div_spinner, #div_spinner_modal {
     display: none;
     color: #3C565B;
     margin-left: 20px;

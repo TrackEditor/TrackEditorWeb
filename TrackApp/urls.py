@@ -19,6 +19,7 @@ urlpatterns = [
     path('editor/get_segment/<int:index>', views.get_segment, name='get_segment'),
     path('editor/get_summary', views.get_summary, name='get_summary'),
     path('editor/save_session', views.save_session, name='save_session'),
+    path('editor/remove_session/<int:index>', views.remove_session, name='remove_session'),
 ]
 
 # DEBUG will only be available during development in other case a more powerful

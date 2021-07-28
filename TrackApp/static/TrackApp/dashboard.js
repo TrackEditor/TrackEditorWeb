@@ -54,11 +54,20 @@ function load_tracks(page) {
                 const td_track = document.createElement('td');
                 const td_last_edit = document.createElement('td');
 
-                td_buttons.innerHTML =
-                        `<button class="btn" type="button" title="Edit" id="btn_edit_${track.id}">
-                            <span class="btn-edit">&#9998</span>
-                        </button>
-                        <button type="button" class="btn-close" aria-label="Close" title="Remove" id="btn_remove_${track.id}"></button>`;
+                const button_edit = document.createElement('button');
+                const button_remove = document.createElement('button');
+
+                button_edit.setAttribute('class', 'btn');
+                button_edit.setAttribute('title', 'Edit');
+                button_edit.innerHTML = '<span class="btn-edit">&#9998</span>';
+                button_edit.addEventListener('click', e => edit_session(track.id));
+                td_buttons.appendChild(button_edit);
+
+                button_remove.setAttribute('class', 'btn-close');
+                button_remove.setAttribute('aria-label', 'Close');
+                button_remove.setAttribute('title', 'Remove');
+                button_remove.addEventListener('click', e => remove_session(track.id, page));
+                td_buttons.appendChild(button_remove);
 
                 td_track.innerHTML = `<span class="track">track_${track.id}</span>`;
                 td_last_edit.innerHTML = `<span class="track">${track.last_edit}</span>`;
@@ -69,4 +78,53 @@ function load_tracks(page) {
                 tbody.appendChild(tr);
             })
         });
+}
+
+function remove_session(id, page) {
+    var btn_yes = document.getElementById('btn_yes');
+    var modal = document.getElementById('div_confirmation_modal');
+    var span = document.getElementsByClassName("close")[0];  // <span> element that closes the modal
+    modal.style.display = 'block';
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = 'none';
+      return;
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = 'none';
+        return;
+      }
+    }
+
+    // When click yes
+    btn_yes.onclick = function(event) {
+        document.querySelector('#div_spinner_modal').style.display = 'inline-block';
+        fetch(`/editor/remove_session/${id}`, {
+            method: 'POST'
+        })
+        .then(response => {
+            modal.style.display = 'none';
+            console.log('remove_session', id);
+            console.log(response.status);
+            if (response.status === 201) {
+                load_tracks(page);
+            }
+            else {
+                let div = document.getElementById('div_error_msg');
+                div.innerHTML = 'Unable to remove track'
+                setTimeout(function(){
+                    div.innerHTML = '';
+                }, 3000);
+            }
+        })
+    };
+    document.querySelector('#div_spinner_modal').style.display = 'none';
+}
+
+function edit_session(id) {
+    console.log('function edit_session', id);
 }

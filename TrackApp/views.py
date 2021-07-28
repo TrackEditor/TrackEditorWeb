@@ -419,3 +419,19 @@ def dashboard(request):
     return render(request, 'TrackApp/dashboard.html',
                   {'pages': list(range(1, number_pages+1)),
                    'number_pages': number_pages})
+
+
+@login_required
+@csrf_exempt
+def remove_session(request, index):
+    if request.method == 'POST':
+        try:
+            Track.objects.get(id=index).delete()
+
+            return JsonResponse({'message': 'Track is successfully removed'},
+                                status=201)
+        except Exception:
+            return JsonResponse({'message': 'Unable to remove track'},
+                                status=500)
+    else:
+        return JsonResponse({'error': 'POST request required'}, status=400)

@@ -15,6 +15,11 @@
         <span class="sr-only"></span>
     </div>
 
+    <div class="container" style="width: 72vh; margin-left: 0px;">
+        <div class="alert alert-danger" id="div_error_msg" role="alert" style="display: none;">
+        </div>
+    </div>
+
 
     <div class="container">
         <table class="table">
@@ -31,18 +36,41 @@
         </table>
     </div>
 
-    <nav aria-label="Page navigation example">
-        <ul class="pagination" id="pagination" data-number_pages="{{number_pages}}">
+    <div class="container">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination" id="pagination" data-number_pages="{{number_pages}}">
 
-            {% if number_pages > 1 %}
-                <li class="page-item"><a class="page-link" data-page="previous">Previous</a></li>
-                {% for page in pages %}
-                    <li class="page-item"><a class="page-link" id="page_{{page}}" data-page="{{page}}">{{page}}</a></li>
-                {% endfor %}
-                <li class="page-item"><a class="page-link" data-page="next">Next</a></li>
-            {% endif %}
-        </ul>
-    </nav>
+                {% if number_pages > 1 %}
+                    <li class="page-item"><a class="page-link" data-page="previous">Previous</a></li>
+                    {% for page in pages %}
+                        <li class="page-item"><a class="page-link" id="page_{{page}}" data-page="{{page}}">{{page}}</a></li>
+                    {% endfor %}
+                    <li class="page-item"><a class="page-link" data-page="next">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
 
+    <!-- Remove confirmation -->
+    <div class="container">
+        <div id="div_confirmation_modal" class="modal">
+
+          <!-- Modal content -->
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="div_confirmation_content" style="text-align: center; vertical-align: middle;">
+                Are you sure to remove this session?
+                <p>
+                    <button type="button" class="btn btn-secondary" id="btn_yes">Yes</button>
+                    <button type="button" class="btn btn-secondary" id="btn_no">No</button>
+                    <div class="spinner spinner-border" id="div_spinner_modal" role="status">
+                        <span class="sr-only"></span>
+                    </div>
+                </p>
+            </div>
+          </div>
+
+        </div>
+    </div>
 
 {% endblock %}
