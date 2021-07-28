@@ -1,0 +1,50 @@
+{% extends "TrackApp/layout.html" %}
+{% load static %}
+
+{% block style %}
+    <link href="{% static 'TrackApp/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'TrackApp/dashboard.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+    <h2>Dashboard</h2>
+
+
+    <div class="container">
+        <table class="table">
+            <thead class="table-header">
+                <tr>
+                    <th style="width: 110px;"></th>
+                    <th style="width: 500px;">Session</th>
+                    <th style="width: 220px;">Last edit</th>
+                </tr>
+            </thead>
+            <tbody id="table_body">
+            <!-- insert with JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Loading spinner -->
+    <div class="spinner spinner-border" id="div_spinner" role="status">
+        <span class="sr-only"></span>
+    </div>
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination" id="pagination" data-number_pages="{{number_pages}}">
+
+            {% if number_pages > 1 %}
+                <li class="page-item"><a class="page-link" data-page="previous">Previous</a></li>
+                {% for page in pages %}
+                    <li class="page-item"><a class="page-link" id="page_{{page}}" data-page="{{page}}">{{page}}</a></li>
+                {% endfor %}
+                <li class="page-item"><a class="page-link" data-page="next">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+
+{% endblock %}

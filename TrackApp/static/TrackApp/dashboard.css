@@ -1,0 +1,36 @@
+.table-header {
+    background-color: #7BCCB5;
+    color: #3C565B;
+}
+
+.btn-edit {
+    font-size: 23px;
+    font-weight: bold;
+    color: #3C565B;
+    vertical-align: 5px;
+}
+
+.track {
+    vertical-align: -10px;
+}
+
+.page-link {
+    background-color: #f5f7f3;
+    color: #3C565B;
+}
+
+.page-link:hover {
+    color: #3C565B;
+}
+
+.spinner {
+    display: none;
+    color: #3C565B;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page-link-selected, .page-link-selected:hover {
+    background-color: #7BCCB5;
+    color: #3C565B;
+}

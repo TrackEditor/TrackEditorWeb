@@ -1,6 +1,7 @@
 import os
 import traceback
 import json
+import math
 from datetime import datetime
 
 from django.contrib.auth import authenticate, login, logout
@@ -11,6 +12,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 from . import track
 from . import constants as c
@@ -393,3 +395,27 @@ def save_session(request):
             return JsonResponse({'error': 'No track is loaded'}, status=491)
 
     return JsonResponse({'error': 'POST request required'}, status=400)
+
+
+@login_required
+def get_tracks_from_db(request, page):
+    all_tracks = Track.objects.order_by("-last_edit").filter(user=request.user)
+    page_tracks = Paginator(all_tracks, 10).page(page).object_list
+
+    response = []
+    for page in page_tracks:
+        response.append(
+            {'id': page.id,
+             'last_edit': page.last_edit.strftime('%d %B %Y %H:%M')}
+        )
+
+    return JsonResponse(response, safe=False)
+
+
+@login_required
+def dashboard(request):
+    number_pages = math.ceil(Track.objects.order_by("-last_edit").
+                             filter(user=request.user).count() / 10)
+    return render(request, 'TrackApp/dashboard.html',
+                  {'pages': list(range(1, number_pages+1)),
+                   'number_pages': number_pages})
