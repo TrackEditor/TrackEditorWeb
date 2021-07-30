@@ -237,12 +237,13 @@ def users_only(request):
 
 
 @login_required
-def editor(request):
+def editor(request, index=None):
     config = {'maximum_file_size': c.maximum_file_size,
               'maximum_files': c.maximum_files,
               'valid_extensions': c.valid_extensions}
 
-    if request.method == 'POST':
+    print(f'{index=}')
+    if request.method == 'POST':  # add files to session
         fs = FileSystemStorage()
         uploaded_file = request.FILES['document']
         filename = fs.save(uploaded_file.name, uploaded_file)
@@ -264,24 +265,21 @@ def editor(request):
 
         # TODO control exceptions
 
-    else:  # create object
+    else:
+        if index:  # load existing session
+            request.session['json_track'] = Track.objects.get(id=index).track
+            request.session['index_db'] = index
+            json_track = json.loads(request.session['json_track'])
+
+            return render(request, 'TrackApp/editor.html',
+                          {'track_list': json_track['segment_names'],
+                           'title': json_track['title'],
+                           **config})
+
+        # Create new session
         request.session['json_track'] = track.Track().to_json()
+        request.session['index_db'] = index
         return render(request, 'TrackApp/editor.html', {**config})
-
-
-@login_required
-def load_session(request, index):
-    config = {'maximum_file_size': c.maximum_file_size,
-              'maximum_files': c.maximum_files,
-              'valid_extensions': c.valid_extensions}
-
-    request.session['json_track'] = Track.objects.get(id=index).track
-    json_track = json.loads(request.session['json_track'])
-
-    return render(request, 'TrackApp/editor.html',
-                  {'track_list': json_track['segment_names'],
-                   'title': json_track['title'],
-                   **config})
 
 
 @login_required
@@ -409,9 +407,16 @@ def save_session(request):
                 obj_track = track.Track(track_json=request.session['json_track'])
                 json_track = obj_track.to_json()
 
-                new_track = Track(user=request.user,
-                                  track=json_track,
-                                  title=obj_track.title)
+                if request.session['index_db']:
+                    index = request.session['index_db']
+                    new_track = Track.objects.get(id=index)
+                    new_track.track = json_track
+                    new_track.title = obj_track.title
+                    new_track.last_edit = datetime.now()
+                else:
+                    new_track = Track(user=request.user,
+                                      track=json_track,
+                                      title=obj_track.title)
                 new_track.save()
 
                 return JsonResponse({'message': 'Session has been saved'},
