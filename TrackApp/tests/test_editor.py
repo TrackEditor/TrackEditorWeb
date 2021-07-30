@@ -4,6 +4,9 @@ import time
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 import TrackApp.track as track
 import TrackApp.models as models
@@ -60,10 +63,10 @@ class EditorTest(StaticLiveServerTestCase):
     def test_save_session(self):
         sample_file = os.path.join(self.test_path, 'samples', 'simple_numbers.gpx')
         self.driver.find_element_by_id('select-file').send_keys(sample_file)
-        time.sleep(2)
+        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         self.driver.find_element_by_id('btn_save').click()
-        time.sleep(3)
+        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         saved_track = models.Track.objects.filter(user=self.user).order_by('-last_edit')[0]
         saved_track = json.loads(saved_track.track)
@@ -81,15 +84,18 @@ class EditorTest(StaticLiveServerTestCase):
     def test_remove_segment(self):
         sample_file = os.path.join(self.test_path, 'samples', 'simple_numbers.gpx')
         self.driver.find_element_by_id('select-file').send_keys(sample_file)
-        time.sleep(2)
+        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+
         self.driver.find_element_by_id('select-file').send_keys(sample_file)
-        time.sleep(2)
+        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         # Delete track
-        self.driver.find_element_by_id('btn_remove_0').click()
-        time.sleep(0.1)
+        WebDriverWait(self.driver, 1).until(EC.visibility_of_element_located((By.ID, 'btn_remove_1')))
+        self.driver.find_element_by_id('btn_remove_1').click()
+        time.sleep(0.2)  # js code to be executed behind
+
         self.driver.find_element_by_id('btn_save').click()
-        time.sleep(3)
+        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         saved_track = models.Track.objects.filter(user=self.user).order_by('-last_edit')[0]
         saved_track = json.loads(saved_track.track)
@@ -99,6 +105,7 @@ class EditorTest(StaticLiveServerTestCase):
 
         for k in saved_track:
             if k == 'segment_names':
+                saved_track[k] = [s for s in saved_track[k] if s]
                 for saved, reference in zip(saved_track[k], reference_track[k]):
                     self.assertIn(os.path.splitext(reference)[0], saved)
             elif k == 'last_segment_idx':
@@ -111,17 +118,16 @@ class EditorTest(StaticLiveServerTestCase):
     def test_rename_segment(self):
         sample_file = os.path.join(self.test_path, 'samples', 'simple_numbers.gpx')
         self.driver.find_element_by_id('select-file').send_keys(sample_file)
-        time.sleep(2)
+        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         # Rename
-        element = self.driver.find_element_by_id('span_rename_0')
+        element = self.driver.find_element_by_id('span_rename_1')
         element.click()
         self.driver.execute_script("arguments[0].innerText = 'simple_numbers.gpx'", element)
         self.driver.find_element_by_xpath("//html").click()
-        time.sleep(1)
 
         self.driver.find_element_by_id('btn_save').click()
-        time.sleep(3)
+        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         saved_track = models.Track.objects.filter(user=self.user).order_by('-last_edit')[0]
         saved_track = json.loads(saved_track.track)
