@@ -323,7 +323,8 @@ class TrackTest(TestCase):
         obj_track.remove_segment(2)
 
         # Check
-        self.assertTrue(2 not in obj_track.df_track.segment.unique())
+        self.assertNotIn(2, obj_track.df_track.segment.unique())
+        self.assertIsNone(obj_track.segment_names[2-1])
 
     def test_get_segment(self):
         # Load data

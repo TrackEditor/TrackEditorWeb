@@ -29,11 +29,11 @@ function plot_tracks() {
     */
     let div_track_list = document.querySelector('#div_track_list');  // TODO modify with API endpoint
     let track_list = eval(div_track_list.dataset.track_list);
+    let segment_list = eval(div_track_list.dataset.segment_list);
 
+    console.log(segment_list);
     if (typeof track_list !== 'undefined') {
-        for (var i = 1; i < track_list.length+1; i++) {
-            plot_segment(map, i);
-        }
+        segment_list.forEach(seg => plot_segment(map, seg));
     }
 }
 
@@ -46,10 +46,12 @@ function manage_track_names() {
     */
     let div_track_list = document.querySelector('#div_track_list');
     let track_list = eval(div_track_list.dataset.track_list);
+    let segment_list = eval(div_track_list.dataset.segment_list);
 
     if (typeof track_list !== 'undefined') {
         for (var i = 0; i < track_list.length; i++) {
             let color = get_color(i, alpha='-1');
+            let segment_idx = segment_list[i];
 
             const p_name = document.createElement('p');
             const span_name = document.createElement('span');
@@ -64,7 +66,7 @@ function manage_track_names() {
             span_name.innerHTML = track_list[i];
             span_name.setAttribute('data-index', i);
             span_name.setAttribute('data-original_name', span_name.innerHTML);
-            span_name.setAttribute('id', `span_rename_${i}`);
+            span_name.setAttribute('id', `span_rename_${segment_idx}`);
 
             span_name.addEventListener('blur', function() {
                 console.log('Change track name',
@@ -87,21 +89,19 @@ function manage_track_names() {
             button_remove.setAttribute('type', 'button');
             button_remove.setAttribute('aria-label', 'Close');
             button_remove.style = 'font-size: 18px; vertical-align: -3px; margin-left: 20px;';
-            button_remove.setAttribute('data-index', i);
-            button_remove.setAttribute('id', `btn_remove_${i}`);
+            button_remove.setAttribute('data-index', segment_idx);
+            button_remove.setAttribute('id', `btn_remove_${segment_idx}`);
 
             button_remove.addEventListener('click', function() {
-                let segment_id = parseInt(button_remove.getAttribute('data-index')) + 1;
-
                 // Remove track name from list
                 p_name.style.display = 'none';
 
                 // Remove layer
-                console.log(`Remove track with index: ${segment_id}`);
+                console.log(`Remove track with index: ${segment_idx}`);
                 var layersToRemove = [];
                 map.getLayers().forEach(layer => {
-                    if ((layer.get('name') === `layer_points_${segment_id}`) ||
-                        (layer.get('name') === `layer_lines_${segment_id}`)) {
+                    if ((layer.get('name') === `layer_points_${segment_idx}`) ||
+                        (layer.get('name') === `layer_lines_${segment_idx}`)) {
                             layersToRemove.push(layer);
                         }
                 });
@@ -117,7 +117,7 @@ function manage_track_names() {
                 fetch('/editor/remove_segment', {
                     method: 'POST',
                     body: JSON.stringify({
-                        index:  segment_id  // segments start to count in 1, not 0
+                        index:  segment_idx  // segments start to count in 1, not 0
                     })
                 });
                 // TODO reverse the display='none' if response is NOK
