@@ -139,8 +139,8 @@ def combine_tracks(request):
                            'error': error,
                            **config})
 
-        map_center = [sum(obj_track.extremes[2:])/2,
-                      sum(obj_track.extremes[:2])/2]
+        map_center = [sum(obj_track.extremes[2:]) / 2,
+                      sum(obj_track.extremes[:2]) / 2]
 
         lat = []
         lon = []
@@ -278,7 +278,7 @@ def editor(request, index=None):
             return render(
                 request,
                 'TrackApp/editor.html',
-                {'track_list':  [n for n in json_track['segment_names'] if n],
+                {'track_list': [n for n in json_track['segment_names'] if n],
                  'segment_list': list(set(json_track['segment'])),
                  'title': json_track['title'],
                  **config})
@@ -376,8 +376,8 @@ def get_segment(request, index):
                                  'lat': lat,
                                  'lon': lon,
                                  'ele': ele,
-                                 'map_center': [sum(extremes[2:])/2,
-                                                sum(extremes[:2])/2],
+                                 'map_center': [sum(extremes[2:]) / 2,
+                                                sum(extremes[:2]) / 2],
                                  'map_zoom': int(auto_zoom(*extremes)),
                                  'index': index
                                  }, status=200)
@@ -462,7 +462,7 @@ def dashboard(request):
     number_pages = math.ceil(Track.objects.order_by("-last_edit").
                              filter(user=request.user).count() / 10)
     return render(request, 'TrackApp/dashboard.html',
-                  {'pages': list(range(1, number_pages+1)),
+                  {'pages': list(range(1, number_pages + 1)),
                    'number_pages': number_pages})
 
 

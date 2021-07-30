@@ -157,7 +157,8 @@ class ViewsTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('span_checkmark').click()
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
-        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         self.driver.find_element_by_id('input_btn_download').click()
         time.sleep(2)  # time to download file
@@ -349,7 +350,8 @@ class InsertTimestampTest(StaticLiveServerTestCase):
                          speed='1')
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
-        WebDriverWait(self.driver, 5).until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         error_msg = self.driver.find_element_by_id('div_error_msg')
         self.assertEqual(error_msg.text, 'Error loading files')
