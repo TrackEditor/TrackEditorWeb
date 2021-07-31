@@ -16,12 +16,16 @@ import TrackApp.views as views
 
 
 class EditorIntegrationTest(StaticLiveServerTestCase):
+    """
+    Integration tests for the editor functionality. These tests are done with
+    selenium, so they directly use the front-end as io interface.
+    """
 
-    def login(self, driver, live_server_url, username, password):
-        driver.get(urljoin(live_server_url, 'login'))
-        driver.find_element_by_id('input_txt_username').send_keys(username)
-        driver.find_element_by_id('input_txt_password').send_keys(password)
-        driver.find_element_by_id('input_btn_login').click()
+    def login(self, username, password):
+        self.driver.get(urljoin(self.live_server_url, 'login'))
+        self.driver.find_element_by_id('input_txt_username').send_keys(username)
+        self.driver.find_element_by_id('input_txt_password').send_keys(password)
+        self.driver.find_element_by_id('input_btn_login').click()
 
     def create_user(self,
                     username='default_user',
@@ -54,9 +58,7 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         self.user = self.create_user()
 
         # Open editor
-        self.login(driver=self.driver,
-                   live_server_url=self.live_server_url,
-                   username='default_user',
+        self.login(username='default_user',
                    password='default_password_1234')
         self.driver.get(urljoin(self.live_server_url, 'editor'))
 
@@ -160,6 +162,10 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
 
 
 class EditorAPITest(TestCase):
+    """
+    Test the editor API functions from views. All the available operations for
+    the user are tested. These operations are commanded from the JS code.
+    """
     def create_user(self,
                     username='default_user',
                     password='default_password_1234',
@@ -199,14 +205,10 @@ class EditorAPITest(TestCase):
             else:
                 self.assertEqual(session_track[k], reference_track[k])
 
-    def test_endpoint(self):
-        request = self.factory.get('/editor')
-        request.user = self.user
-        request.session = {}
-        response = views.editor(request)
-        self.assertEqual(response.status_code, 200)
-
     def test_create_session(self):
+        """
+        Check that empty session is created
+        """
         self.login()
         response, session = self.create_session()
 
@@ -215,6 +217,9 @@ class EditorAPITest(TestCase):
         self.assertIn('index_db', session.keys())
 
     def test_add_gpx(self):
+        """
+        Add one gpx file and check it is included in session
+        """
         self.login()
         self.create_session()
 
@@ -233,6 +238,9 @@ class EditorAPITest(TestCase):
         self.assertIsNone(self.client.session['index_db'])  # not saved session
 
     def test_load_session(self):
+        """
+        Create a session with one track, save it and load it
+        """
         self.login()
         self.create_session()
 
@@ -263,6 +271,9 @@ class EditorAPITest(TestCase):
         self.assertIsNotNone(self.client.session['index_db'])
 
     def test_save_session(self):
+        """
+        Create a session with one track and save it
+        """
         self.login()
         self.create_session()
 
@@ -286,7 +297,54 @@ class EditorAPITest(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertIsNotNone(self.client.session['index_db'])
 
+    def test_save_add_save(self):
+        """
+        Create and save session with one gpx file. Add a new one, save an check
+        that the db record is properly updated.
+        """
+        self.login()
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor', {'document': f})
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
+
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor', {'document': f})
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
+
+        # Load track
+        response = self.client.get(f'/editor/{self.client.session["index_db"]}')
+        session_track = json.loads(self.client.session['json_track'])
+
+        # Create expected output
+        obj_track = track.Track()
+        obj_track.add_gpx(sample_file)
+        obj_track.add_gpx(sample_file)
+        reference_track = json.loads(obj_track.to_json())
+
+        self.compare_tracks(session_track, reference_track)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(self.client.session['index_db'])
+
+    def test_save_session_get(self):
+        """
+        Use get request instead of post and check response
+        """
+        self.login()
+        self.create_session()
+        response = self.client.get('/editor/save_session')
+        self.assertEqual(response.status_code, 400)
+
     def test_save_session_wrong_request(self):
+        """
+        Check response of request with False value in the save option
+        """
         self.login()
         self.create_session()
         response = self.client.post('/editor/save_session',
@@ -294,21 +352,91 @@ class EditorAPITest(TestCase):
                                     content_type='application/json')
         self.assertEqual(response.status_code, 492)
 
-    def test_load_session_get(self):
-        self.login()
-        self.create_session()
-        response = self.client.get('/editor/save_session')
-        self.assertEqual(response.status_code, 400)
-
-    def test_load_session_no_track(self):
+    def test_save_session_no_track(self):
+        """
+        Try to save a non existing session
+        """
         self.login()
         response = self.client.post('/editor/save_session',
                                     json.dumps({'save': 'False'}),
                                     content_type='application/json')
         self.assertEqual(response.status_code, 491)
 
-    # def test_remove_session(self):
-    #     raise NotImplementedError
+    def test_remove_session(self):
+        """
+        Create a session, save and remove it from db
+        """
+        self.login()
+        self.create_session()
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
 
-    # def test_rename_session(self):
-    #     raise NotImplementedError
+        before = models.Track.objects.\
+            filter(id=self.client.session['index_db']).count()
+
+        response = self.client.post(f'/editor/remove_session/{self.client.session["index_db"]}')
+
+        after = models.Track.objects.\
+            filter(id=self.client.session['index_db']).count()
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(before, 1)
+        self.assertEqual(after, 0)
+
+    def test_remove_session_no_track(self):
+        """
+        Try to save a non existing session
+        """
+        self.login()
+        response = self.client.post('/editor/remove_session/25')
+
+        self.assertEqual(response.status_code, 500)
+
+    def test_remove_session_get(self):
+        """
+        Use get request instead of post and check response
+        """
+        self.login()
+        response = self.client.get('/editor/remove_session/25')
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_rename_session(self):
+        """
+        Create a session, rename and save
+        """
+        self.login()
+        self.create_session()
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
+        response = self.client.post('/editor/rename_session',
+                                    json.dumps({'new_name': 'test_rename_session'}),
+                                    content_type='application/json')
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
+
+        track_db = models.Track.objects.get(id=self.client.session['index_db'])
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(track_db.title, 'test_rename_session')
+
+    def test_rename_session_no_track(self):
+        """
+        Try to rename a non existing session
+        """
+        self.login()
+        response = self.client.post('/editor/rename_session',
+                                    json.dumps({'new_name': 'test_rename_session_no_track'}),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 500)
+
+    def test_rename_session_get(self):
+        """
+        Use get request instead of post and check response
+        """
+        self.login()
+        response = self.client.get('/editor/rename_session')
+        self.assertEqual(response.status_code, 400)

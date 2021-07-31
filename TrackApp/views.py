@@ -354,7 +354,7 @@ def get_segment(request, index):
         if request.session['json_track']:
             json_track = json.loads(request.session['json_track'])
 
-            if index != 0 and index not in json_track['segment']:
+            if index not in json_track['segment']:
                 return JsonResponse(
                     {'error': 'Invalid index request', 'size': 0},
                     status=400)
@@ -471,7 +471,7 @@ def dashboard(request):
 def remove_session(request, index):
     if request.method == 'POST':
         try:
-            Track.objects.get(id=index).delete()
+            Track.objects.get(id=index, user=request.user).delete()
 
             return JsonResponse({'message': 'Track is successfully removed'},
                                 status=201)
