@@ -412,7 +412,7 @@ class TrackTest(TestCase):
         self.assertTrue(types.lon == np.float32)
         self.assertTrue(types.ele == np.float32)
         self.assertTrue(types.segment == np.int32)
-        self.assertEqual(str(types.time), 'datetime64[ns]')
+        self.assertEqual(str(types.time), 'datetime64[ns, UTC]')
 
     def test_save_gpx(self):
         # Load data
