@@ -406,7 +406,7 @@ def get_summary(request):
 @csrf_exempt
 def save_session(request):
     if request.method == 'POST':
-        if request.session['json_track']:
+        if 'json_track' in request.session:
             data = json.loads(request.body)
             save = data['save'] == 'True'
 
@@ -436,7 +436,7 @@ def save_session(request):
                 return JsonResponse({'error': 'save is not True'},
                                     status=492)
         else:
-            return JsonResponse({'error': 'No track is loaded'}, status=491)
+            return JsonResponse({'error': 'No track is available'}, status=491)
 
     return JsonResponse({'error': 'POST request required'}, status=400)
 
