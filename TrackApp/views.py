@@ -242,6 +242,19 @@ def editor(request, index=None):
               'maximum_files': c.maximum_files,
               'valid_extensions': c.valid_extensions}
 
+    if index:  # load existing session
+        request.session['json_track'] = Track.objects.get(id=index).track
+        request.session['index_db'] = index
+        json_track = json.loads(request.session['json_track'])
+
+        return render(
+            request,
+            'TrackApp/editor.html',
+            {'track_list': [n for n in json_track['segment_names'] if n],
+             'segment_list': list(set(json_track['segment'])),
+             'title': json_track['title'],
+             **config})
+
     if 'index_db' in request.session:
         index = request.session['index_db']
 
@@ -269,24 +282,10 @@ def editor(request, index=None):
 
         # TODO control exceptions
 
-    else:
-        if index:  # load existing session
-            request.session['json_track'] = Track.objects.get(id=index).track
-            request.session['index_db'] = index
-            json_track = json.loads(request.session['json_track'])
-
-            return render(
-                request,
-                'TrackApp/editor.html',
-                {'track_list': [n for n in json_track['segment_names'] if n],
-                 'segment_list': list(set(json_track['segment'])),
-                 'title': json_track['title'],
-                 **config})
-
-        # Create new session
-        request.session['json_track'] = track.Track().to_json()
-        request.session['index_db'] = None
-        return render(request, 'TrackApp/editor.html', {**config})
+    # Create new session
+    request.session['json_track'] = track.Track().to_json()
+    request.session['index_db'] = None
+    return render(request, 'TrackApp/editor.html', {**config})
 
 
 @login_required
