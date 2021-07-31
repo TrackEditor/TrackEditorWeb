@@ -27,7 +27,7 @@ class Gpx:
         self._state = False
         self._gpx = self._load_file()
         if not self._gpx:
-            raise LoadGpxError(f"Not able to load {self.filename}")
+            raise LoadGpxError(f'Not able to load {self.filename}')
         self._gpx_dict = None
 
         # Public attributes
@@ -49,8 +49,8 @@ class Gpx:
             return None
 
     def to_dict(self):
-        self._gpx_dict = {"lat": [], "lon": [], "ele": [], "time": [],
-                          "track": [], "segment": []}
+        self._gpx_dict = {'lat': [], 'lon': [], 'ele': [], 'time': [],
+                          'track': [], 'segment': []}
 
         n_tracks = len(self._gpx.tracks)
         n_segments = [len(track.segments) for track in self._gpx.tracks]
@@ -58,16 +58,18 @@ class Gpx:
         for i_track in range(n_tracks):
             for i_seg in range(n_segments[i_track]):
                 for i_point in self._gpx.tracks[i_track].segments[i_seg].points:
-                    self._gpx_dict["lat"].append(i_point.latitude)
-                    self._gpx_dict["lon"].append(i_point.longitude)
-                    self._gpx_dict["ele"].append(i_point.elevation)
-                    if i_point.time is None:
-                        self._gpx_dict["time"].append(c.default_datetime)
+                    self._gpx_dict['lat'].append(i_point.latitude)
+                    self._gpx_dict['lon'].append(i_point.longitude)
+                    if i_point.elevation:
+                        self._gpx_dict['ele'].append(i_point.elevation)
                     else:
-                        # This is datetime.datetime format
-                        self._gpx_dict["time"].append(i_point.time)
-                    self._gpx_dict["track"].append(i_seg)
-                    self._gpx_dict["segment"].append(i_track)
+                        self._gpx_dict['ele'].append(np.nan)
+                    if i_point.time:
+                        self._gpx_dict['time'].append(i_point.time)
+                    else:
+                        self._gpx_dict['time'].append(np.nan)
+                    self._gpx_dict['track'].append(i_seg)
+                    self._gpx_dict['segment'].append(i_track)
         return self._gpx_dict
 
     def to_pandas(self):
@@ -78,6 +80,6 @@ class Gpx:
                                columns=['lat', 'lon', 'ele',
                                         'time', 'track', 'segment'])
 
-        self.df['time'] = self.df['time'].values.astype(np.datetime64)
+        self.df['time'] = pd.to_datetime(self.df['time'], utc=True)
 
         return self.df.copy()

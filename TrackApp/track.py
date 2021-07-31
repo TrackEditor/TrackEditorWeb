@@ -14,6 +14,7 @@ import geopy.distance
 import gpxpy.gpx
 import json
 import os
+import io
 from time import time
 
 from . import gpx
@@ -241,6 +242,11 @@ class Track:
                     axis=1)
 
     def save_gpx(self, gpx_filename: str):
+        # Sort by timestamp
+        self.df_track = self.df_track.sort_values(by=['time'],
+                                                  ascending=True,
+                                                  na_position='last')
+
         # Create track
         ob_gpxpy = gpxpy.gpx.GPX()
         gpx_track = gpxpy.gpx.GPXTrack()
@@ -265,13 +271,22 @@ class Track:
                 longitude = df_segment.loc[idx, 'lon']
                 elevation = df_segment.loc[idx, 'ele']
                 time = df_segment.loc[idx, 'time']
-                gpx_point = gpxpy.gpx.GPXTrackPoint(latitude, longitude,
-                                                    elevation=elevation,
-                                                    time=time)
+
+                if pd.isnull(time) and pd.isnull(elevation):
+                    gpx_point = gpxpy.gpx.GPXTrackPoint(latitude, longitude)
+                elif pd.isnull(time):
+                    gpx_point = gpxpy.gpx.GPXTrackPoint(latitude, longitude,
+                                                        elevation=elevation)
+                elif pd.isnull(elevation):
+                    gpx_point = gpxpy.gpx.GPXTrackPoint(latitude, longitude,
+                                                        time=time)
+                else:
+                    gpx_point = gpxpy.gpx.GPXTrackPoint(latitude, longitude,
+                                                        elevation=elevation,
+                                                        time=time)
                 gpx_segment.points.append(gpx_point)
 
         # Write file
-        import io
         with io.open(gpx_filename, 'w', newline='\n') as f:
             f.write(ob_gpxpy.to_xml())
 
@@ -478,7 +493,7 @@ class Track:
         self.df_track['lon'] = self.df_track['lon'].astype('float32')
         self.df_track['ele'] = self.df_track['ele'].astype('float32')
         self.df_track['segment'] = self.df_track['segment'].astype('int32')
-        self.df_track['time'] = self.df_track['time'].astype('datetime64[ns]')
+        self.df_track['time'] = pd.to_datetime(self.df_track['time'], utc=True)
 
     def _insert_positive_elevation(self):
         self.df_track['ele diff'] = self.df_track['ele'].diff()
