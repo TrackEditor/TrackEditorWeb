@@ -390,16 +390,16 @@ def get_segment(request, index):
 @login_required
 def get_summary(request):
     if request.method == 'GET':
-        if request.session['json_track']:
+        if 'json_track' in request.session:
             obj_track = track.Track(track_json=request.session['json_track'])
             obj_track.update_summary()
             summary = obj_track.get_summary()
 
             return JsonResponse({'summary': summary}, status=200)
         else:
-            return JsonResponse({'error': 'No track is loaded'}, status=400)
+            return JsonResponse({'error': 'No track is loaded'}, status=500)
 
-    return JsonResponse({'error': 'GET request required'}, status=400)
+    return JsonResponse({'error': 'POST request required'}, status=400)
 
 
 @login_required

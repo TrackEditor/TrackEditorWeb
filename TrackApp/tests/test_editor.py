@@ -9,10 +9,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-
 import TrackApp.track as track
 import TrackApp.models as models
-import TrackApp.views as views
 
 
 class EditorIntegrationTest(StaticLiveServerTestCase):
@@ -440,3 +438,77 @@ class EditorAPITest(TestCase):
         self.login()
         response = self.client.get('/editor/rename_session')
         self.assertEqual(response.status_code, 400)
+
+    def test_get_summary(self):
+        self.login()
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor', {'document': f})
+
+        response = self.client.get('/editor/get_summary')
+
+        summary = json.loads(response.content)['summary']
+        self.assertEqual(summary[list(summary.keys())[0]],
+                         {'distance': '445.2 km', 'uphill': '+20 m', 'downhill': '-20 m'})
+        self.assertEqual(summary['total'],
+                         {'distance': '445.2 km', 'uphill': '+20 m', 'downhill': '-20 m'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_summary_no_track(self):
+        """
+        Try to rename a non existing session
+        """
+        self.login()
+        response = self.client.get('/editor/get_summary')
+        self.assertEqual(response.status_code, 500)
+
+    def test_get_summary_post(self):
+        """
+        Use post request instead of get and check response
+        """
+        self.login()
+        response = self.client.post('/editor/get_summary')
+        self.assertEqual(response.status_code, 400)
+
+
+class LoginRequiredTest(TestCase):
+    """
+    All tests to check the login required are groupd in this class
+    """
+    def test_editor(self):
+        response = self.client.get('/editor')
+        self.assertEqual(response.status_code, 302)
+
+    def test_editor_idx(self):
+        response = self.client.get('/editor/1')
+        self.assertEqual(response.status_code, 302)
+
+    def test_rename_segment(self):
+        response = self.client.get('/editor/rename_segment')
+        self.assertEqual(response.status_code, 302)
+
+    def test_remove_segment(self):
+        response = self.client.get('/editor/remove_segment')
+        self.assertEqual(response.status_code, 302)
+
+    def test_get_segment(self):
+        response = self.client.get('/editor/get_segment/1')
+        self.assertEqual(response.status_code, 302)
+
+    def test_get_summary(self):
+        response = self.client.get('/editor/get_summary')
+        self.assertEqual(response.status_code, 302)
+
+    def test_save_session(self):
+        response = self.client.get('/editor/save_session')
+        self.assertEqual(response.status_code, 302)
+
+    def test_remove_session(self):
+        response = self.client.get('/editor/remove_session/1')
+        self.assertEqual(response.status_code, 302)
+
+    def test_rename_session(self):
+        response = self.client.get('/editor/rename_session')
+        self.assertEqual(response.status_code, 302)

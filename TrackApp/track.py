@@ -437,6 +437,12 @@ class Track:
     def get_summary(self):
         summary = {}
 
+        if self.size == 0:
+            return {'total': {
+                'distance': 'n/a',
+                'uphill': 'n/a',
+                'downhill': 'n/a'}}
+
         for seg_id in self.df_track.segment.unique():
             distance_lbl = \
                 SummaryUtils.get_distance_label(self, segment_id=seg_id)

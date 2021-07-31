@@ -551,3 +551,15 @@ class TrackTest(TestCase):
         }
         summary = obj_track.get_summary()
         self.assertEqual(expected_dict, summary)
+
+    def test_get_summary_no_track(self):
+        # Load data
+        obj_track = track.Track()
+
+        expected_dict = {'total': {
+            'distance': 'n/a',
+            'uphill': 'n/a',
+            'downhill': 'n/a'}}
+
+        summary = obj_track.get_summary()
+        self.assertEqual(expected_dict, summary)
