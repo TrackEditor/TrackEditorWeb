@@ -80,6 +80,6 @@ class Gpx:
                                columns=['lat', 'lon', 'ele',
                                         'time', 'track', 'segment'])
 
-        self.df['time'] = pd.to_datetime(self.df['time'])
+        self.df['time'] = pd.to_datetime(self.df['time'], utc=True)
 
         return self.df.copy()

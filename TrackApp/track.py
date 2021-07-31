@@ -15,7 +15,7 @@ import gpxpy.gpx
 import json
 import os
 import io
-
+from time import time
 
 from . import gpx
 from . import constants as c
@@ -493,7 +493,7 @@ class Track:
         self.df_track['lon'] = self.df_track['lon'].astype('float32')
         self.df_track['ele'] = self.df_track['ele'].astype('float32')
         self.df_track['segment'] = self.df_track['segment'].astype('int32')
-        self.df_track['time'] = pd.to_datetime(self.df_track['time'])
+        self.df_track['time'] = pd.to_datetime(self.df_track['time'], utc=True)
 
     def _insert_positive_elevation(self):
         self.df_track['ele diff'] = self.df_track['ele'].diff()

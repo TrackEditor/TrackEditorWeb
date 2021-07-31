@@ -427,6 +427,7 @@ class TrackTest(TestCase):
         # Apply method
         filename = f'test_save_gpx_{np.random.randint(1e+6 - 1, 1e+6)}.gpx'
         obj_track.save_gpx(filename)
+        obj_track._force_columns_type()
 
         # Load saved file
         saved_track = track.Track()
