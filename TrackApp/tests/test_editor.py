@@ -297,8 +297,8 @@ class EditorAPITest(TestCase):
 
     def test_save_add_save(self):
         """
-        Create and save session with one gpx file. Add a new one, save an check
-        that the db record is properly updated.
+        Create and save session with one gpx file. Add a new one, save and
+        check that the db record is properly updated.
         """
         self.login()
         self.create_session()
@@ -329,6 +329,81 @@ class EditorAPITest(TestCase):
         self.compare_tracks(session_track, reference_track)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(self.client.session['index_db'])
+
+    def test_save_remove_save(self):
+        """
+        Create and save session with five gpx file. Remove some, save and check
+        that the db record is properly updated.
+        """
+        self.login()
+        self.create_session()
+
+        # Load files and save session
+        for i in range(1, 6):
+            sample_file = self.get_sample_file(f'Inaccessible_Island_part{i}.gpx')
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor', {'document': f})
+
+            self.client.post('/editor/rename_segment',
+                             json.dumps({'index': i - 1,
+                                         'new_name': os.path.basename(sample_file)}),
+                             content_type='application/json')
+
+        self.client.post('/editor/rename_session',
+                         json.dumps({'new_name': 'test_save_remove_save'}),
+                         content_type='application/json')
+
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
+
+        # Remove segments and save
+        self.client.post('/editor/remove_segment',
+                         json.dumps({'index': 2}),
+                         content_type='application/json')
+
+        self.client.post('/editor/remove_segment',
+                         json.dumps({'index': 4}),
+                         content_type='application/json')
+
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
+
+        # Load db record
+        track_db = json.loads(models.Track.objects.get(id=self.client.session['index_db']).track)
+
+        self.assertEqual(set(track_db['segment']), {1, 3, 5})
+        self.assertEqual(track_db['segment_names'],
+                         ['Inaccessible_Island_part1.gpx', None,
+                          'Inaccessible_Island_part3.gpx', None,
+                          'Inaccessible_Island_part5.gpx'])
+
+    def test_save_rename_save(self):
+        """
+        Create and save session with one gpx file. Add a new one, save an check
+        that the db record is properly updated.
+        """
+        self.login()
+        self.create_session()
+
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
+
+        self.client.post('/editor/rename_session',
+                         json.dumps({'new_name': 'test_save_rename_save'}),
+                         content_type='application/json')
+
+        self.client.post('/editor/save_session',
+                         json.dumps({'save': 'True'}),
+                         content_type='application/json')
+
+        # Load db record
+        record = models.Track.objects.get(id=self.client.session['index_db'])
+
+        self.assertEqual(record.title, 'test_save_rename_save')
+        self.assertEqual(json.loads(record.track)['title'], 'test_save_rename_save')
 
     def test_save_session_get(self):
         """
