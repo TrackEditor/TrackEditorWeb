@@ -2,6 +2,7 @@
 from django.test import TestCase
 import pytest
 import numpy as np
+import pandas as pd
 import datetime as dt
 import os
 import json
@@ -563,3 +564,20 @@ class TrackTest(TestCase):
 
         summary = obj_track.get_summary()
         self.assertEqual(expected_dict, summary)
+
+    def test_missing_time_and_elevation(self):
+        obj_track = track.Track()
+        obj_track.add_gpx(
+            os.path.join(self.test_path, 'samples', 'simple_numbers_no_time.gpx'))
+        obj_track.add_gpx(
+            os.path.join(self.test_path, 'samples', 'simple_numbers_no_ele.gpx'))
+        obj_track.add_gpx(
+            os.path.join(self.test_path, 'samples', 'simple_numbers.gpx'))
+        obj_track.save_gpx('test_missing_time_and_elevation.gpx')
+
+        obj_track_check = track.Track()
+        obj_track_check.add_gpx('test_missing_time_and_elevation.gpx')
+
+        self.assertFalse(pd.isnull(obj_track_check.df_track.time.iloc[0]))
+        self.assertTrue(pd.isnull(obj_track_check.df_track.time.iloc[-1]))
+        self.assertTrue(obj_track_check.df_track.ele.isnull().values.any())
