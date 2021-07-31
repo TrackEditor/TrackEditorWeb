@@ -363,6 +363,7 @@ class Track:
         self.df_track = self.df_track.drop(idx_segment)
         self.df_track = self.df_track.reset_index(drop=True)
         self.size -= 1
+        self.segment_names[index-1] = None
 
         # Update metadata
         self.update_summary()
@@ -435,6 +436,12 @@ class Track:
 
     def get_summary(self):
         summary = {}
+
+        if self.size == 0:
+            return {'total': {
+                'distance': 'n/a',
+                'uphill': 'n/a',
+                'downhill': 'n/a'}}
 
         for seg_id in self.df_track.segment.unique():
             distance_lbl = \

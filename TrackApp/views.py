@@ -139,8 +139,8 @@ def combine_tracks(request):
                            'error': error,
                            **config})
 
-        map_center = [sum(obj_track.extremes[2:])/2,
-                      sum(obj_track.extremes[:2])/2]
+        map_center = [sum(obj_track.extremes[2:]) / 2,
+                      sum(obj_track.extremes[:2]) / 2]
 
         lat = []
         lon = []
@@ -237,12 +237,16 @@ def users_only(request):
 
 
 @login_required
-def editor(request):
+def editor(request, index=None):
     config = {'maximum_file_size': c.maximum_file_size,
               'maximum_files': c.maximum_files,
               'valid_extensions': c.valid_extensions}
 
-    if request.method == 'POST':
+    if 'index_db' in request.session:
+        index = request.session['index_db']
+
+    print(f'{index=}')
+    if request.method == 'POST':  # add files to session
         fs = FileSystemStorage()
         uploaded_file = request.FILES['document']
         filename = fs.save(uploaded_file.name, uploaded_file)
@@ -258,30 +262,31 @@ def editor(request):
         print(obj_track)
 
         return render(request, 'TrackApp/editor.html',
-                      {'track_list': obj_track.segment_names,
+                      {'track_list': [n for n in obj_track.segment_names if n],
+                       'segment_list': list(obj_track.df_track['segment'].unique()),
                        'title': obj_track.title,
                        **config})
 
         # TODO control exceptions
 
-    else:  # create object
+    else:
+        if index:  # load existing session
+            request.session['json_track'] = Track.objects.get(id=index).track
+            request.session['index_db'] = index
+            json_track = json.loads(request.session['json_track'])
+
+            return render(
+                request,
+                'TrackApp/editor.html',
+                {'track_list': [n for n in json_track['segment_names'] if n],
+                 'segment_list': list(set(json_track['segment'])),
+                 'title': json_track['title'],
+                 **config})
+
+        # Create new session
         request.session['json_track'] = track.Track().to_json()
+        request.session['index_db'] = None
         return render(request, 'TrackApp/editor.html', {**config})
-
-
-@login_required
-def load_session(request, index):
-    config = {'maximum_file_size': c.maximum_file_size,
-              'maximum_files': c.maximum_files,
-              'valid_extensions': c.valid_extensions}
-
-    request.session['json_track'] = Track.objects.get(id=index).track
-    json_track = json.loads(request.session['json_track'])
-
-    return render(request, 'TrackApp/editor.html',
-                  {'track_list': json_track['segment_names'],
-                   'title': json_track['title'],
-                   **config})
 
 
 @login_required
@@ -349,7 +354,7 @@ def get_segment(request, index):
         if request.session['json_track']:
             json_track = json.loads(request.session['json_track'])
 
-            if index != 0 and index not in json_track['segment']:
+            if index not in json_track['segment']:
                 return JsonResponse(
                     {'error': 'Invalid index request', 'size': 0},
                     status=400)
@@ -371,8 +376,8 @@ def get_segment(request, index):
                                  'lat': lat,
                                  'lon': lon,
                                  'ele': ele,
-                                 'map_center': [sum(extremes[2:])/2,
-                                                sum(extremes[:2])/2],
+                                 'map_center': [sum(extremes[2:]) / 2,
+                                                sum(extremes[:2]) / 2],
                                  'map_zoom': int(auto_zoom(*extremes)),
                                  'index': index
                                  }, status=200)
@@ -385,23 +390,23 @@ def get_segment(request, index):
 @login_required
 def get_summary(request):
     if request.method == 'GET':
-        if request.session['json_track']:
+        if 'json_track' in request.session:
             obj_track = track.Track(track_json=request.session['json_track'])
             obj_track.update_summary()
             summary = obj_track.get_summary()
 
             return JsonResponse({'summary': summary}, status=200)
         else:
-            return JsonResponse({'error': 'No track is loaded'}, status=400)
+            return JsonResponse({'error': 'No track is loaded'}, status=500)
 
-    return JsonResponse({'error': 'GET request required'}, status=400)
+    return JsonResponse({'error': 'POST request required'}, status=400)
 
 
 @login_required
 @csrf_exempt
 def save_session(request):
     if request.method == 'POST':
-        if request.session['json_track']:
+        if 'json_track' in request.session:
             data = json.loads(request.body)
             save = data['save'] == 'True'
 
@@ -409,10 +414,21 @@ def save_session(request):
                 obj_track = track.Track(track_json=request.session['json_track'])
                 json_track = obj_track.to_json()
 
-                new_track = Track(user=request.user,
-                                  track=json_track,
-                                  title=obj_track.title)
-                new_track.save()
+                if request.session['index_db']:
+                    index = request.session['index_db']
+                    new_track = Track.objects.get(id=index)
+                    new_track.track = json_track
+                    new_track.title = obj_track.title
+                    new_track.last_edit = datetime.now()
+                    new_track.save()
+                else:
+                    new_track = Track(user=request.user,
+                                      track=json_track,
+                                      title=obj_track.title)
+                    new_track.save()
+                    request.session['index_db'] = new_track.id
+
+                print('save_session:', request.session['index_db'])
 
                 return JsonResponse({'message': 'Session has been saved'},
                                     status=201)
@@ -420,7 +436,7 @@ def save_session(request):
                 return JsonResponse({'error': 'save is not True'},
                                     status=492)
         else:
-            return JsonResponse({'error': 'No track is loaded'}, status=491)
+            return JsonResponse({'error': 'No track is available'}, status=491)
 
     return JsonResponse({'error': 'POST request required'}, status=400)
 
@@ -446,7 +462,7 @@ def dashboard(request):
     number_pages = math.ceil(Track.objects.order_by("-last_edit").
                              filter(user=request.user).count() / 10)
     return render(request, 'TrackApp/dashboard.html',
-                  {'pages': list(range(1, number_pages+1)),
+                  {'pages': list(range(1, number_pages + 1)),
                    'number_pages': number_pages})
 
 
@@ -455,7 +471,7 @@ def dashboard(request):
 def remove_session(request, index):
     if request.method == 'POST':
         try:
-            Track.objects.get(id=index).delete()
+            Track.objects.get(id=index, user=request.user).delete()
 
             return JsonResponse({'message': 'Track is successfully removed'},
                                 status=201)

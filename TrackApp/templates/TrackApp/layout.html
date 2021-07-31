@@ -20,8 +20,8 @@
     <body>
         <div class="sidenav">
             <img src="{% static 'TrackApp/compass.png' %}" alt="compass" width="120">
-            <a href="combine_tracks" id="a_combine_tracks">Combine Tracks</a>
-            <a href="insert_timestamp" id="a_insert_timestamp">Insert Timestamp</a>
+            <a href="{% url 'combine_tracks' %}" id="a_combine_tracks">Combine Tracks</a>
+            <a href="{% url 'insert_timestamp' %}" id="a_insert_timestamp">Insert Timestamp</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'editor' %}" id="a_editor">Editor</a>
             {% else %}

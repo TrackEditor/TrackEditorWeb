@@ -323,7 +323,8 @@ class TrackTest(TestCase):
         obj_track.remove_segment(2)
 
         # Check
-        self.assertTrue(2 not in obj_track.df_track.segment.unique())
+        self.assertNotIn(2, obj_track.df_track.segment.unique())
+        self.assertIsNone(obj_track.segment_names[2-1])
 
     def test_get_segment(self):
         # Load data
@@ -548,5 +549,17 @@ class TrackTest(TestCase):
                 'downhill': '-40 m'
             }
         }
+        summary = obj_track.get_summary()
+        self.assertEqual(expected_dict, summary)
+
+    def test_get_summary_no_track(self):
+        # Load data
+        obj_track = track.Track()
+
+        expected_dict = {'total': {
+            'distance': 'n/a',
+            'uphill': 'n/a',
+            'downhill': 'n/a'}}
+
         summary = obj_track.get_summary()
         self.assertEqual(expected_dict, summary)

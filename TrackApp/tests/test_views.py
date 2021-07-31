@@ -2,8 +2,11 @@ import os
 import time
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from selenium import webdriver
 from glob import glob
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 import TrackApp.constants as c
 from TrackApp.utils import md5sum
@@ -113,8 +116,7 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.driver.find_element_by_id('input_btn_combine').click()
         self.driver.find_element_by_id('input_btn_download').click()
-        time.sleep(2)  # some time is needed to download the file
-
+        time.sleep(2)  # wait download
         downloaded_file = \
             glob(os.path.join(self.downloads_dir, 'TrackEditor_combine_tracks*.gpx'))[-1]
 
@@ -155,7 +157,9 @@ class ViewsTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('span_checkmark').click()
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
-        time.sleep(1)  # processing time
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+
         self.driver.find_element_by_id('input_btn_download').click()
         time.sleep(2)  # time to download file
 
@@ -346,7 +350,8 @@ class InsertTimestampTest(StaticLiveServerTestCase):
                          speed='1')
 
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
-        time.sleep(1)
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         error_msg = self.driver.find_element_by_id('div_error_msg')
         self.assertEqual(error_msg.text, 'Error loading files')
@@ -369,7 +374,6 @@ class InsertTimestampTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
         self.assertEqual(error_msg.text, 'Time has wrong format.')
-        time.sleep(5)
 
     def test_missing_date(self):
         self.insert_data(file='Inaccessible_Island_part1.gpx',

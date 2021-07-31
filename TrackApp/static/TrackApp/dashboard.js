@@ -56,7 +56,7 @@ function load_tracks(page) {
                 const button_edit = document.createElement('a');
                 const button_remove = document.createElement('button');
 
-                button_edit.setAttribute('href', `editor/session/${track.id}`);
+                button_edit.setAttribute('href', `editor/${track.id}`);
                 button_edit.setAttribute('class', 'btn');
                 button_edit.setAttribute('title', 'Edit');
                 button_edit.innerHTML = '<span class="btn-edit">&#9998</span>';
