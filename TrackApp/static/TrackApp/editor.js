@@ -473,8 +473,22 @@ function download_session() {
             .then(response => response.json())
             .then(data => {
                 document.querySelector('#div_spinner').style.display = 'none';
-                download(data.url, data.filename);
-            });  // TODO process errors
+
+                if (data.hasOwnProperty('error')) {  // manage error
+                    let div_error = document.querySelector('#div_error_msg');
+                    div_error.innerHTML = data.error;
+                    div_error.style.display = 'inline-block';
+
+                    setTimeout(function() {
+                        div_error.innerHTML = '';
+                        div_error.style.display = 'None';
+                    }, 3000);
+
+                }
+                else if (data.hasOwnProperty('url')) {
+                    download(data.url, data.filename);
+                }
+            });
     });
 
 }

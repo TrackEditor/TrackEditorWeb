@@ -16,11 +16,8 @@
     </h2>
     <div class="container" id="div_alerts_box" style="width: 72vh; margin-left: 0px;">
         <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-valid_extensions="{{valid_extensions}}">
-            {% if error %}
-                <div class="alert alert-danger" id="div_error_msg" role="alert">
-                    {{error}}
+                <div class="alert alert-danger" id="div_error_msg" role="alert" style="display: none;">
                 </div>
-            {% endif %}
         </div>
     </div>
 
