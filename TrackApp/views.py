@@ -492,3 +492,27 @@ def rename_session(request):
                                 status=500)
     else:
         return JsonResponse({'error': 'POST request required'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def download_session(request):
+    if request.method == 'POST':
+
+        if 'json_track' in request.session:
+            obj_track = track.Track(track_json=request.session['json_track'])
+            fs = FileSystemStorage()
+
+            output_filename = \
+                obj_track.title + '_' + id_generator(size=8) + '.gpx'
+            output_location = os.path.join(fs.location, output_filename)
+            output_url = fs.url(output_filename)
+            obj_track.save_gpx(output_location)
+
+            return JsonResponse({'url': output_url,
+                                 'filename': output_filename},
+                                status=200)
+        else:
+            return JsonResponse({'error': 'No track is loaded'}, status=500)
+    else:
+        return JsonResponse({'error': 'GET request required'}, status=400)
