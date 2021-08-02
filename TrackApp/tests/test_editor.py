@@ -8,9 +8,11 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from glob import glob
 
 import TrackApp.track as track
 import TrackApp.models as models
+from TrackApp.utils import md5sum
 
 
 class EditorIntegrationTest(StaticLiveServerTestCase):
@@ -64,6 +66,10 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         self.driver.quit()
 
     def test_save_session(self):
+        """
+        Save session in web browser and compare versus direct use of track
+        object.
+        """
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
@@ -90,6 +96,10 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
                 self.assertEqual(saved_track[k], reference_track[k])
 
     def test_remove_segment(self):
+        """
+        Remove segment in web browser and compare versus direct use of track
+        object.
+        """
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
@@ -131,6 +141,10 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
                 self.assertEqual(saved_track[k], reference_track[k])
 
     def test_rename_segment(self):
+        """
+        Rename segment in web browser and compare versus direct use of track
+        object.
+        """
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
@@ -158,12 +172,61 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
 
         self.assertEqual(saved_track, reference_track)
 
+    def test_rename_and_download_session(self):
+        """
+        Load two tracks, rename the session and download. The product file is
+        compared versus reference.
+        """
+        # Remove previous testing files
+        for file in glob(os.path.join(self.downloads_dir, 'test_download_session*.gpx')):
+            os.remove(file)
+
+        # Add files
+        for i in range(1, 3):
+            sample_file = os.path.join(self.test_path,
+                                       'samples',
+                                       f'Inaccessible_Island_part{i}.gpx')
+            self.driver.find_element_by_id('select-file').send_keys(sample_file)
+            WebDriverWait(self.driver, 5).\
+                until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+
+        # Rename session
+        e_session_name = self.driver.find_element_by_id('h_session_name')
+        e_session_name.click()
+        self.driver.execute_script(
+            "arguments[0].innerText = 'test_download_session'", e_session_name)
+        self.driver.find_element_by_xpath("//html").click()
+
+        # Download file
+        self.driver.find_element_by_id('btn_download').click()
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        time.sleep(2)
+
+        downloaded_file = \
+            glob(os.path.join(self.downloads_dir, 'test_download_session*.gpx'))[-1]
+
+        self.assertEqual(
+            md5sum(downloaded_file),
+            md5sum(os.path.join(self.test_path,
+                                'references',
+                                'test_combine_tracks.gpx')
+                   )
+        )
+
 
 class EditorAPITest(TestCase):
     """
     Test the editor API functions from views. All the available operations for
     the user are tested. These operations are commanded from the JS code.
     """
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
+
     def create_user(self,
                     username='default_user',
                     password='default_password_1234',
@@ -178,24 +241,30 @@ class EditorAPITest(TestCase):
             user = models.User.objects.get(username=username)
         return user, username, password
 
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.test_path = os.path.dirname(__file__)
-        self.user, self.username, self.password = self.create_user()
-
     def login(self):
         self.client.login(username=self.username,
                           password=self.password)
 
     def create_session(self):
+        """
+        Get request to the /editor endpoint to generate track in session
+        """
         response = self.client.get('/editor')
         session = self.client.session
         return response, session
 
     def get_sample_file(self, filename='simple_numbers.gpx'):
+        """
+        Get a file to be used as input
+        """
         return os.path.join(self.test_path, 'samples', filename)
 
     def compare_tracks(self, session_track, reference_track):
+        """
+        Comparison of tracks is encapsulated in this function. It can be
+        particularly sensitive for segment_names since suffix may be added
+        according to the loaded name file in /media
+        """
         for k in session_track:
             if k == 'segment_names':
                 for s, r in zip(session_track[k], reference_track[k]):
@@ -207,7 +276,6 @@ class EditorAPITest(TestCase):
         """
         Check that empty session is created
         """
-        self.login()
         response, session = self.create_session()
 
         self.assertEqual(response.status_code, 200)
@@ -218,7 +286,6 @@ class EditorAPITest(TestCase):
         """
         Add one gpx file and check it is included in session
         """
-        self.login()
         self.create_session()
 
         # Add file
@@ -239,7 +306,6 @@ class EditorAPITest(TestCase):
         """
         Create a session with one track, save it and load it
         """
-        self.login()
         self.create_session()
 
         sample_file = self.get_sample_file()
@@ -272,7 +338,6 @@ class EditorAPITest(TestCase):
         """
         Create a session with one track and save it
         """
-        self.login()
         self.create_session()
 
         # Add file
@@ -300,7 +365,6 @@ class EditorAPITest(TestCase):
         Create and save session with one gpx file. Add a new one, save and
         check that the db record is properly updated.
         """
-        self.login()
         self.create_session()
 
         sample_file = self.get_sample_file()
@@ -335,7 +399,6 @@ class EditorAPITest(TestCase):
         Create and save session with five gpx file. Remove some, save and check
         that the db record is properly updated.
         """
-        self.login()
         self.create_session()
 
         # Load files and save session
@@ -384,7 +447,6 @@ class EditorAPITest(TestCase):
         Create and save session with one gpx file. Add a new one, save an check
         that the db record is properly updated.
         """
-        self.login()
         self.create_session()
 
         self.client.post('/editor/save_session',
@@ -409,7 +471,6 @@ class EditorAPITest(TestCase):
         """
         Use get request instead of post and check response
         """
-        self.login()
         self.create_session()
         response = self.client.get('/editor/save_session')
         self.assertEqual(response.status_code, 400)
@@ -418,7 +479,6 @@ class EditorAPITest(TestCase):
         """
         Check response of request with False value in the save option
         """
-        self.login()
         self.create_session()
         response = self.client.post('/editor/save_session',
                                     json.dumps({'save': 'False'}),
@@ -429,7 +489,6 @@ class EditorAPITest(TestCase):
         """
         Try to save a non existing session
         """
-        self.login()
         response = self.client.post('/editor/save_session',
                                     json.dumps({'save': 'False'}),
                                     content_type='application/json')
@@ -439,7 +498,6 @@ class EditorAPITest(TestCase):
         """
         Create a session, save and remove it from db
         """
-        self.login()
         self.create_session()
         self.client.post('/editor/save_session',
                          json.dumps({'save': 'True'}),
@@ -461,7 +519,6 @@ class EditorAPITest(TestCase):
         """
         Try to save a non existing session
         """
-        self.login()
         response = self.client.post('/editor/remove_session/25')
 
         self.assertEqual(response.status_code, 500)
@@ -470,7 +527,6 @@ class EditorAPITest(TestCase):
         """
         Use get request instead of post and check response
         """
-        self.login()
         response = self.client.get('/editor/remove_session/25')
 
         self.assertEqual(response.status_code, 400)
@@ -479,7 +535,6 @@ class EditorAPITest(TestCase):
         """
         Create a session, rename and save
         """
-        self.login()
         self.create_session()
         self.client.post('/editor/save_session',
                          json.dumps({'save': 'True'}),
@@ -500,7 +555,6 @@ class EditorAPITest(TestCase):
         """
         Try to rename a non existing session
         """
-        self.login()
         response = self.client.post('/editor/rename_session',
                                     json.dumps({'new_name': 'test_rename_session_no_track'}),
                                     content_type='application/json')
@@ -510,12 +564,13 @@ class EditorAPITest(TestCase):
         """
         Use get request instead of post and check response
         """
-        self.login()
         response = self.client.get('/editor/rename_session')
         self.assertEqual(response.status_code, 400)
 
     def test_get_summary(self):
-        self.login()
+        """
+        Call the get_summary endpoint to check the return JSON
+        """
         self.create_session()
 
         sample_file = self.get_sample_file()
@@ -535,7 +590,6 @@ class EditorAPITest(TestCase):
         """
         Try to rename a non existing session
         """
-        self.login()
         response = self.client.get('/editor/get_summary')
         self.assertEqual(response.status_code, 500)
 
@@ -543,9 +597,54 @@ class EditorAPITest(TestCase):
         """
         Use post request instead of get and check response
         """
-        self.login()
         response = self.client.post('/editor/get_summary')
         self.assertEqual(response.status_code, 400)
+
+    def test_download_session(self):
+        """
+        Load a gpx and download the session
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor', {'document': f})
+
+        self.client.post('/editor/rename_session',
+                         json.dumps({'new_name': 'test_download_session'}),
+                         content_type='application/json')
+
+        response = self.client.post('/editor/download_session')
+        resp_json = json.loads(response.content)
+
+        self.assertRegex(resp_json['url'], '/media/test_download_session_.{8}.gpx')
+        self.assertRegex(resp_json['filename'], 'test_download_session_.{8}.gpx')
+        self.assertEqual(os.path.basename(resp_json['url']), resp_json['filename'])
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_download_session_get(self):
+        """
+        Use get request instead of post and check response
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor', {'document': f})
+
+        response = self.client.get('/editor/download_session')
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_download_session_no_track(self):
+        """
+        Test download session with no available track
+        """
+        self.create_session()
+
+        response = self.client.post('/editor/download_session')
+        self.assertEqual(response.status_code, 500)
 
 
 class LoginRequiredTest(TestCase):
@@ -586,4 +685,8 @@ class LoginRequiredTest(TestCase):
 
     def test_rename_session(self):
         response = self.client.get('/editor/rename_session')
+        self.assertEqual(response.status_code, 302)
+
+    def test_download_session(self):
+        response = self.client.get('/editor/download_session')
         self.assertEqual(response.status_code, 302)

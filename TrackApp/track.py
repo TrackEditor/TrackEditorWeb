@@ -241,7 +241,7 @@ class Track:
                     dt.timedelta(seconds=round(3600*row['relative_time'], 3)),
                     axis=1)
 
-    def save_gpx(self, gpx_filename: str):
+    def save_gpx(self, gpx_filename: str, exclude_time=False):
         # Sort by timestamp
         self.df_track = self.df_track.sort_values(by=['time'],
                                                   ascending=True,
@@ -274,7 +274,7 @@ class Track:
 
                 if pd.isnull(time) and pd.isnull(elevation):
                     gpx_point = gpxpy.gpx.GPXTrackPoint(latitude, longitude)
-                elif pd.isnull(time):
+                elif pd.isnull(time) or exclude_time:
                     gpx_point = gpxpy.gpx.GPXTrackPoint(latitude, longitude,
                                                         elevation=elevation)
                 elif pd.isnull(elevation):

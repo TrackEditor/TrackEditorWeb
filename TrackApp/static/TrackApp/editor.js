@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     show_summary();
     save_session();
     update_session_name();
+    download_session();
 });
 
 
@@ -445,4 +446,49 @@ function update_session_name() {
         .then(response => console.log(response));
     });
     // TODO manage error
+}
+
+
+function download(url, filename) {
+    fetch(url).then(function(t) {
+        return t.blob().then((b)=>{
+            var a = document.createElement("a");
+            a.href = URL.createObjectURL(b);
+            a.setAttribute("download", filename);
+            a.click();
+        }
+        );
+    });
+}
+
+function download_session() {
+    let btn_download = document.querySelector('#btn_download');
+
+    btn_download.addEventListener('click', function() {
+        document.querySelector('#div_spinner').style.display = 'inline-block';
+
+        fetch('/editor/download_session', {
+            method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('#div_spinner').style.display = 'none';
+
+                if (data.hasOwnProperty('error')) {  // manage error
+                    let div_error = document.querySelector('#div_error_msg');
+                    div_error.innerHTML = data.error;
+                    div_error.style.display = 'inline-block';
+
+                    setTimeout(function() {
+                        div_error.innerHTML = '';
+                        div_error.style.display = 'None';
+                    }, 3000);
+
+                }
+                else if (data.hasOwnProperty('url')) {
+                    download(data.url, data.filename);
+                }
+            });
+    });
+
 }

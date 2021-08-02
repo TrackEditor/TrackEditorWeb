@@ -111,19 +111,13 @@ def combine_tracks(request):
                            **config})
 
         try:
+            # Load files
             for uploaded_file in request.FILES.getlist('document'):
                 filename = fs.save(uploaded_file.name, uploaded_file)
                 filepath = os.path.join(fs.location, filename)
                 obj_track.add_gpx(filepath)
-        except Exception as e:
-            error = 'Error loading files'
-            print(e)
-            return render(request, 'TrackApp/combine_tracks.html',
-                          {'download': False,
-                           'error': error,
-                           **config})
 
-        try:
+            # Process files
             output_filename = \
                 c.tool + '_combine_tracks_' + \
                 datetime.now().strftime('%d%m%Y_%H%M%S') + '_' + \
@@ -131,8 +125,9 @@ def combine_tracks(request):
             output_location = os.path.join(fs.location, output_filename)
             output_url = fs.url(output_filename)
             obj_track.save_gpx(output_location)
+
         except Exception as e:
-            error = 'Error processing files'
+            error = 'Error loading files'
             print(e)
             return render(request, 'TrackApp/combine_tracks.html',
                           {'download': False,
@@ -176,6 +171,7 @@ def insert_timestamp(request):
         fs = FileSystemStorage()
 
         try:
+            # Load file
             uploaded_file = request.FILES['document']
             filename = fs.save(uploaded_file.name, uploaded_file)
             filepath = os.path.join(fs.location, filename)
@@ -192,16 +188,7 @@ def insert_timestamp(request):
             obj_track.insert_timestamp(initial_time, speed,
                                        consider_elevation=elevation_speed)
 
-        except Exception as e:
-            error = 'Error loading files'
-            print(f'Exception: {e}')
-            traceback.print_exc()
-            return render(request, 'TrackApp/insert_timestamp.html',
-                          {'download': False,
-                           'error': error,
-                           **config})
-
-        try:
+            # Process file
             output_filename = \
                 c.tool + '_insert_timestamp_' + \
                 datetime.now().strftime('%d%m%Y_%H%M%S') + '_' + \
@@ -209,9 +196,11 @@ def insert_timestamp(request):
             output_location = os.path.join(fs.location, output_filename)
             output_url = fs.url(output_filename)
             obj_track.save_gpx(output_location)
+
         except Exception as e:
-            error = 'Error processing file'
-            print(e)
+            error = 'Error loading files'
+            print(f'Exception: {e}')
+            traceback.print_exc()
             return render(request, 'TrackApp/insert_timestamp.html',
                           {'download': False,
                            'error': error,
@@ -503,3 +492,37 @@ def rename_session(request):
                                 status=500)
     else:
         return JsonResponse({'error': 'POST request required'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def download_session(request):
+    if request.method == 'POST':
+
+        if request.session['json_track']:
+            try:
+                obj_track = track.Track(track_json=request.session['json_track'])
+
+                if obj_track.size > 0:
+                    fs = FileSystemStorage()
+
+                    output_filename = \
+                        obj_track.title + '_' + id_generator(size=8) + '.gpx'
+                    output_location = os.path.join(fs.location, output_filename)
+                    output_url = fs.url(output_filename)
+                    obj_track.save_gpx(output_location, exclude_time=True)
+
+                    return JsonResponse({'url': output_url,
+                                         'filename': output_filename},
+                                        status=200)
+                else:
+                    return JsonResponse({'error': 'No track is loaded'},
+                                        status=500)
+            except Exception:
+                return JsonResponse(
+                    {'error': 'Unable to generate session file'},
+                    status=500)
+        else:
+            return JsonResponse({'error': 'No track is loaded'}, status=500)
+    else:
+        return JsonResponse({'error': 'GET request required'}, status=400)
