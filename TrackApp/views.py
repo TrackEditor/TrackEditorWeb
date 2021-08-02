@@ -510,7 +510,7 @@ def download_session(request):
                         obj_track.title + '_' + id_generator(size=8) + '.gpx'
                     output_location = os.path.join(fs.location, output_filename)
                     output_url = fs.url(output_filename)
-                    obj_track.save_gpx(output_location)
+                    obj_track.save_gpx(output_location, exclude_time=True)
 
                     return JsonResponse({'url': output_url,
                                          'filename': output_filename},

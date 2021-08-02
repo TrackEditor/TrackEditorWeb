@@ -8,9 +8,11 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from glob import glob
 
 import TrackApp.track as track
 import TrackApp.models as models
+from TrackApp.utils import md5sum
 
 
 class EditorIntegrationTest(StaticLiveServerTestCase):
@@ -64,6 +66,10 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         self.driver.quit()
 
     def test_save_session(self):
+        """
+        Save session in web browser and compare versus direct use of track
+        object.
+        """
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
@@ -90,6 +96,10 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
                 self.assertEqual(saved_track[k], reference_track[k])
 
     def test_remove_segment(self):
+        """
+        Remove segment in web browser and compare versus direct use of track
+        object.
+        """
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
@@ -131,6 +141,10 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
                 self.assertEqual(saved_track[k], reference_track[k])
 
     def test_rename_segment(self):
+        """
+        Rename segment in web browser and compare versus direct use of track
+        object.
+        """
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
@@ -157,6 +171,48 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         reference_track = json.loads(obj_track.to_json())
 
         self.assertEqual(saved_track, reference_track)
+
+    def test_rename_and_download_session(self):
+        """
+        Load two tracks, rename the session and download. The product file is
+        compared versus reference.
+        """
+        # Remove previous testing files
+        for file in glob(os.path.join(self.downloads_dir, 'test_download_session*.gpx')):
+            os.remove(file)
+
+        # Add files
+        for i in range(1, 3):
+            sample_file = os.path.join(self.test_path,
+                                       'samples',
+                                       f'Inaccessible_Island_part{i}.gpx')
+            self.driver.find_element_by_id('select-file').send_keys(sample_file)
+            WebDriverWait(self.driver, 5).\
+                until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+
+        # Rename session
+        e_session_name = self.driver.find_element_by_id('h_session_name')
+        e_session_name.click()
+        self.driver.execute_script(
+            "arguments[0].innerText = 'test_download_session'", e_session_name)
+        self.driver.find_element_by_xpath("//html").click()
+
+        # Download file
+        self.driver.find_element_by_id('btn_download').click()
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        time.sleep(2)
+
+        downloaded_file = \
+            glob(os.path.join(self.downloads_dir, 'test_download_session*.gpx'))[-1]
+
+        self.assertEqual(
+            md5sum(downloaded_file),
+            md5sum(os.path.join(self.test_path,
+                                'references',
+                                'test_combine_tracks.gpx')
+                   )
+        )
 
 
 class EditorAPITest(TestCase):
