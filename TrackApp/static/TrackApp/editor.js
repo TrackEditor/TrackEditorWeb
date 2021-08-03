@@ -35,6 +35,14 @@ function plot_tracks() {
     console.log(segment_list);
     if (typeof track_list !== 'undefined') {
         segment_list.forEach(seg => plot_segment(map, seg));
+
+        fetch('/editor/get_segments_links')
+        .then(response => response.json())
+        .then(data => {
+            let links = eval(data.links);
+            links.forEach(link => plot_link(map, link));
+        });
+
     }
 }
 
@@ -102,16 +110,17 @@ function manage_track_names() {
                 var layersToRemove = [];
                 map.getLayers().forEach(layer => {
                     if ((layer.get('name') === `layer_points_${segment_idx}`) ||
-                        (layer.get('name') === `layer_lines_${segment_idx}`)) {
+                        (layer.get('name') === `layer_lines_${segment_idx}`) ||
+                        (layer.get('name') === 'layer_link')) {
                             layersToRemove.push(layer);
                         }
                 });
 
                 var len = layersToRemove.length;
-                for(var i = 0; i < len; i++) {
-                    let layer_name = layersToRemove[i].get('name');
+                for(var j = 0; j < len; j++) {
+                    let layer_name = layersToRemove[j].get('name');
                     console.log(`Removing layer ${layer_name}`);
-                    map.removeLayer(layersToRemove[i]);
+                    map.removeLayer(layersToRemove[j]);
                 }
 
                 // Remove segment in back end
@@ -120,7 +129,16 @@ function manage_track_names() {
                     body: JSON.stringify({
                         index:  segment_idx  // segments start to count in 1, not 0
                     })
+                })
+                .then( _ => {
+                    fetch('/editor/get_segments_links')
+                    .then(response => response.json())
+                    .then(data => {
+                        let links = eval(data.links);
+                        links.forEach(link => plot_link(map, link));
+                    });
                 });
+
                 // TODO reverse the display='none' if response is NOK
                 // TODO remove segment plot
             });
@@ -310,6 +328,50 @@ function get_lines_style(color_index) {
             })
         });
     return line_style;
+}
+
+
+function plot_link(map, link) {
+    /*
+    PLOT_LINK create linking lines between any two segment displayed on map
+    */
+    const link_vector_layer = new ol.layer.Vector({
+        source: get_links_source(link[0][0], link[0][1], link[1][0], link[1][1]),  // [0] lat, [1] lon
+        style: get_link_style(),
+        name: 'layer_link',
+    });
+    map.addLayer(link_vector_layer);
+    console.log(`New link layer: ${link_vector_layer.get('name')}`);
+}
+
+
+function get_links_source(lat, lon, lat_next, lon_next) {
+    // create points
+    const points = [];
+    points.push(ol.proj.fromLonLat([lon, lat]));
+    points.push(ol.proj.fromLonLat([lon_next, lat_next]));
+
+    const featureLink = new ol.Feature({
+        geometry: new ol.geom.LineString(points)
+    });
+
+    // create the source and layer for features
+    var linkSource = new ol.source.Vector({
+        features: [featureLink]
+    });
+
+    return linkSource;
+}
+
+
+function get_link_style() {
+    const link_style = new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: 'rgb(0, 0, 128, 0.1)',  // navy color
+                width: 3,
+            })
+        });
+    return link_style;
 }
 
 
