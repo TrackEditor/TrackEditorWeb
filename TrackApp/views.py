@@ -548,7 +548,7 @@ def get_segments_links(request):
 
             for i in range(len(segments) - 1):
                 s = segments[i]
-                s_next = segments[i+1]
+                s_next = segments[i + 1]
                 init = df_track[df_track['segment'] == s].iloc[-1][['lat', 'lon']]
                 end = df_track[df_track['segment'] == s_next].iloc[0][['lat', 'lon']]
                 links.append([init.to_list(), end.to_list()])

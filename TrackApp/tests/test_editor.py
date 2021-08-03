@@ -727,7 +727,7 @@ class LoginRequiredTest(TestCase):
     def test_download_session(self):
         response = self.client.get('/editor/download_session')
         self.assertEqual(response.status_code, 302)
-    
+
     def test_get_segments_links(self):
         response = self.client.get('/editor/get_segments_links')
         self.assertEqual(response.status_code, 302)
