@@ -647,6 +647,42 @@ class EditorAPITest(TestCase):
         response = self.client.post('/editor/download_session')
         self.assertEqual(response.status_code, 500)
 
+    def test_get_segments_links(self):
+        """
+        Test download session with no available track
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor', {'document': f})
+
+        response = self.client.get('/editor/get_segments_links')
+
+        resp_json = json.loads(response.content)
+        links = eval(resp_json['links'])
+
+        self.assertEqual(links, [[[1.0, 5.0], [1.0, 6.0]],
+                                 [[-3.0, 6.0], [-3.0, 5.0]],
+                                 [[-3.0, 1.0], [-3.0, 0.0]]])
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_segments_links_no_track(self):
+        """
+        Try to get segments with no available track
+        """
+        response = self.client.get('/editor/get_segments_links')
+        self.assertEqual(response.status_code, 500)
+
+    def test_get_segments_links_post(self):
+        """
+        Send post instead of get
+        """
+        response = self.client.post('/editor/get_segments_links')
+        self.assertEqual(response.status_code, 400)
+
 
 class LoginRequiredTest(TestCase):
     """
@@ -690,4 +726,8 @@ class LoginRequiredTest(TestCase):
 
     def test_download_session(self):
         response = self.client.get('/editor/download_session')
+        self.assertEqual(response.status_code, 302)
+    
+    def test_get_segments_links(self):
+        response = self.client.get('/editor/get_segments_links')
         self.assertEqual(response.status_code, 302)

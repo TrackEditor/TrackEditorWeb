@@ -554,5 +554,8 @@ def get_segments_links(request):
                 links.append([init.to_list(), end.to_list()])
 
             return JsonResponse({'links': str(links)}, status=200)
+
+        else:
+            return JsonResponse({'error': 'No available track'}, status=500)
     else:
         return JsonResponse({'error': 'GET request required'}, status=400)
