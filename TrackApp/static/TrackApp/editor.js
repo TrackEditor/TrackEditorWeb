@@ -31,12 +31,18 @@ function plot_tracks() {
     let div_track_list = document.querySelector('#div_track_list');  // TODO modify with API endpoint
     let track_list = eval(div_track_list.dataset.track_list);
     let segment_list = eval(div_track_list.dataset.segment_list);
-    let links_list = eval(div_track_list.dataset.link_list);
 
     console.log(segment_list);
     if (typeof track_list !== 'undefined') {
         segment_list.forEach(seg => plot_segment(map, seg));
-        links_list.forEach(link => plot_link(map, link));
+
+        fetch('/editor/get_segments_links')
+        .then(response => response.json())
+        .then(data => {
+            let links = eval(data.links);
+            links.forEach(link => plot_link(map, link));
+        });
+
     }
 }
 
@@ -104,16 +110,17 @@ function manage_track_names() {
                 var layersToRemove = [];
                 map.getLayers().forEach(layer => {
                     if ((layer.get('name') === `layer_points_${segment_idx}`) ||
-                        (layer.get('name') === `layer_lines_${segment_idx}`)) {
+                        (layer.get('name') === `layer_lines_${segment_idx}`) ||
+                        (layer.get('name') === 'layer_link')) {
                             layersToRemove.push(layer);
                         }
                 });
 
                 var len = layersToRemove.length;
-                for(var i = 0; i < len; i++) {
-                    let layer_name = layersToRemove[i].get('name');
+                for(var j = 0; j < len; j++) {
+                    let layer_name = layersToRemove[j].get('name');
                     console.log(`Removing layer ${layer_name}`);
-                    map.removeLayer(layersToRemove[i]);
+                    map.removeLayer(layersToRemove[j]);
                 }
 
                 // Remove segment in back end
@@ -122,7 +129,16 @@ function manage_track_names() {
                     body: JSON.stringify({
                         index:  segment_idx  // segments start to count in 1, not 0
                     })
+                })
+                .then( _ => {
+                    fetch('/editor/get_segments_links')
+                    .then(response => response.json())
+                    .then(data => {
+                        let links = eval(data.links);
+                        links.forEach(link => plot_link(map, link));
+                    });
                 });
+
                 // TODO reverse the display='none' if response is NOK
                 // TODO remove segment plot
             });
@@ -319,13 +335,13 @@ function plot_link(map, link) {
     /*
     PLOT_LINK create linking lines between any two segment displayed on map
     */
-    console.log('plot_link', link, 'point 1', link[0][0], link[0][1], 'point 2', link[1][0], link[1][1]);
     const link_vector_layer = new ol.layer.Vector({
         source: get_links_source(link[0][0], link[0][1], link[1][0], link[1][1]),  // [0] lat, [1] lon
         style: get_link_style(),
+        name: 'layer_link',
     });
     map.addLayer(link_vector_layer);
-
+    console.log(`New link layer: ${link_vector_layer.get('name')}`);
 }
 
 
