@@ -31,10 +31,12 @@ function plot_tracks() {
     let div_track_list = document.querySelector('#div_track_list');  // TODO modify with API endpoint
     let track_list = eval(div_track_list.dataset.track_list);
     let segment_list = eval(div_track_list.dataset.segment_list);
+    let links_list = eval(div_track_list.dataset.link_list);
 
     console.log(segment_list);
     if (typeof track_list !== 'undefined') {
         segment_list.forEach(seg => plot_segment(map, seg));
+        links_list.forEach(link => plot_link(map, link));
     }
 }
 
@@ -310,6 +312,50 @@ function get_lines_style(color_index) {
             })
         });
     return line_style;
+}
+
+
+function plot_link(map, link) {
+    /*
+    PLOT_LINK create linking lines between any two segment displayed on map
+    */
+    console.log('plot_link', link, 'point 1', link[0][0], link[0][1], 'point 2', link[1][0], link[1][1]);
+    const link_vector_layer = new ol.layer.Vector({
+        source: get_links_source(link[0][0], link[0][1], link[1][0], link[1][1]),  // [0] lat, [1] lon
+        style: get_link_style(),
+    });
+    map.addLayer(link_vector_layer);
+
+}
+
+
+function get_links_source(lat, lon, lat_next, lon_next) {
+    // create points
+    const points = [];
+    points.push(ol.proj.fromLonLat([lon, lat]));
+    points.push(ol.proj.fromLonLat([lon_next, lat_next]));
+
+    const featureLink = new ol.Feature({
+        geometry: new ol.geom.LineString(points)
+    });
+
+    // create the source and layer for features
+    var linkSource = new ol.source.Vector({
+        features: [featureLink]
+    });
+
+    return linkSource;
+}
+
+
+function get_link_style() {
+    const link_style = new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: 'rgb(0, 0, 128, 0.1)',  // navy color
+                width: 3,
+            })
+        });
+    return link_style;
 }
 
 

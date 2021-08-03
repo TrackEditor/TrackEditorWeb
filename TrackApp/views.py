@@ -225,6 +225,21 @@ def users_only(request):
     })
 
 
+def get_segments_links(obj_track):  # TODO move to track.py
+    df_track = obj_track.df_track
+    segments = obj_track.df_track['segment'].unique()
+    links = []
+
+    for i in range(len(segments) - 1):
+        s = segments[i]
+        s_next = segments[i+1]
+        init = df_track[df_track['segment'] == s].iloc[-1][['lat', 'lon']]
+        end = df_track[df_track['segment'] == s_next].iloc[0][['lat', 'lon']]
+        links.append([init.to_list(), end.to_list()])
+
+    return links
+
+
 @login_required
 def editor(request, index=None):
     config = {'maximum_file_size': c.maximum_file_size,
@@ -235,12 +250,14 @@ def editor(request, index=None):
         request.session['json_track'] = Track.objects.get(id=index).track
         request.session['index_db'] = index
         json_track = json.loads(request.session['json_track'])
+        obj_track = track.Track(track_json=request.session['json_track'])
 
         return render(
             request,
             'TrackApp/editor.html',
             {'track_list': [n for n in json_track['segment_names'] if n],
              'segment_list': list(set(json_track['segment'])),
+             'link_list': get_segments_links(obj_track),
              'title': json_track['title'],
              **config})
 
@@ -266,6 +283,7 @@ def editor(request, index=None):
         return render(request, 'TrackApp/editor.html',
                       {'track_list': [n for n in obj_track.segment_names if n],
                        'segment_list': list(obj_track.df_track['segment'].unique()),
+                       'link_list': get_segments_links(obj_track),
                        'title': obj_track.title,
                        **config})
 

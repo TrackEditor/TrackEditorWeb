@@ -196,6 +196,7 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         self.driver.execute_script(
             "arguments[0].innerText = 'test_download_session'", e_session_name)
         self.driver.find_element_by_xpath("//html").click()
+        time.sleep(0.1)  # small time to rename session
 
         # Download file
         self.driver.find_element_by_id('btn_download').click()
