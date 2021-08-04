@@ -49,7 +49,7 @@ jobs:
 #        coverage-badge -o coverage.svg
 
     - name: Get the Numbers
-      run: echo "ANSWER=42" >> $GITHUB_ENV
+      run: echo "ANSWER=25" >> $GITHUB_ENV
     - name: Create the Badge
       uses: schneegans/dynamic-badges-action@v1.1.0
       with:
