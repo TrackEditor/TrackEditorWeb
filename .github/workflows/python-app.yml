@@ -54,7 +54,7 @@ jobs:
       uses: schneegans/dynamic-badges-action@v1.1.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
-        gistID: <gist-ID>
+        gistID: 8064b57379b6b83061b9c28f6b950594
         filename: answer.json
         label: The Answer is
         message: ${{ env.ANSWER }}
