@@ -47,7 +47,7 @@ jobs:
         coverage combine --rcfile=./.coveragerc
         coverage report -m --rcfile=./.coveragerc >> coverage.txt
         cat coverage.txt
-        COVERAGE_STR=`tail -1 report.xml | awk '{print $4}'`
+        COVERAGE_STR=`tail -1 coverage.txt | awk '{print $4}'`
         echo "COVERAGE=$(echo ${COVERAGE_STR})" >> $GITHUB_ENV
     - name: Create coverage badge
       uses: schneegans/dynamic-badges-action@v1.1.0
