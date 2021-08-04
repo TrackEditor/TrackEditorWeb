@@ -1,4 +1,7 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Build Status](https://github.com/alguerre/TrackEditorWeb/actions/workflows/python-app.yml/badge.svg)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/alguerre/8064b57379b6b83061b9c28f6b950594/raw/coverage.json)
+![Python](https://img.shields.io/badge/python-3.9-blue.svg)
 
 # TrackEditorWeb
 This is an online tool to manipulate your GPS track files, like GPX. 
@@ -38,6 +41,12 @@ Proposed for windows users.
    -v /home/postgres132:/var/lib/postgresql/data \
    -e POSTGRES_PASSWORD=postgres \
    -d postgres:13.2-alpine
+   ```
+   - Create table
+   ```
+   sudo docker exec -it postgres132 psql -U postgres
+   postgres=# CREATE DATABASE track_db;
+   postgres=# exit
    ```
    
 6. Load project in Pycharm
