@@ -58,7 +58,8 @@ jobs:
         filename: coverage.json
         label: coverage
         message: ${{ env.COVERAGE }}
-        
+        color: green
+  
     - name: Get the Numbers
       run: echo "ANSWER=26%" >> $GITHUB_ENV
     - name: Create the Badge
