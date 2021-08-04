@@ -40,6 +40,12 @@ Proposed for windows users.
    -e POSTGRES_PASSWORD=postgres \
    -d postgres:13.2-alpine
    ```
+   - Create table
+   ```
+   sudo docker exec -it postgres132 psql -U postgres
+   postgres=# CREATE DATABASE track_db;
+   postgres=# exit
+   ```
    
 6. Load project in Pycharm
     - Start Pycharm
