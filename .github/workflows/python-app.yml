@@ -48,6 +48,7 @@ jobs:
         coverage report -m --rcfile=./.coveragerc >> coverage.txt
         cat coverage.txt
         COVERAGE_STR=`tail -1 coverage.txt | awk '{print $4}'`
+        echo $COVERAGE_STR        
         echo "COVERAGE=$(echo ${COVERAGE_STR})" >> $GITHUB_ENV
     - name: Create coverage badge
       uses: schneegans/dynamic-badges-action@v1.1.0
@@ -58,14 +59,14 @@ jobs:
         label: coverage
         message: ${{ env.COVERAGE }}
         
-#    - name: Get the Numbers
-#      run: echo "ANSWER=25" >> $GITHUB_ENV
-#    - name: Create the Badge
-#      uses: schneegans/dynamic-badges-action@v1.1.0
-#      with:
-#        auth: ${{ secrets.GIST_SECRET }}
-#        gistID: 8064b57379b6b83061b9c28f6b950594
-#        filename: answer.json
-#        label: The Answer is
-#        message: ${{ env.ANSWER }}
-#        color: green
+    - name: Get the Numbers
+      run: echo "ANSWER=26" >> $GITHUB_ENV
+    - name: Create the Badge
+      uses: schneegans/dynamic-badges-action@v1.1.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: 8064b57379b6b83061b9c28f6b950594
+        filename: answer.json
+        label: The Answer is
+        message: ${{ env.ANSWER }}
+        color: green
