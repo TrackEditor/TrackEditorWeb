@@ -1,7 +1,7 @@
 name: Build & Test
 
-# on: [push, pull_request]
-on: [push]
+on: [push, pull_request]
+
 
 jobs:
   build:
@@ -21,20 +21,24 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
     - name: psycopg2 prerequisites
       run: sudo apt-get install libpq-dev
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 coverage-badge
         pip install -r requirements.txt
+
     - name: Flake8
       run: |
         flake8 . --max-line-length=100 --max-complexity 10
+
     - name: Run tests
       env:
           DB_NAME: track_db
@@ -50,24 +54,13 @@ jobs:
         COVERAGE_STR=`tail -1 coverage.txt | awk '{print $4}'`
         echo $COVERAGE_STR        
         echo "COVERAGE=$(echo ${COVERAGE_STR})" >> $GITHUB_ENV
+
     - name: Create coverage badge
       uses: schneegans/dynamic-badges-action@v1.1.0
       with:
         auth: ${{ secrets.GIST_SECRET }}
         gistID: 8064b57379b6b83061b9c28f6b950594
         filename: coverage.json
-        label: coverage
+        label: Test Coverage
         message: ${{ env.COVERAGE }}
-        color: green
-  
-    - name: Get the Numbers
-      run: echo "ANSWER=26%" >> $GITHUB_ENV
-    - name: Create the Badge
-      uses: schneegans/dynamic-badges-action@v1.1.0
-      with:
-        auth: ${{ secrets.GIST_SECRET }}
-        gistID: 8064b57379b6b83061b9c28f6b950594
-        filename: answer.json
-        label: The Answer is
-        message: ${{ env.ANSWER }}
         color: green
