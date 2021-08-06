@@ -59,8 +59,8 @@ function manage_track_names() {
 
     if (typeof track_list !== 'undefined') {
         for (var i = 0; i < track_list.length; i++) {
-            let color = get_color(i, alpha='-1');
             let segment_idx = segment_list[i];
+            let color = get_color(segment_idx, alpha='-1');
 
             const p_name = document.createElement('p');
             const span_name = document.createElement('span');
@@ -76,6 +76,7 @@ function manage_track_names() {
             span_name.setAttribute('data-index', i);
             span_name.setAttribute('data-original_name', span_name.innerHTML);
             span_name.setAttribute('id', `span_rename_${segment_idx}`);
+            console.log('track id:', `span_rename_${segment_idx}`);
 
             span_name.addEventListener('blur', function() {
                 console.log('Change track name',
@@ -157,6 +158,13 @@ function get_color(color_index, alpha='0.5') {
     GET_COLOR returns the rgb string corresponding to a number of predefined
     colors
     */
+    if (color_index < 0) {
+        color_index == 0
+    }
+    else {
+        color_index = color_index - 1;  // indexing from 1
+    }
+
     const colors = ['255, 127, 80',  // coral
                     '30, 144, 255',  // dodgerblue
                     '50, 205, 50', // limegreen
@@ -232,7 +240,7 @@ function plot_segment(map, index) {
             // Points to vector layer
             const points_vector_layer = new ol.layer.Vector({
                 source: get_points_source(data.lat, data.lon),
-                style: get_points_style(data.index - 1),
+                style: get_points_style(data.index),
                 name: `layer_points_${index}`,
             });
             map.addLayer(points_vector_layer);
@@ -240,17 +248,44 @@ function plot_segment(map, index) {
 
             // Lines to vector layer
             const lines_vector_layer = new ol.layer.Vector({
-                source: get_lines_source(data.lat, data.lon),
-                style: get_lines_style(data.index - 1),
+                source: get_lines_source(data.lat, data.lon,
+                                         `features_lines_${index}`,
+                                         get_lines_style(data.index)),
                 name: `layer_lines_${index}`,
             });
             map.addLayer(lines_vector_layer);
             console.log(`New layer: ${lines_vector_layer.get('name')}`);
 
-            // Adjust display
-            map.getView().setZoom(data.map_zoom);
-            map.getView().setCenter(ol.proj.fromLonLat(data.map_center));
-        });
+            // Interaction
+            let select_interaction = new ol.interaction.Select({
+                layers: [lines_vector_layer]
+            });
+            map.addInteraction(select_interaction);
+
+            select_interaction.on('select', function (e) {
+                console.log('(de)select');
+                document.querySelector(`#span_rename_${index}`).style.fontWeight = 'normal';
+                if (e.selected.length > 0) {
+                    if (e.selected[0].getId() === `features_lines_${index}`) {
+                        console.log('selected line:', e.selected[0].getId());
+                        console.log('data index:', data.index);
+                        e.selected[0].setStyle(new ol.style.Style({
+                            stroke: new ol.style.Stroke({
+                                color: get_color(index, '0.9'),
+                                width: 7,
+                            })
+                        }));
+                        // Bold track name
+                        document.querySelector(`#span_rename_${index}`).style.fontWeight = 'bolder';
+                    }
+                }
+
+            });
+
+        // Adjust display
+        map.getView().setZoom(data.map_zoom);
+        map.getView().setCenter(ol.proj.fromLonLat(data.map_center));
+    });
 }
 
 function get_points_source(lat, lon) {
@@ -278,7 +313,7 @@ function get_points_source(lat, lon) {
 }
 
 
-function get_lines_source(lat, lon) {
+function get_lines_source(lat, lon, id, style) {
     /*
     GET_LINES_SOURCE generates a vector source with a line joining pairs
     of coordinates latitude-longitude
@@ -293,6 +328,8 @@ function get_lines_source(lat, lon) {
     const featureLine = new ol.Feature({
         geometry: new ol.geom.LineString(points)
     });
+    featureLine.setId(id);
+    featureLine.setStyle(style);
 
     // create the source and layer for features
     var lineSource = new ol.source.Vector({
@@ -317,13 +354,13 @@ function get_points_style(color_index) {
 }
 
 
-function get_lines_style(color_index) {
+function get_lines_style(color_index, alpha) {
     /*
     GET_LINES_STYLE provides a style for lines
     */
     const line_style = new ol.style.Style({
             stroke: new ol.style.Stroke({
-                color: get_color(color_index),
+                color: get_color(color_index, alpha),
                 width: 5,
             })
         });
