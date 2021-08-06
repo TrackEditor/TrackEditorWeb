@@ -8,8 +8,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-import TrackApp.constants as c
-from TrackApp.utils import md5sum
+import libs.constants as c
+from libs.utils import md5sum
 from TrackApp.models import User
 
 
@@ -122,7 +122,7 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.assertEqual(
             md5sum(downloaded_file),
-            md5sum(os.path.join(c.test_path,
+            md5sum(os.path.join(self.test_path,
                                 'references',
                                 'test_combine_tracks.gpx')
                    )
@@ -169,7 +169,7 @@ class ViewsTest(StaticLiveServerTestCase):
 
         self.assertEqual(
             md5sum(downloaded_file),
-            md5sum(os.path.join(c.test_path,
+            md5sum(os.path.join(self.test_path,
                                 'references',
                                 'test_insert_time.gpx')
                    )

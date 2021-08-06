@@ -2,7 +2,7 @@ from django.test import TestCase
 import datetime as dt
 import os
 
-from TrackApp import gpx
+from libs import gpx
 
 
 class GpxTest(TestCase):
@@ -10,18 +10,21 @@ class GpxTest(TestCase):
         self.test_path = os.path.dirname(__file__)
 
     def test_load_file(self):
-        file = os.path.join(self.test_path, 'samples/basic_sample.gpx')
+        file = os.path.join(self.test_path,
+                            'samples/basic_sample.gpx')
         route = gpx.Gpx(file)
         self.assertTrue(route._load_file())
 
     def test_load_file_big(self):
-        file = os.path.join(self.test_path, 'samples/over_10mb.gpx')
+        file = os.path.join(self.test_path,
+                            'samples/over_10mb.gpx')
 
         with self.assertRaises(gpx.LoadGpxError):
             gpx.Gpx(file)
 
     def test_to_dict(self):
-        file = os.path.join(self.test_path, 'samples/basic_sample.gpx')
+        file = os.path.join(self.test_path,
+                            'samples/basic_sample.gpx')
         route = gpx.Gpx(file)
         route_dict = route.to_dict()
 
@@ -52,7 +55,8 @@ class GpxTest(TestCase):
         self.assertTrue(all([a == b for a, b in zip(first + last, first_ref + last_ref)]))
 
     def test_to_pandas(self):
-        file = os.path.join(self.test_path, 'samples/basic_sample.gpx')
+        file = os.path.join(self.test_path,
+                            'samples/basic_sample.gpx')
         route = gpx.Gpx(file)
         route_df = route.to_pandas()
 

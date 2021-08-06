@@ -7,7 +7,7 @@ import datetime as dt
 import os
 import json
 
-from TrackApp import track
+from libs import track
 
 
 class TrackTest(TestCase):
@@ -399,9 +399,7 @@ class TrackTest(TestCase):
     def test_columns_type(self):
         # Load data
         obj_track = track.Track()
-
-        obj_track.add_gpx(
-            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
+        obj_track.add_gpx(os.path.join(self.test_path, 'samples', 'Inaccessible_Island_Full.gpx'))
 
         # Apply method
         obj_track._force_columns_type()
@@ -417,8 +415,7 @@ class TrackTest(TestCase):
     def test_save_gpx(self):
         # Load data
         obj_track = track.Track()
-        obj_track.add_gpx(
-            f'{self.test_path}/samples/Inaccessible_Island_Full.gpx')
+        obj_track.add_gpx(os.path.join(self.test_path, 'samples', 'Inaccessible_Island_Full.gpx'))
 
         # Insert timestamp, no timestamp is checked in file_menu.py wrapper
         initial_time = dt.datetime(2010, 1, 1)
@@ -441,7 +438,7 @@ class TrackTest(TestCase):
 
     def test_to_json(self):
         obj_track = track.Track()
-        obj_track.add_gpx('TrackApp/tests/samples/simple_numbers.gpx')
+        obj_track.add_gpx(os.path.join(self.test_path, 'samples', 'simple_numbers.gpx'))
         json_track = json.loads(obj_track.to_json())
 
         dataframe_keys = ['lat', 'lon', 'ele', 'segment', 'ele_pos_cum', 'ele_neg_cum', 'distance']

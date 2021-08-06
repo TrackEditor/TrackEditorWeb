@@ -25,7 +25,6 @@ map_size = 2  # number of tiles for auto zoom
 
 # location
 app_path = os.path.dirname(os.path.realpath(__file__))
-test_path = os.path.join(app_path, 'tests')
 
 # OSM request options
 version = "v0.0"

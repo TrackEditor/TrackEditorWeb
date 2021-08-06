@@ -17,8 +17,7 @@ import os
 import io
 from time import time
 
-from . import gpx
-from . import constants as c
+from libs import constants as c, gpx
 
 
 class Track:

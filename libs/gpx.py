@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import gpxpy
 
-from . import constants as c
+from libs import constants as c
 
 
 class LoadGpxError(Exception):

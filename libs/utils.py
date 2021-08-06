@@ -8,7 +8,7 @@ import hashlib
 import string
 import random
 import math
-from . import constants as c
+from libs import constants as c
 
 
 def md5sum(file: str) -> str:

@@ -3,7 +3,7 @@ import datetime as dt
 from django.test import TestCase
 
 import TrackApp.models as models
-import TrackApp.track as track
+import libs.track as track
 
 
 class ModelsTest(TestCase):

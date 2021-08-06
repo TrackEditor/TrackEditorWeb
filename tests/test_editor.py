@@ -10,9 +10,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from glob import glob
 
-import TrackApp.track as track
+import libs.track as track
 import TrackApp.models as models
-from TrackApp.utils import md5sum
+from libs.utils import md5sum
 
 
 class EditorIntegrationTest(StaticLiveServerTestCase):
