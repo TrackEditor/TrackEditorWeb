@@ -221,7 +221,8 @@ def insert_timestamp(request):
 
 def users_only(request):
     return render(request, 'TrackApp/login.html', {
-        'warning': 'The selected option is only available for users. Please, login or register.'
+        'warning': 'The selected option is only available for users. ' +
+                   'Please, login or register.'
     })
 
 
@@ -235,7 +236,6 @@ def editor(request, index=None):
         request.session['json_track'] = Track.objects.get(id=index).track
         request.session['index_db'] = index
         json_track = json.loads(request.session['json_track'])
-        obj_track = track.Track(track_json=request.session['json_track'])
 
         return render(
             request,
