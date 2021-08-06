@@ -559,3 +559,21 @@ def get_segments_links(request):
             return JsonResponse({'error': 'No available track'}, status=500)
     else:
         return JsonResponse({'error': 'GET request required'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def reverse_segment(request, index):
+    if request.method == 'POST':
+        if exist_track(request):
+            try:
+                obj_track = track.Track(track_json=request.session['json_track'])
+                obj_track.reverse_segment(index)
+                request.session['json_track'] = obj_track.to_json()
+                return JsonResponse({'message': 'Segment is reversed'}, status=200)
+            except Exception:
+                return JsonResponse({'error': 'Unable to reverse'}, status=501)
+        else:
+            return JsonResponse({'error': 'No available track'}, status=500)
+    else:
+        return JsonResponse({'error': 'POST request required'}, status=400)

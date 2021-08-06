@@ -23,7 +23,8 @@ urlpatterns = [
     path('editor/remove_session/<int:index>', views.remove_session, name='remove_session'),
     path('editor/rename_session', views.rename_session, name='rename_session'),
     path('editor/download_session', views.download_session, name='download_session'),
-    path('editor/get_segments_links', views.get_segments_links, name='get_segments_links')
+    path('editor/get_segments_links', views.get_segments_links, name='get_segments_links'),
+    path('editor/reverse_segment/<int:index>', views.reverse_segment, name='reverse_segment')
 ]
 
 # DEBUG will only be available during development in other case a more powerful
