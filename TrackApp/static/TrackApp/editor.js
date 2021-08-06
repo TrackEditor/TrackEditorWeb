@@ -592,7 +592,7 @@ function download_session() {
 
                     setTimeout(function() {
                         div_error.innerHTML = '';
-                        div_error.style.display = 'None';
+                        div_error.style.display = 'none';
                     }, 3000);
 
                 }
@@ -606,6 +606,7 @@ function download_session() {
 
 function reverse_segment(segment_idx) {
     console.log('reverse', segment_idx);
+    document.querySelector('#div_spinner').style.display = 'inline-block';
 
     // Remove segment in back end
     fetch(`/editor/reverse_segment/${segment_idx}`, {
@@ -671,7 +672,7 @@ function check_reverse_button() {
                 div.style.display = 'inline-block';
 
                 setTimeout(function(){
-                    div.style.display = 'None';
+                    div.style.display = 'none';
                     div.innerHTML = '';
                 }, 3000);
         }
