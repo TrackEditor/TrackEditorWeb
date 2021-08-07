@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block script %}
-    <script src="{% static 'TrackApp/editor.js' %}"></script>
+    <script src="{% static 'editor/editor.js' %}"></script>
     <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
 {% endblock %}
 
@@ -17,6 +17,8 @@
     <div class="container" id="div_alerts_box" style="width: 72vh; margin-left: 0px;">
         <div id="div_alert" data-maximum_file_size="{{maximum_file_size}}" data-valid_extensions="{{valid_extensions}}">
                 <div class="alert alert-danger" id="div_error_msg" role="alert" style="display: none;">
+                </div>
+                <div class="alert alert-warning" id="div_warning_msg" role="alert" style="display: none;">
                 </div>
         </div>
     </div>

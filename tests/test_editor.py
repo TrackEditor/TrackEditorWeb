@@ -1,3 +1,4 @@
+# flake8: noqa: W504
 import os
 import json
 import time
@@ -11,8 +12,8 @@ from selenium.webdriver.common.by import By
 from glob import glob
 
 import libs.track as track
-import TrackApp.models as models
 from libs.utils import md5sum
+import TrackApp.models as models
 
 
 class EditorIntegrationTest(StaticLiveServerTestCase):
@@ -196,7 +197,7 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         self.driver.execute_script(
             "arguments[0].innerText = 'test_download_session'", e_session_name)
         self.driver.find_element_by_xpath("//html").click()
-        time.sleep(0.1)  # small time to rename session
+        time.sleep(0.5)  # small time to rename session
 
         # Download file
         self.driver.find_element_by_id('btn_download').click()
@@ -250,7 +251,7 @@ class EditorAPITest(TestCase):
         """
         Get request to the /editor endpoint to generate track in session
         """
-        response = self.client.get('/editor')
+        response = self.client.get('/editor/')
         session = self.client.session
         return response, session
 
@@ -292,7 +293,7 @@ class EditorAPITest(TestCase):
         # Add file
         sample_file = self.get_sample_file()
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
         session_track = json.loads(self.client.session['json_track'])
 
         # Create expected output
@@ -311,7 +312,7 @@ class EditorAPITest(TestCase):
 
         sample_file = self.get_sample_file()
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
 
         self.client.post('/editor/save_session',
                          json.dumps({'save': 'True'}),
@@ -320,7 +321,7 @@ class EditorAPITest(TestCase):
         # Add another file to force that the last active session is not
         # the same than the loaded one
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
 
         # Load track
         response = self.client.get(f'/editor/{self.client.session["index_db"]}')
@@ -344,7 +345,7 @@ class EditorAPITest(TestCase):
         # Add file
         sample_file = self.get_sample_file()
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
         session_track = json.loads(self.client.session['json_track'])
 
         # Save session
@@ -370,13 +371,13 @@ class EditorAPITest(TestCase):
 
         sample_file = self.get_sample_file()
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
         self.client.post('/editor/save_session',
                          json.dumps({'save': 'True'}),
                          content_type='application/json')
 
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
         self.client.post('/editor/save_session',
                          json.dumps({'save': 'True'}),
                          content_type='application/json')
@@ -406,7 +407,7 @@ class EditorAPITest(TestCase):
         for i in range(1, 6):
             sample_file = self.get_sample_file(f'Inaccessible_Island_part{i}.gpx')
             with open(sample_file, 'r') as f:
-                self.client.post('/editor', {'document': f})
+                self.client.post('/editor/', {'document': f})
 
             self.client.post('/editor/rename_segment',
                              json.dumps({'index': i - 1,
@@ -576,7 +577,7 @@ class EditorAPITest(TestCase):
 
         sample_file = self.get_sample_file()
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
 
         response = self.client.get('/editor/get_summary')
 
@@ -609,7 +610,7 @@ class EditorAPITest(TestCase):
 
         sample_file = self.get_sample_file()
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
 
         self.client.post('/editor/rename_session',
                          json.dumps({'new_name': 'test_download_session'}),
@@ -632,7 +633,7 @@ class EditorAPITest(TestCase):
 
         sample_file = self.get_sample_file()
         with open(sample_file, 'r') as f:
-            self.client.post('/editor', {'document': f})
+            self.client.post('/editor/', {'document': f})
 
         response = self.client.get('/editor/download_session')
 
@@ -657,7 +658,7 @@ class EditorAPITest(TestCase):
                      'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
             sample_file = self.get_sample_file(file)
             with open(sample_file, 'r') as f:
-                self.client.post('/editor', {'document': f})
+                self.client.post('/editor/', {'document': f})
 
         response = self.client.get('/editor/get_segments_links')
 
@@ -683,13 +684,81 @@ class EditorAPITest(TestCase):
         response = self.client.post('/editor/get_segments_links')
         self.assertEqual(response.status_code, 400)
 
+    def test_test_reverse_segment(self):
+        """
+        Test reverse segments
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor/', {'document': f})
+
+        response_1 = self.client.post('/editor/reverse_segment/1')
+        response_2 = self.client.post('/editor/reverse_segment/2')
+        response_3 = self.client.post('/editor/reverse_segment/3')
+        json_track = json.loads(self.client.session['json_track'])
+
+        simple_numbers = {'lat': [1] * 5, 'lon': list(range(1, 6))}
+        simple_numbers_down = {'lat': list(range(1, -4, -1)), 'lon': [6] * 5}
+        simple_numbers_left = {'lat': [-3] * 5, 'lon': list(range(5, 0, -1))}
+
+        self.assertEqual(response_1.status_code, 200)
+        self.assertEqual(response_2.status_code, 200)
+        self.assertEqual(response_3.status_code, 200)
+        self.assertEqual(json_track['lat'],
+                         simple_numbers['lat'][::-1] +
+                         simple_numbers_down['lat'][::-1] +
+                         simple_numbers_left['lat'][::-1])
+        self.assertEqual(json_track['lon'],
+                         simple_numbers['lon'][::-1] +
+                         simple_numbers_down['lon'][::-1] +
+                         simple_numbers_left['lon'][::-1])
+
+    def test_test_reverse_segment_get_no_track(self):
+        """
+        Try to get segments with no available track
+        """
+        response = self.client.post('/editor/reverse_segment/1')
+        self.assertEqual(response.status_code, 500)
+
+    def test_test_reverse_segment_get_no_index(self):
+        """
+        Do not provide segment index to reverse
+        """
+        response = self.client.post('/editor/reverse_segment')
+        self.assertEqual(response.status_code, 404)
+
+    def test_reverse_segment_get(self):
+        """
+        Send get instead of get
+        """
+        response = self.client.get('/editor/reverse_segment/1')
+        self.assertEqual(response.status_code, 400)
+
+    def test_test_reverse_segment_non_existing_segment(self):
+        """
+        Request to reverse a non-existing segment
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        response = self.client.post('/editor/reverse_segment/5')
+
+        self.assertEqual(response.status_code, 501)
+
 
 class LoginRequiredTest(TestCase):
     """
     All tests to check the login required are groupd in this class
     """
     def test_editor(self):
-        response = self.client.get('/editor')
+        response = self.client.get('/editor/')
         self.assertEqual(response.status_code, 302)
 
     def test_editor_idx(self):
@@ -730,4 +799,8 @@ class LoginRequiredTest(TestCase):
 
     def test_get_segments_links(self):
         response = self.client.get('/editor/get_segments_links')
+        self.assertEqual(response.status_code, 302)
+
+    def test_reverse_segment(self):
+        response = self.client.get('/editor/reverse_segment/1')
         self.assertEqual(response.status_code, 302)

@@ -1,4 +1,5 @@
 var map;
+var selected_segments = 0;
 
 document.addEventListener('DOMContentLoaded', function() {
     map = create_map();
@@ -9,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     save_session();
     update_session_name();
     download_session();
+    check_reverse_button();
 });
 
 
@@ -50,7 +52,7 @@ function plot_tracks() {
 function manage_track_names() {
     /*
     MANAGE_TRACK_NAMES displays the name of the track as soon as the
-    corresponding GPX file. 
+    corresponding GPX file.
     It also manage the call to remove a track and renaming.
     */
     let div_track_list = document.querySelector('#div_track_list');
@@ -277,7 +279,17 @@ function plot_segment(map, index) {
                         }));
                         // Bold track name
                         document.querySelector(`#span_rename_${index}`).style.fontWeight = 'bolder';
+
+                        // Reversing segment is possible
+                        let btn_reverse = document.getElementById('btn_reverse');
+                        btn_reverse.addEventListener('click',
+                                                     () => reverse_segment(index));
                     }
+                    selected_segments++;
+                }
+                else {
+                    console.log('deselect');
+                    selected_segments--;
                 }
 
             });
@@ -580,7 +592,7 @@ function download_session() {
 
                     setTimeout(function() {
                         div_error.innerHTML = '';
-                        div_error.style.display = 'None';
+                        div_error.style.display = 'none';
                     }, 3000);
 
                 }
@@ -590,4 +602,79 @@ function download_session() {
             });
     });
 
+}
+
+function reverse_segment(segment_idx) {
+    console.log('reverse', segment_idx);
+    document.querySelector('#div_spinner').style.display = 'inline-block';
+
+    // Remove segment in back end
+    fetch(`/editor/reverse_segment/${segment_idx}`, {
+        method: 'POST',
+    })
+    .then( response => {
+        document.querySelector('#div_spinner').style.display = 'inline-block';
+
+        // Remove existing links
+        let layersToRemove = [];
+        map.getLayers().forEach(layer => {
+            if (layer.get('name') === 'layer_link') {
+                    layersToRemove.push(layer);
+                }
+        });
+
+        let len = layersToRemove.length;
+        for(let j = 0; j < len; j++) {
+            let layer_name = layersToRemove[j].get('name');
+            console.log(`Removing layer ${layer_name}`);
+            map.removeLayer(layersToRemove[j]);
+        }
+
+        if (response.status == 200){  // redo links
+            fetch('/editor/get_segments_links')
+            .then(response => response.json())
+            .then(data => {
+                let links = eval(data.links);
+                links.forEach(link => plot_link(map, link));
+            });
+        }
+        else {
+            let div = document.getElementById('div_alerts_box');
+            if (response.status === 501){
+                div.innerHTML = '<div class="alert alert-warning" role="alert">Unable to reverse this segment.</div>';
+            }
+            else if (response.status === 500){
+                div.innerHTML = '<div class="alert alert-danger" role="alert">No available track</div>';
+            }
+            else {
+                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Unable to save</div>';
+            }
+
+            document.querySelector('#div_spinner').style.display = 'none';
+            setTimeout(function(){
+                div.innerHTML = '';
+            }, 3000);
+        }
+    })
+    .then( _ => {
+        document.querySelector('#div_spinner').style.display = 'none';
+    });
+
+}
+
+
+function check_reverse_button() {
+    let btn_reverse = document.getElementById('btn_reverse');
+    btn_reverse.addEventListener('click', () => {
+        if (selected_segments === 0) {
+                let div = document.getElementById('div_alerts_box');
+                div.innerHTML = '<div class="alert alert-warning" role="alert">No track has been selected</div>';
+                div.style.display = 'inline-block';
+
+                setTimeout(function(){
+                    div.style.display = 'none';
+                    div.innerHTML = '';
+                }, 3000);
+        }
+    });
 }
