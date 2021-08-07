@@ -307,19 +307,36 @@ def get_segments_links(request):
         return JsonResponse({'error': 'GET request required'}, status=400)
 
 
+def check_view(method, error_code):
+    print(f'{method=}')
+    print(f'{error_code=}')
+
+    def decorator_function(func):
+        print(f'{func.__name__=}')
+
+        def wrapper(request, *args, **kwargs):
+            if request.method != method:
+                return JsonResponse({'error': f'{method} request required'},
+                                    status=400)
+            if not exist_track(request):
+                return JsonResponse({'error': f'No available track'},
+                                    status=520)
+            try:
+                return func(request, *args, **kwargs)
+            except Exception as e:
+                return JsonResponse(
+                    {'error': f'Unexpected error ({error_code}): {e}'},
+                    status=error_code)
+
+        return wrapper
+    return decorator_function
+
+
 @login_required
 @csrf_exempt
+@check_view('POST', 521)
 def reverse_segment(request, index):
-    if request.method == 'POST':
-        if exist_track(request):
-            try:
-                obj_track = track.Track(track_json=request.session['json_track'])
-                obj_track.reverse_segment(index)
-                request.session['json_track'] = obj_track.to_json()
-                return JsonResponse({'message': 'Segment is reversed'}, status=200)
-            except Exception:
-                return JsonResponse({'error': 'Unable to reverse'}, status=501)
-        else:
-            return JsonResponse({'error': 'No available track'}, status=500)
-    else:
-        return JsonResponse({'error': 'POST request required'}, status=400)
+    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track.reverse_segment(index)
+    request.session['json_track'] = obj_track.to_json()
+    return JsonResponse({'message': 'Segment is reversed'}, status=200)
