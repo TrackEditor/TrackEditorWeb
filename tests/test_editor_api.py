@@ -19,6 +19,8 @@ class EditorTestUtils(TestCase):
             user.save()
         else:
             user = models.User.objects.get(username=username)
+
+        self.user, self.username, self.password = user, username, password
         return user, username, password
 
     def login(self):
@@ -148,9 +150,13 @@ class GetSummaryTest(EditorTestUtils):
 
         summary = json.loads(response.content)['summary']
         self.assertEqual(summary[list(summary.keys())[0]],
-                         {'distance': '445.2 km', 'uphill': '+20 m', 'downhill': '-20 m'})
+                         {'distance': '445.2 km',
+                          'uphill': '+20 m',
+                          'downhill': '-20 m'})
         self.assertEqual(summary['total'],
-                         {'distance': '445.2 km', 'uphill': '+20 m', 'downhill': '-20 m'})
+                         {'distance': '445.2 km',
+                          'uphill': '+20 m',
+                          'downhill': '-20 m'})
         self.assertEqual(response.status_code, 200)
 
     def test_get_summary_no_track(self):
@@ -250,10 +256,11 @@ class SaveSessionTest(EditorTestUtils):
             with open(sample_file, 'r') as f:
                 self.client.post('/editor/', {'document': f})
 
-            self.client.post('/editor/rename_segment',
-                             json.dumps({'index': i - 1,
-                                         'new_name': os.path.basename(sample_file)}),
-                             content_type='application/json')
+            self.client.post(
+                '/editor/rename_segment',
+                json.dumps({'index': i - 1,
+                            'new_name': os.path.basename(sample_file)}),
+                content_type='application/json')
 
         self.client.post('/editor/rename_session',
                          json.dumps({'new_name': 'test_save_remove_save'}),
@@ -277,7 +284,8 @@ class SaveSessionTest(EditorTestUtils):
                          content_type='application/json')
 
         # Load db record
-        track_db = json.loads(models.Track.objects.get(id=self.client.session['index_db']).track)
+        track_db = json.loads(
+            models.Track.objects.get(id=self.client.session['index_db']).track)
 
         self.assertEqual(set(track_db['segment']), {1, 3, 5})
         self.assertEqual(track_db['segment_names'],
@@ -326,7 +334,7 @@ class SaveSessionTest(EditorTestUtils):
         response = self.client.post('/editor/save_session',
                                     json.dumps({'save': 'False'}),
                                     content_type='application/json')
-        self.assertEqual(response.status_code, 521)
+        self.assertEqual(response.status_code, 526)
 
     def test_save_session_no_track(self):
         """
@@ -359,7 +367,8 @@ class RemoveSessionTest(EditorTestUtils):
         before = models.Track.objects.\
             filter(id=self.client.session['index_db']).count()
 
-        response = self.client.post(f'/editor/remove_session/{self.client.session["index_db"]}')
+        response = self.client.post(
+            f'/editor/remove_session/{self.client.session["index_db"]}')
 
         after = models.Track.objects.\
             filter(id=self.client.session['index_db']).count()
@@ -402,9 +411,10 @@ class RenameSessionTest(EditorTestUtils):
         self.client.post('/editor/save_session',
                          json.dumps({'save': 'True'}),
                          content_type='application/json')
-        response = self.client.post('/editor/rename_session',
-                                    json.dumps({'new_name': 'test_rename_session'}),
-                                    content_type='application/json')
+        response = self.client.post(
+            '/editor/rename_session',
+            json.dumps({'new_name': 'test_rename_session'}),
+            content_type='application/json')
         self.client.post('/editor/save_session',
                          json.dumps({'save': 'True'}),
                          content_type='application/json')
@@ -418,9 +428,10 @@ class RenameSessionTest(EditorTestUtils):
         """
         Try to rename a non existing session
         """
-        response = self.client.post('/editor/rename_session',
-                                    json.dumps({'new_name': 'test_rename_session_no_track'}),
-                                    content_type='application/json')
+        response = self.client.post(
+            '/editor/rename_session',
+            json.dumps({'new_name': 'test_rename_session_no_track'}),
+            content_type='application/json')
         self.assertEqual(response.status_code, 520)
 
     def test_rename_session_get(self):
@@ -617,12 +628,155 @@ class ReverseSegmentTest(EditorTestUtils):
 
         response = self.client.post('/editor/reverse_segment/5')
 
-        self.assertEqual(response.status_code, 521)
+        self.assertEqual(response.status_code, 531)
+
+
+class GetSegmentTest(EditorTestUtils):
+    """
+    Test the get_segment view of the editor api
+    """
+
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
+
+    def test_get_segment(self):
+        """
+        Test get segmente given a track of 4 segments each of them is
+        extracted
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor/', {'document': f})
+
+        status_codes = []
+        segments = []
+        for i in range(4):
+            response = self.client.get(f'/editor/get_segment/{1+i}')
+            status_codes.append(response.status_code)
+            segments.append(json.loads(response.content))
+
+        self.assertEqual(status_codes, [200] * 4)
+        self.assertEqual(segments[0]['lat'], [1] * 5)
+        self.assertEqual(segments[0]['lon'], list(range(1, 6)))
+        self.assertEqual(segments[1]['lat'], list(range(1, -4, -1)))
+        self.assertEqual(segments[1]['lon'], [6] * 5)
+        self.assertEqual(segments[2]['lat'], [-3] * 5)
+        self.assertEqual(segments[2]['lon'], list(range(5, 0, -1)))
+        self.assertEqual(segments[3]['lat'], list(range(-3, 2)))
+        self.assertEqual(segments[3]['lon'], [0] * 5)
+
+    def test_get_segment_no_track(self):
+        """
+        Try to get segments with no available track
+        """
+        response = self.client.get('/editor/get_segment/1')
+        self.assertEqual(response.status_code, 520)
+
+    def test_get_segment_no_available_segment(self):
+        """
+        Try a segment which does not exist in track
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor/', {'document': f})
+
+        response = self.client.get('/editor/get_segment/28')
+        self.assertEqual(response.status_code, 524)
+
+    def test_get_segment_post(self):
+        """
+        Send post instead of get
+        """
+        response = self.client.post('/editor/get_segment/1')
+        self.assertEqual(response.status_code, 400)
+
+    def test_get_segment_no_index(self):
+        """
+        Try to get segment providing no index
+        """
+        response = self.client.get('/editor/get_segment')
+        self.assertEqual(response.status_code, 404)
+
+
+class RemoveSegmentTest(EditorTestUtils):
+    """
+    Test the remove_segment view of the editor api
+    """
+
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
+
+    def test_remove_segment(self):
+        """
+        Test remove one segment of a four segments track
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor/', {'document': f})
+
+        response = self.client.post('/editor/remove_segment',
+                                    json.dumps({'index': '2'}),
+                                    content_type='application/json')
+        json_track = json.loads(self.client.session['json_track'])
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(json_track['size'], 3)
+        self.assertEqual(set(json_track['segment']), {1, 3, 4})
+
+
+class RenameSegmentTest(EditorTestUtils):
+    """
+    Test the rename_segment view of the editor api
+    """
+
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
+
+    def test_rename_segment(self):
+        """
+        Test rename one segment of a four segments track
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor/', {'document': f})
+
+        response = self.client.post(
+            '/editor/rename_segment',
+            json.dumps({'index': '2',
+                        'new_name': 'test_rename_segment'}),
+            content_type='application/json')
+        json_track = json.loads(self.client.session['json_track'])
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(json_track['size'], 4)
+        self.assertEqual(json_track['segment_names'][2], 'test_rename_segment')
 
 
 class LoginRequiredTest(TestCase):
     """
-    All tests to check the login required are groupd in this class
+    All tests to check the login required are grouped in this class
     """
     def test_editor(self):
         response = self.client.get('/editor/')
