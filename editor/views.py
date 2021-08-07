@@ -31,10 +31,6 @@ def editor(request, index=None):
              'title': json_track['title'],
              **config})
 
-    if 'index_db' in request.session:
-        index = request.session['index_db']
-
-    print(f'{index=}')
     if request.method == 'POST':  # add files to session
         fs = FileSystemStorage()
         uploaded_file = request.FILES['document']
@@ -45,10 +41,6 @@ def editor(request, index=None):
         obj_track.add_gpx(filepath)
 
         request.session['json_track'] = obj_track.to_json()
-
-        # debug prints
-        print('--- ADD GPX ---')
-        print(obj_track)
 
         return render(request, 'editor/editor.html',
                       {'track_list': [n for n in obj_track.segment_names if n],
@@ -111,8 +103,6 @@ def remove_segment(request):
         obj_track.remove_segment(index)
         request.session['json_track'] = obj_track.to_json()
 
-        print('--- REMOVE SEGMENT ---')
-        print(obj_track.df_track)
         return JsonResponse({'message': 'Segment is successfully renamed'},
                             status=201)
 
@@ -203,8 +193,6 @@ def save_session(request):
                     new_track.save()
                     request.session['index_db'] = new_track.id
 
-                print('save_session:', request.session['index_db'])
-
                 return JsonResponse({'message': 'Session has been saved'},
                                     status=201)
             else:
@@ -243,9 +231,6 @@ def rename_session(request):
             dict_track = json.loads(request.session['json_track'])
             dict_track['title'] = new_name.replace('\n', '').strip()
             request.session['json_track'] = json.dumps(dict_track)
-
-            print('--- RENAME SESSION ---')
-            print(dict_track)
 
             return JsonResponse({'message': 'Session is successfully renamed'},
                                 status=201)
