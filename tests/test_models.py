@@ -15,7 +15,7 @@ class ModelsTest(TestCase):
     def tearDown(self):
         pass
 
-    def record_track(self, filename='Inaccessible_Island_part1.gpx'):
+    def record_track(self, filename='island_1.gpx'):
         obj_track = track.Track()
         obj_track.add_gpx(os.path.join(self.test_path, 'samples', filename))
         json_track = obj_track.to_json()

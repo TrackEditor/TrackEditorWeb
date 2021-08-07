@@ -440,9 +440,9 @@ class EditorAPITest(TestCase):
 
         self.assertEqual(set(track_db['segment']), {1, 3, 5})
         self.assertEqual(track_db['segment_names'],
-                         ['Inaccessible_Island_part1.gpx', None,
-                          'Inaccessible_Island_part3.gpx', None,
-                          'Inaccessible_Island_part5.gpx'])
+                         ['island_1.gpx', None,
+                          'island_3.gpx', None,
+                          'island_5.gpx'])
 
     def test_save_rename_save(self):
         """

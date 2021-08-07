@@ -106,13 +106,13 @@ class ViewsTest(StaticLiveServerTestCase):
             find_element_by_id('select-file-1').\
             send_keys(os.path.join(self.test_path,
                                    'samples',
-                                   'Inaccessible_Island_part1.gpx'))
+                                   'island_1.gpx'))
 
         self.driver.\
             find_element_by_id('select-file-2').\
             send_keys(os.path.join(self.test_path,
                                    'samples',
-                                   'Inaccessible_Island_part2.gpx'))
+                                   'island_2.gpx'))
 
         self.driver.find_element_by_id('input_btn_combine').click()
         self.driver.find_element_by_id('input_btn_download').click()
@@ -146,7 +146,7 @@ class ViewsTest(StaticLiveServerTestCase):
             find_element_by_id('select-file-1').\
             send_keys(os.path.join(self.test_path,
                                    'samples',
-                                   'Inaccessible_Island_Full.gpx'))
+                                   'island_full.gpx'))
 
         self.driver.find_element_by_id('input_date').send_keys('01012011')
         if os.name == 'nt':
@@ -250,13 +250,13 @@ class CombineTracksTest(StaticLiveServerTestCase):
                 find_element_by_id(f'select-file-{i}'). \
                 send_keys(os.path.join(self.test_path,
                                        'samples',
-                                       'Inaccessible_Island_part1.gpx'))
+                                       'island_1.gpx'))
 
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
 
         self.assertEqual(
             error_msg.text,
-            'Repeated file is selected: Inaccessible_Island_part1.gpx')
+            'Repeated file is selected: island_1.gpx')
 
     def test_upload_big_file(self):
         self.driver. \
@@ -357,7 +357,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
         self.assertEqual(error_msg.text, 'Error loading files')
 
     def test_missing_desired_speed(self):
-        self.insert_data(file='Inaccessible_Island_part1.gpx',
+        self.insert_data(file='island_1.gpx',
                          date='01012011',
                          init_time='0150',
                          speed=None)
@@ -367,7 +367,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
                          'The maximum desired average speed is blank.')
 
     def test_missing_time(self):
-        self.insert_data(file='Inaccessible_Island_part1.gpx',
+        self.insert_data(file='island_1.gpx',
                          date='01012011',
                          init_time=None,
                          speed='1')
@@ -376,7 +376,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
         self.assertEqual(error_msg.text, 'Time has wrong format.')
 
     def test_missing_date(self):
-        self.insert_data(file='Inaccessible_Island_part1.gpx',
+        self.insert_data(file='island_1.gpx',
                          date=None,
                          init_time='0150',
                          speed='1')
@@ -385,7 +385,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
         self.assertEqual(error_msg.text, 'Date has wrong format.')
 
     def test_high_speed(self):
-        self.insert_data(file='Inaccessible_Island_part1.gpx',
+        self.insert_data(file='island_1.gpx',
                          date='01012011',
                          init_time='0150',
                          speed='500')
@@ -396,7 +396,7 @@ class InsertTimestampTest(StaticLiveServerTestCase):
             f'The maximum desired average speed cannot exceed {c.maximum_speed} km/h.')
 
     def test_low_speed(self):
-        self.insert_data(file='Inaccessible_Island_part1.gpx',
+        self.insert_data(file='island_1.gpx',
                          date='01012011',
                          init_time='0150',
                          speed='0')
