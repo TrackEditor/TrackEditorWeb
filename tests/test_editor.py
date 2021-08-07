@@ -752,6 +752,74 @@ class EditorAPITest(TestCase):
 
         self.assertEqual(response.status_code, 501)
 
+    def test_test_reverse_segment(self):
+        """
+        Test reverse segments
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor', {'document': f})
+
+        response_1 = self.client.post('/editor/reverse_segment/1')
+        response_2 = self.client.post('/editor/reverse_segment/2')
+        response_3 = self.client.post('/editor/reverse_segment/3')
+        json_track = json.loads(self.client.session['json_track'])
+
+        simple_numbers = {'lat': [1] * 5, 'lon': list(range(1, 6))}
+        simple_numbers_down = {'lat': list(range(1, -4, -1)), 'lon': [6] * 5}
+        simple_numbers_left = {'lat': [-3] * 5, 'lon': list(range(5, 0, -1))}
+
+        self.assertEqual(response_1.status_code, 200)
+        self.assertEqual(response_2.status_code, 200)
+        self.assertEqual(response_3.status_code, 200)
+        self.assertEqual(json_track['lat'],
+                         simple_numbers['lat'][::-1] +
+                         simple_numbers_down['lat'][::-1] +
+                         simple_numbers_left['lat'][::-1])
+        self.assertEqual(json_track['lon'],
+                         simple_numbers['lon'][::-1] +
+                         simple_numbers_down['lon'][::-1] +
+                         simple_numbers_left['lon'][::-1])
+
+    def test_test_reverse_segment_get_no_track(self):
+        """
+        Try to get segments with no available track
+        """
+        response = self.client.post('/editor/reverse_segment/1')
+        self.assertEqual(response.status_code, 500)
+
+    def test_test_reverse_segment_get_no_index(self):
+        """
+        Do not provide segment index to reverse
+        """
+        response = self.client.post('/editor/reverse_segment')
+        self.assertEqual(response.status_code, 404)
+
+    def test_reverse_segment_get(self):
+        """
+        Send get instead of get
+        """
+        response = self.client.get('/editor/reverse_segment/1')
+        self.assertEqual(response.status_code, 400)
+
+    def test_test_reverse_segment_non_existing_segment(self):
+        """
+        Request to reverse a non-existing segment
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor', {'document': f})
+
+        response = self.client.post('/editor/reverse_segment/5')
+
+        self.assertEqual(response.status_code, 501)
+
 
 class LoginRequiredTest(TestCase):
     """

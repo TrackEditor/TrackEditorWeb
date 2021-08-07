@@ -220,7 +220,8 @@ def insert_timestamp(request):
 
 def users_only(request):
     return render(request, 'TrackApp/login.html', {
-        'warning': 'The selected option is only available for users. Please, login or register.'
+        'warning': 'The selected option is only available for users. ' +
+                   'Please, login or register.'
     })
 
 
