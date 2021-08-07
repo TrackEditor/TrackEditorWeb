@@ -12,6 +12,38 @@ from TrackApp.models import Track
 from libs.utils import id_generator, auto_zoom
 
 
+def exist_track(request):
+    if 'json_track' in request.session:
+        if request.session['json_track']:
+            return True
+    return False
+
+
+def check_view(method, error_code):
+    print(f'{method=}')
+    print(f'{error_code=}')
+
+    def decorator_function(func):
+        print(f'{func.__name__=}')
+
+        def wrapper(request, *args, **kwargs):
+            if request.method != method:
+                return JsonResponse({'error': f'{method} request required'},
+                                    status=400)
+            if not exist_track(request):
+                return JsonResponse({'error': f'No available track'},
+                                    status=520)
+            try:
+                return func(request, *args, **kwargs)
+            except Exception as e:
+                return JsonResponse(
+                    {'error': f'Unexpected error ({error_code}): {e}'},
+                    status=error_code)
+
+        return wrapper
+    return decorator_function
+
+
 @login_required
 def editor(request, index=None):
     config = {'maximum_file_size': c.maximum_file_size,
@@ -153,183 +185,107 @@ def get_segment(request, index):
 
 
 @login_required
+@check_view('GET', 521)
 def get_summary(request):
-    if request.method == 'GET':
-        if 'json_track' in request.session:
-            obj_track = track.Track(track_json=request.session['json_track'])
-            obj_track.update_summary()
-            summary = obj_track.get_summary()
+    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track.update_summary()
+    summary = obj_track.get_summary()
 
-            return JsonResponse({'summary': summary}, status=200)
-        else:
-            return JsonResponse({'error': 'No track is loaded'}, status=500)
-
-    return JsonResponse({'error': 'POST request required'}, status=400)
+    return JsonResponse({'summary': summary}, status=200)
 
 
 @login_required
 @csrf_exempt
+@check_view('POST', 521)
 def save_session(request):
-    if request.method == 'POST':
-        if 'json_track' in request.session:
-            data = json.loads(request.body)
-            save = data['save'] == 'True'
+    data = json.loads(request.body)
+    save = data['save'] == 'True'
 
-            if save:
-                obj_track = track.Track(track_json=request.session['json_track'])
-                json_track = obj_track.to_json()
+    if save:
+        obj_track = track.Track(track_json=request.session['json_track'])
+        json_track = obj_track.to_json()
 
-                if request.session['index_db']:
-                    index = request.session['index_db']
-                    new_track = Track.objects.get(id=index)
-                    new_track.track = json_track
-                    new_track.title = obj_track.title
-                    new_track.last_edit = datetime.now()
-                    new_track.save()
-                else:
-                    new_track = Track(user=request.user,
-                                      track=json_track,
-                                      title=obj_track.title)
-                    new_track.save()
-                    request.session['index_db'] = new_track.id
-
-                return JsonResponse({'message': 'Session has been saved'},
-                                    status=201)
-            else:
-                return JsonResponse({'error': 'save is not True'},
-                                    status=492)
+        if request.session['index_db']:
+            index = request.session['index_db']
+            new_track = Track.objects.get(id=index)
+            new_track.track = json_track
+            new_track.title = obj_track.title
+            new_track.last_edit = datetime.now()
+            new_track.save()
         else:
-            return JsonResponse({'error': 'No track is available'}, status=491)
+            new_track = Track(user=request.user,
+                              track=json_track,
+                              title=obj_track.title)
+            new_track.save()
+            request.session['index_db'] = new_track.id
 
-    return JsonResponse({'error': 'POST request required'}, status=400)
+        return JsonResponse({'message': 'Session has been saved'},
+                            status=201)
+
+    else:
+        # TODO
+        return JsonResponse({'error': 'This must be removed with issue #48'},
+                            status=521)
 
 
 @login_required
 @csrf_exempt
+@check_view('POST', 521)
 def remove_session(request, index):
-    if request.method == 'POST':
-        try:
-            Track.objects.get(id=index, user=request.user).delete()
-
-            return JsonResponse({'message': 'Track is successfully removed'},
-                                status=201)
-        except Exception:
-            return JsonResponse({'message': 'Unable to remove track'},
-                                status=500)
-    else:
-        return JsonResponse({'error': 'POST request required'}, status=400)
+    Track.objects.get(id=index, user=request.user).delete()
+    return JsonResponse({'message': 'Track is successfully removed'},
+                        status=201)
 
 
 @login_required
 @csrf_exempt
+@check_view('POST', 521)
 def rename_session(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            new_name = data['new_name']
+    data = json.loads(request.body)
+    new_name = data['new_name']
 
-            dict_track = json.loads(request.session['json_track'])
-            dict_track['title'] = new_name.replace('\n', '').strip()
-            request.session['json_track'] = json.dumps(dict_track)
+    dict_track = json.loads(request.session['json_track'])
+    dict_track['title'] = new_name.replace('\n', '').strip()
+    request.session['json_track'] = json.dumps(dict_track)
 
-            return JsonResponse({'message': 'Session is successfully renamed'},
-                                status=201)
-        except Exception:
-            return JsonResponse({'error': 'Unable to rename session'},
-                                status=500)
-    else:
-        return JsonResponse({'error': 'POST request required'}, status=400)
+    return JsonResponse({'message': 'Session is successfully renamed'},
+                        status=201)
 
 
 @login_required
 @csrf_exempt
+@check_view('POST', 521)
 def download_session(request):
-    if request.method == 'POST':
+    obj_track = track.Track(track_json=request.session['json_track'])
+    fs = FileSystemStorage()
 
-        if request.session['json_track']:
-            try:
-                obj_track = track.Track(track_json=request.session['json_track'])
+    output_filename = \
+        obj_track.title + '_' + id_generator(size=8) + '.gpx'
+    output_location = os.path.join(fs.location, output_filename)
+    output_url = fs.url(output_filename)
+    obj_track.save_gpx(output_location, exclude_time=True)
 
-                if obj_track.size > 0:
-                    fs = FileSystemStorage()
-
-                    output_filename = \
-                        obj_track.title + '_' + id_generator(size=8) + '.gpx'
-                    output_location = os.path.join(fs.location, output_filename)
-                    output_url = fs.url(output_filename)
-                    obj_track.save_gpx(output_location, exclude_time=True)
-
-                    return JsonResponse({'url': output_url,
-                                         'filename': output_filename},
-                                        status=200)
-                else:
-                    return JsonResponse({'error': 'No track is loaded'},
-                                        status=500)
-            except Exception:
-                return JsonResponse(
-                    {'error': 'Unable to generate session file'},
-                    status=500)
-        else:
-            return JsonResponse({'error': 'No track is loaded'}, status=500)
-    else:
-        return JsonResponse({'error': 'POST request required'}, status=400)
-
-
-def exist_track(request):
-    if 'json_track' in request.session:
-        if request.session['json_track']:
-            return True
-    return False
+    return JsonResponse({'url': output_url,
+                         'filename': output_filename},
+                        status=200)
 
 
 @login_required
+@check_view('GET', 521)
 def get_segments_links(request):
-    if request.method == 'GET':
-        if exist_track(request):
-            obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track = track.Track(track_json=request.session['json_track'])
+    df_track = obj_track.df_track
+    segments = obj_track.df_track['segment'].unique()
+    links = []
 
-            df_track = obj_track.df_track
-            segments = obj_track.df_track['segment'].unique()
-            links = []
+    for i in range(len(segments) - 1):
+        s = segments[i]
+        s_next = segments[i + 1]
+        init = df_track[df_track['segment'] == s].iloc[-1][['lat', 'lon']]
+        end = df_track[df_track['segment'] == s_next].iloc[0][['lat', 'lon']]
+        links.append([init.to_list(), end.to_list()])
 
-            for i in range(len(segments) - 1):
-                s = segments[i]
-                s_next = segments[i + 1]
-                init = df_track[df_track['segment'] == s].iloc[-1][['lat', 'lon']]
-                end = df_track[df_track['segment'] == s_next].iloc[0][['lat', 'lon']]
-                links.append([init.to_list(), end.to_list()])
-
-            return JsonResponse({'links': str(links)}, status=200)
-
-        else:
-            return JsonResponse({'error': 'No available track'}, status=500)
-    else:
-        return JsonResponse({'error': 'GET request required'}, status=400)
-
-
-def check_view(method, error_code):
-    print(f'{method=}')
-    print(f'{error_code=}')
-
-    def decorator_function(func):
-        print(f'{func.__name__=}')
-
-        def wrapper(request, *args, **kwargs):
-            if request.method != method:
-                return JsonResponse({'error': f'{method} request required'},
-                                    status=400)
-            if not exist_track(request):
-                return JsonResponse({'error': f'No available track'},
-                                    status=520)
-            try:
-                return func(request, *args, **kwargs)
-            except Exception as e:
-                return JsonResponse(
-                    {'error': f'Unexpected error ({error_code}): {e}'},
-                    status=error_code)
-
-        return wrapper
-    return decorator_function
+    return JsonResponse({'links': str(links)}, status=200)
 
 
 @login_required

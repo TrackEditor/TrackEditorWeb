@@ -1,18 +1,8 @@
-# flake8: noqa: W504
 import os
 import json
-import time
-from urllib.parse import urljoin
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.test import TestCase, RequestFactory
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from glob import glob
+from django.test import TestCase
 
 import libs.track as track
-from libs.utils import md5sum
 import TrackApp.models as models
 
 
@@ -63,12 +53,10 @@ class EditorTestUtils(TestCase):
                 self.assertEqual(session_track[k], reference_track[k])
 
 
-class EditorAPITest(EditorTestUtils):
+class EditorTest(EditorTestUtils):
     """
-    Test the editor API functions from views. All the available operations for
-    the user are tested. These operations are commanded from the JS code.
+    Test the editor API functions from views.
     """
-
     def setUp(self):
         self.test_path = os.path.dirname(__file__)
         self.user, self.username, self.password = self.create_user()
@@ -135,6 +123,59 @@ class EditorAPITest(EditorTestUtils):
         self.compare_tracks(session_track, reference_track)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(self.client.session['index_db'])
+
+
+class GetSummaryTest(EditorTestUtils):
+    """
+    Test the get_summary view of the editor api
+    """
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
+
+    def test_get_summary(self):
+        """
+        Call the get_summary endpoint to check the return JSON
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        response = self.client.get('/editor/get_summary')
+
+        summary = json.loads(response.content)['summary']
+        self.assertEqual(summary[list(summary.keys())[0]],
+                         {'distance': '445.2 km', 'uphill': '+20 m', 'downhill': '-20 m'})
+        self.assertEqual(summary['total'],
+                         {'distance': '445.2 km', 'uphill': '+20 m', 'downhill': '-20 m'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_summary_no_track(self):
+        """
+        Try to rename a non existing session
+        """
+        response = self.client.get('/editor/get_summary')
+        self.assertEqual(response.status_code, 520)
+
+    def test_get_summary_post(self):
+        """
+        Use post request instead of get and check response
+        """
+        response = self.client.post('/editor/get_summary')
+        self.assertEqual(response.status_code, 400)
+
+
+class SaveSessionTest(EditorTestUtils):
+    """
+    Test the save_session view of the editor api
+    """
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
 
     def test_save_session(self):
         """
@@ -285,7 +326,7 @@ class EditorAPITest(EditorTestUtils):
         response = self.client.post('/editor/save_session',
                                     json.dumps({'save': 'False'}),
                                     content_type='application/json')
-        self.assertEqual(response.status_code, 492)
+        self.assertEqual(response.status_code, 521)
 
     def test_save_session_no_track(self):
         """
@@ -294,7 +335,17 @@ class EditorAPITest(EditorTestUtils):
         response = self.client.post('/editor/save_session',
                                     json.dumps({'save': 'False'}),
                                     content_type='application/json')
-        self.assertEqual(response.status_code, 491)
+        self.assertEqual(response.status_code, 520)
+
+
+class RemoveSessionTest(EditorTestUtils):
+    """
+    Test the remove_session view of the editor api
+    """
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
 
     def test_remove_session(self):
         """
@@ -323,7 +374,7 @@ class EditorAPITest(EditorTestUtils):
         """
         response = self.client.post('/editor/remove_session/25')
 
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 520)
 
     def test_remove_session_get(self):
         """
@@ -332,6 +383,16 @@ class EditorAPITest(EditorTestUtils):
         response = self.client.get('/editor/remove_session/25')
 
         self.assertEqual(response.status_code, 400)
+
+
+class RenameSessionTest(EditorTestUtils):
+    """
+    Test the rename_session view of the editor api
+    """
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
 
     def test_rename_session(self):
         """
@@ -360,7 +421,7 @@ class EditorAPITest(EditorTestUtils):
         response = self.client.post('/editor/rename_session',
                                     json.dumps({'new_name': 'test_rename_session_no_track'}),
                                     content_type='application/json')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 520)
 
     def test_rename_session_get(self):
         """
@@ -369,38 +430,15 @@ class EditorAPITest(EditorTestUtils):
         response = self.client.get('/editor/rename_session')
         self.assertEqual(response.status_code, 400)
 
-    def test_get_summary(self):
-        """
-        Call the get_summary endpoint to check the return JSON
-        """
-        self.create_session()
 
-        sample_file = self.get_sample_file()
-        with open(sample_file, 'r') as f:
-            self.client.post('/editor/', {'document': f})
-
-        response = self.client.get('/editor/get_summary')
-
-        summary = json.loads(response.content)['summary']
-        self.assertEqual(summary[list(summary.keys())[0]],
-                         {'distance': '445.2 km', 'uphill': '+20 m', 'downhill': '-20 m'})
-        self.assertEqual(summary['total'],
-                         {'distance': '445.2 km', 'uphill': '+20 m', 'downhill': '-20 m'})
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_summary_no_track(self):
-        """
-        Try to rename a non existing session
-        """
-        response = self.client.get('/editor/get_summary')
-        self.assertEqual(response.status_code, 500)
-
-    def test_get_summary_post(self):
-        """
-        Use post request instead of get and check response
-        """
-        response = self.client.post('/editor/get_summary')
-        self.assertEqual(response.status_code, 400)
+class DownloadSessionTest(EditorTestUtils):
+    """
+    Test the download_session view of the editor api
+    """
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
 
     def test_download_session(self):
         """
@@ -439,6 +477,13 @@ class EditorAPITest(EditorTestUtils):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_download_session_no_session(self):
+        """
+        Test download session with no available session
+        """
+        response = self.client.post('/editor/download_session')
+        self.assertEqual(response.status_code, 520)
+
     def test_download_session_no_track(self):
         """
         Test download session with no available track
@@ -446,7 +491,18 @@ class EditorAPITest(EditorTestUtils):
         self.create_session()
 
         response = self.client.post('/editor/download_session')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 200)
+
+
+class GetSegmentsLinksTest(EditorTestUtils):
+    """
+    Test the get_segments_links view of the editor api
+    """
+
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
 
     def test_get_segments_links(self):
         """
@@ -475,7 +531,7 @@ class EditorAPITest(EditorTestUtils):
         Try to get segments with no available track
         """
         response = self.client.get('/editor/get_segments_links')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 520)
 
     def test_get_segments_links_post(self):
         """
