@@ -46,7 +46,7 @@ jobs:
           DB_PORT: 5432
           DB_HOST: localhost
       run: |
-        coverage run --parallel-mode --rcfile=./.coveragerc --source=TrackApp manage.py test --parallel 4
+        coverage run --parallel-mode --rcfile=./.coveragerc --source=. manage.py test tests --parallel 4
         coverage combine --rcfile=./.coveragerc
         coverage report -m --rcfile=./.coveragerc >> coverage.txt
         cat coverage.txt

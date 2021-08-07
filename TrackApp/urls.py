@@ -13,18 +13,6 @@ urlpatterns = [
     path('users_only', views.users_only, name='users_only'),
     path('dashboard', views.dashboard, name='dashboard'),
     path('get_tracks_from_db/<int:page>', views.get_tracks_from_db, name='get_tracks_from_db'),
-    path('editor', views.editor, name='editor'),
-    path('editor/<int:index>', views.editor, name='editor'),
-    path('editor/rename_segment', views.rename_segment, name='rename_segment'),
-    path('editor/remove_segment', views.remove_segment, name='remove_segment'),
-    path('editor/get_segment/<int:index>', views.get_segment, name='get_segment'),
-    path('editor/get_summary', views.get_summary, name='get_summary'),
-    path('editor/save_session', views.save_session, name='save_session'),
-    path('editor/remove_session/<int:index>', views.remove_session, name='remove_session'),
-    path('editor/rename_session', views.rename_session, name='rename_session'),
-    path('editor/download_session', views.download_session, name='download_session'),
-    path('editor/get_segments_links', views.get_segments_links, name='get_segments_links'),
-    path('editor/reverse_segment/<int:index>', views.reverse_segment, name='reverse_segment')
 ]
 
 # DEBUG will only be available during development in other case a more powerful
