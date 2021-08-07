@@ -38,7 +38,7 @@ def check_view(method, error_code):
                 return JsonResponse({'error': f'{method} request required'},
                                     status=400)
             if not exist_track(request):
-                return JsonResponse({'error': f'No available track'},
+                return JsonResponse({'error': 'No available track'},
                                     status=520)
             try:
                 return func(request, *args, **kwargs)
