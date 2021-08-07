@@ -1,34 +1,15 @@
-
 import os
-import traceback
 import json
-import math
 from datetime import datetime
-
-from django.contrib.auth import authenticate, login, logout
-from django.db import IntegrityError
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
-from django.urls import reverse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.contrib import messages
 
 from libs import track, constants as c
-from TrackApp.models import User, Track
+from TrackApp.models import Track
 from libs.utils import id_generator, auto_zoom
-
-# def editor(request, index=None):
-#     if not index:
-#         return HttpResponse('Editor')
-#     if index:
-#         return HttpResponse(f'Editor  {index}')
-#
-#
-# def index(request):
-#     return HttpResponse(111)
 
 
 @login_required
@@ -339,6 +320,7 @@ def get_segments_links(request):
             return JsonResponse({'error': 'No available track'}, status=500)
     else:
         return JsonResponse({'error': 'GET request required'}, status=400)
+
 
 @login_required
 @csrf_exempt
