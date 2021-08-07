@@ -502,12 +502,9 @@ class TrackTest(TestCase):
     def test_rename_segment(self):
         # Load data
         obj_track = track.Track()
-        obj_track.add_gpx(
-            f'{self.test_path}/samples/Inaccessible_Island_part1.gpx')
-        obj_track.add_gpx(
-            f'{self.test_path}/samples/Inaccessible_Island_part2.gpx')
-        obj_track.add_gpx(
-            f'{self.test_path}/samples/Inaccessible_Island_part3.gpx')
+        obj_track.add_gpx(f'{self.test_path}/samples/island_1.gpx')
+        obj_track.add_gpx(f'{self.test_path}/samples/island_2.gpx')
+        obj_track.add_gpx(f'{self.test_path}/samples/island_3.gpx')
 
         obj_track.rename_segment(0, 'seg0')
         obj_track.rename_segment(1, 'seg1')

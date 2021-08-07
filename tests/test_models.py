@@ -55,7 +55,7 @@ class ModelsTest(TestCase):
 
     def test_delete_tracks_for_user(self):
         for i in range(1, 6):
-            new_track, _, _ = self.record_track(f'Inaccessible_Island_part{i}.gpx')
+            new_track, _, _ = self.record_track(f'island_{i}.gpx')
 
         total_tracks_before = models.Track.objects.filter(user=self.user).count()
         self.user.delete()

@@ -186,7 +186,7 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         for i in range(1, 3):
             sample_file = os.path.join(self.test_path,
                                        'samples',
-                                       f'Inaccessible_Island_part{i}.gpx')
+                                       f'island_{i}.gpx')
             self.driver.find_element_by_id('select-file').send_keys(sample_file)
             WebDriverWait(self.driver, 5).\
                 until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
@@ -405,7 +405,7 @@ class EditorAPITest(TestCase):
 
         # Load files and save session
         for i in range(1, 6):
-            sample_file = self.get_sample_file(f'Inaccessible_Island_part{i}.gpx')
+            sample_file = self.get_sample_file(f'island_{i}.gpx')
             with open(sample_file, 'r') as f:
                 self.client.post('/editor/', {'document': f})
 

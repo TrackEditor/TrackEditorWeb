@@ -220,7 +220,7 @@ class CombineTracksTest(StaticLiveServerTestCase):
                 find_element_by_id(f'select-file-{i}').\
                 send_keys(os.path.join(self.test_path,
                                        'samples',
-                                       f'Inaccessible_Island_part{i}.gpx'))
+                                       f'island_{i}.gpx'))
         self.driver.\
             find_element_by_id('select-file-6').\
             send_keys(os.path.join(self.test_path,
