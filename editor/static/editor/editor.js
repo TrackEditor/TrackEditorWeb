@@ -770,7 +770,7 @@ function change_segments_order() {
         let segments = document.getElementsByClassName('draggable-segment');
         let new_order = [];
         Array.prototype.forEach.call(segments, el => {
-            new_order.push(parseInt(el.dataset.segment_idx)));
+            new_order.push(parseInt(el.dataset.segment_idx));
         });
     }
 
