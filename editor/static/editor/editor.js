@@ -768,8 +768,9 @@ function change_segments_order() {
     // Accept the new order
     btn_ok.onclick = function() {
         let segments = document.getElementsByClassName('draggable-segment');
+        let new_order = [];
         Array.prototype.forEach.call(segments, el => {
-            console.log(el.dataset.segment_idx);
+            new_order.push(parseInt(el.dataset.segment_idx)));
         });
     }
 

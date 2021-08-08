@@ -1,5 +1,6 @@
 import os
 import json
+from ast import literal_eval
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -247,5 +248,19 @@ def get_segments_links(request):
 def reverse_segment(request, index):
     obj_track = track.Track(track_json=request.session['json_track'])
     obj_track.reverse_segment(index)
+    request.session['json_track'] = obj_track.to_json()
+    return JsonResponse({'message': 'Segment is reversed'}, status=200)
+
+
+@login_required
+@csrf_exempt
+@check_view('POST', 532)
+def change_segments_order(request):
+    data = json.loads(request.body)
+    new_order = literal_eval(data['new_order'])
+    order_dict = {n: i + 1 for i, n in enumerate(new_order)}
+
+    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track.change_order(order_dict)
     request.session['json_track'] = obj_track.to_json()
     return JsonResponse({'message': 'Segment is reversed'}, status=200)
