@@ -102,11 +102,7 @@ def editor(request, index=None):
 @login_required
 @csrf_exempt
 @check_view('POST', 522)
-def rename_segment(request):
-    data = json.loads(request.body)
-    index = int(data['index'])
-    new_name = data['new_name']
-
+def rename_segment(request, index, new_name):
     dict_track = json.loads(request.session['json_track'])
     dict_track['segment_names'][index] = new_name
     request.session['json_track'] = json.dumps(dict_track)

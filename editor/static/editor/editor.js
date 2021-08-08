@@ -85,16 +85,12 @@ function manage_track_names() {
                              `segment id: ${1 + parseInt(span_name.getAttribute('data-index'))}\n`,
                              `old_name: ${span_name.getAttribute('data-original_name')}\n`,
                              `new_name: ${span_name.innerHTML}`);
-
-                fetch('/editor/rename_segment', {
+                let new_name = span_name.innerHTML;
+                let index = parseInt(span_name.getAttribute('data-index'));
+                fetch(`/editor/rename_segment/${index}/${new_name}`, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        index:  parseInt(span_name.getAttribute('data-index')),
-                        new_name: span_name.innerHTML
-                    })
                 });
                 // TODO use the data-original_name if response is not OK
-
             });
 
             button_remove.setAttribute('class', 'btn-close');

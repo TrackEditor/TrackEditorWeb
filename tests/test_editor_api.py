@@ -114,7 +114,8 @@ class EditorTest(EditorTestUtils):
             self.client.post('/editor/', {'document': f})
 
         # Load track
-        response = self.client.get(f'/editor/{self.client.session["index_db"]}')
+        response = self.client.get(
+            f'/editor/{self.client.session["index_db"]}')
         session_track = json.loads(self.client.session['json_track'])
 
         # Create expected output
@@ -230,7 +231,8 @@ class SaveSessionTest(EditorTestUtils):
                          content_type='application/json')
 
         # Load track
-        response = self.client.get(f'/editor/{self.client.session["index_db"]}')
+        response = self.client.get(
+            f'/editor/{self.client.session["index_db"]}')
         session_track = json.loads(self.client.session['json_track'])
 
         # Create expected output
@@ -316,7 +318,8 @@ class SaveSessionTest(EditorTestUtils):
         record = models.Track.objects.get(id=self.client.session['index_db'])
 
         self.assertEqual(record.title, 'test_save_rename_save')
-        self.assertEqual(json.loads(record.track)['title'], 'test_save_rename_save')
+        self.assertEqual(json.loads(record.track)['title'],
+                         'test_save_rename_save')
 
     def test_save_session_get(self):
         """
@@ -468,9 +471,12 @@ class DownloadSessionTest(EditorTestUtils):
         response = self.client.post('/editor/download_session')
         resp_json = json.loads(response.content)
 
-        self.assertRegex(resp_json['url'], '/media/test_download_session_.{8}.gpx')
-        self.assertRegex(resp_json['filename'], 'test_download_session_.{8}.gpx')
-        self.assertEqual(os.path.basename(resp_json['url']), resp_json['filename'])
+        self.assertRegex(resp_json['url'],
+                         '/media/test_download_session_.{8}.gpx')
+        self.assertRegex(resp_json['filename'],
+                         'test_download_session_.{8}.gpx')
+        self.assertEqual(os.path.basename(resp_json['url']),
+                         resp_json['filename'])
 
         self.assertEqual(response.status_code, 200)
 
@@ -763,15 +769,50 @@ class RenameSegmentTest(EditorTestUtils):
                 self.client.post('/editor/', {'document': f})
 
         response = self.client.post(
-            '/editor/rename_segment',
-            json.dumps({'index': '2',
-                        'new_name': 'test_rename_segment'}),
-            content_type='application/json')
+            '/editor/rename_segment/2/test_rename_segment')
         json_track = json.loads(self.client.session['json_track'])
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(json_track['size'], 4)
         self.assertEqual(json_track['segment_names'][2], 'test_rename_segment')
+
+    def test_rename_segment_wrong_endpoint(self):
+        """
+        Pass invalid endpoint to rename segment
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        response = self.client.post('/editor/rename_segment/2/')
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_rename_segment_non_existing_index(self):
+        """
+        Try to rename a non-existing index
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        response = self.client.post(
+            '/editor/rename_segment/5/test_rename_segment_non_existing_index')
+
+        self.assertEqual(response.status_code, 522)
+
+    def test_rename_segment_no_track(self):
+        """
+        Use rename segment with no created session
+        """
+        response = self.client.post(
+            '/editor/rename_segment/5/test_rename_segment_non_existing_index')
+
+        self.assertEqual(response.status_code, 520)
 
 
 class LoginRequiredTest(TestCase):

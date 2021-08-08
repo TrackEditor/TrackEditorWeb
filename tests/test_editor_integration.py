@@ -4,7 +4,6 @@ import json
 import time
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.test import TestCase, RequestFactory
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
