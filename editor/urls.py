@@ -8,7 +8,7 @@ urlpatterns = [
     path('<int:index>', views.editor, name='editor'),
     path('rename_segment/<int:index>/<str:new_name>', views.rename_segment,
          name='rename_segment'),
-    path('remove_segment', views.remove_segment, name='remove_segment'),
+    path('remove_segment/<int:index>', views.remove_segment, name='remove_segment'),
     path('get_segment/<int:index>', views.get_segment, name='get_segment'),
     path('get_summary', views.get_summary, name='get_summary'),
     path('save_session', views.save_session, name='save_session'),

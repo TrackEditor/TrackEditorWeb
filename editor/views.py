@@ -114,10 +114,7 @@ def rename_segment(request, index, new_name):
 @login_required
 @csrf_exempt
 @check_view('POST', 523)
-def remove_segment(request):
-    data = json.loads(request.body)
-    index = int(data['index'])
-
+def remove_segment(request, index):
     obj_track = track.Track(track_json=request.session['json_track'])
     obj_track.remove_segment(index)
     request.session['json_track'] = obj_track.to_json()

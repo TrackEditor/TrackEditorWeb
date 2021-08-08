@@ -263,13 +263,8 @@ class SaveSessionTest(EditorTestUtils):
         self.client.post('/editor/save_session')
 
         # Remove segments and save
-        self.client.post('/editor/remove_segment',
-                         json.dumps({'index': 2}),
-                         content_type='application/json')
-
-        self.client.post('/editor/remove_segment',
-                         json.dumps({'index': 4}),
-                         content_type='application/json')
+        self.client.post('/editor/remove_segment/2')
+        self.client.post('/editor/remove_segment/4')
 
         self.client.post('/editor/save_session')
 
@@ -703,14 +698,31 @@ class RemoveSegmentTest(EditorTestUtils):
             with open(sample_file, 'r') as f:
                 self.client.post('/editor/', {'document': f})
 
-        response = self.client.post('/editor/remove_segment',
-                                    json.dumps({'index': '2'}),
-                                    content_type='application/json')
+        response = self.client.post('/editor/remove_segment/2')
         json_track = json.loads(self.client.session['json_track'])
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(json_track['size'], 3)
         self.assertEqual(set(json_track['segment']), {1, 3, 4})
+
+    def test_remove_segment_no_track(self):
+        response = self.client.post('/editor/remove_segment/2')
+        self.assertEqual(response.status_code, 520)
+
+    def test_remove_segment_wrong_index(self):
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        response = self.client.post('/editor/remove_segment/2')
+
+        self.assertEqual(response.status_code, 523)
+
+    def test_remove_segment_bad_request(self):
+        response = self.client.get('/editor/remove_segment/2')
+        self.assertEqual(response.status_code, 400)
 
 
 class RenameSegmentTest(EditorTestUtils):
@@ -799,7 +811,7 @@ class LoginRequiredTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_remove_segment(self):
-        response = self.client.get('/editor/remove_segment')
+        response = self.client.get('/editor/remove_segment/1')
         self.assertEqual(response.status_code, 302)
 
     def test_get_segment(self):

@@ -123,11 +123,8 @@ function manage_track_names() {
                 }
 
                 // Remove segment in back end
-                fetch('/editor/remove_segment', {
+                fetch(`/editor/remove_segment/${segment_idx}`, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        index:  segment_idx  // segments start to count in 1, not 0
-                    })
                 })
                 .then( _ => {
                     fetch('/editor/get_segments_links')
