@@ -833,7 +833,7 @@ class ChangeOrderTest(EditorTestUtils):
                 track_unchanged['segment'] == n].drop('segment', axis=1).\
                 reset_index()
             segment_changed = track_changed[
-                track_changed['segment'] == i+1].drop('segment', axis=1).\
+                track_changed['segment'] == i + 1].drop('segment', axis=1).\
                 reset_index()
             self.assertTrue((segment_unchanged == segment_changed).
                             all().drop('index').all())
