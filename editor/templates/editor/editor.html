@@ -1,6 +1,10 @@
 {% extends "TrackApp/layout.html" %}
 {% load static %}
 
+{% block style %}
+    <link href="{% static 'editor/editor.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block script %}
     <script src="{% static 'editor/editor.js' %}"></script>
     <script src="{% static 'TrackApp/libs/ol.js' %}"></script>

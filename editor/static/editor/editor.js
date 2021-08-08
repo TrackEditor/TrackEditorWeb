@@ -674,11 +674,17 @@ function check_reverse_button() {
 function change_segments_order() {
     var modal = document.getElementById("div_change_order_modal");
     var btn = document.getElementById("btn_change_order");
+    var btn_cancel = document.getElementById("btn_change_order");
     var span = document.getElementById("close_change_order");
     var change_order_content = document.getElementById("div_change_order");
 
     // When the user clicks on <span> (x), close the modal
     span.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // When the user clicks cancel, close the modal
+    btn_change_cancel.onclick = function() {
       modal.style.display = "none";
     }
 
@@ -734,6 +740,9 @@ function change_segments_order() {
                 const p_name = document.createElement('p');
                 const span_name = document.createElement('span');
                 const span_marker = document.createElement('span');
+                const span_hover = document.createElement('span');
+
+                p_name.setAttribute('class', 'draggable-item');
 
                 span_marker.innerHTML = '&#9899';
                 span_marker.style = `font-size: 20px; color: transparent;  text-shadow: 0 0 0 ${color};`;
@@ -741,6 +750,10 @@ function change_segments_order() {
                 span_name.style = 'font-size: 18px; margin-left: 5px;';
                 span_name.innerHTML = el.innerHTML;
 
+                span_hover.innerHTML = '&#8286&#8286 ';
+                span_hover.style = 'font-size: 20px; margin-left:15px;';
+
+                p_name.appendChild(span_hover);
                 p_name.appendChild(span_marker);
                 p_name.appendChild(span_name);
                 change_order_content.appendChild(p_name);
