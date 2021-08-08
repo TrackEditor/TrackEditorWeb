@@ -166,34 +166,25 @@ def get_summary(request):
 @csrf_exempt
 @check_view('POST', 526)
 def save_session(request):
-    data = json.loads(request.body)
-    save = data['save'] == 'True'
+    obj_track = track.Track(track_json=request.session['json_track'])
+    json_track = obj_track.to_json()
 
-    if save:
-        obj_track = track.Track(track_json=request.session['json_track'])
-        json_track = obj_track.to_json()
-
-        if request.session['index_db']:
-            index = request.session['index_db']
-            new_track = Track.objects.get(id=index)
-            new_track.track = json_track
-            new_track.title = obj_track.title
-            new_track.last_edit = datetime.now()
-            new_track.save()
-        else:
-            new_track = Track(user=request.user,
-                              track=json_track,
-                              title=obj_track.title)
-            new_track.save()
-            request.session['index_db'] = new_track.id
-
-        return JsonResponse({'message': 'Session has been saved'},
-                            status=201)
-
+    if request.session['index_db']:
+        index = request.session['index_db']
+        new_track = Track.objects.get(id=index)
+        new_track.track = json_track
+        new_track.title = obj_track.title
+        new_track.last_edit = datetime.now()
+        new_track.save()
     else:
-        # TODO
-        return JsonResponse({'error': 'This must be removed with issue #48'},
-                            status=526)
+        new_track = Track(user=request.user,
+                          track=json_track,
+                          title=obj_track.title)
+        new_track.save()
+        request.session['index_db'] = new_track.id
+
+    return JsonResponse({'message': 'Session has been saved'},
+                        status=201)
 
 
 @login_required

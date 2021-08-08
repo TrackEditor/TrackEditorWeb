@@ -510,9 +510,6 @@ function save_session() {
         document.querySelector('#div_spinner').style.display = 'inline-block';
         fetch('/editor/save_session', {
             method: 'POST',
-                body: JSON.stringify({
-                    save:  'True',
-                })
         })
         .then(response => {
             document.querySelector('#div_spinner').style.display = 'none';
