@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     update_session_name();
     download_session();
     check_reverse_button();
+    change_segments_order();
 });
 
 
@@ -78,6 +79,8 @@ function manage_track_names() {
             span_name.setAttribute('data-index', i);
             span_name.setAttribute('data-original_name', span_name.innerHTML);
             span_name.setAttribute('id', `span_rename_${segment_idx}`);
+            span_name.setAttribute('class', 'span_rename');
+            span_name.setAttribute('data-segment_idx', segment_idx);
             console.log('track id:', `span_rename_${segment_idx}`);
 
             span_name.addEventListener('blur', function() {
@@ -103,6 +106,7 @@ function manage_track_names() {
             button_remove.addEventListener('click', function() {
                 // Remove track name from list
                 p_name.style.display = 'none';
+                span_name.style.display = 'none';
 
                 // Remove layer
                 console.log(`Remove track with index: ${segment_idx}`);
@@ -426,7 +430,7 @@ function show_summary() {
     // Get elements
     var modal = document.getElementById("div_summary_modal");
     var btn = document.getElementById("btn_summary");
-    var span = document.getElementsByClassName("close")[0];  // <span> element that closes the modal
+    var span = document.getElementById("close_summary");
     var summary_content = document.getElementById("div_summary_content");
 
     // When the user clicks on <span> (x), close the modal
@@ -664,4 +668,84 @@ function check_reverse_button() {
                 }, 3000);
         }
     });
+}
+
+
+function change_segments_order() {
+    var modal = document.getElementById("div_change_order_modal");
+    var btn = document.getElementById("btn_change_order");
+    var span = document.getElementById("close_change_order");
+    var change_order_content = document.getElementById("div_change_order");
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // When the user clicks on the button, open the modal
+    btn.onclick = function() {
+
+
+        let segments = document.getElementsByClassName('span_rename');
+        const get_number_segments = () => {
+            let number_segments = 0;
+            Array.prototype.forEach.call(segments, el => {
+                if (el.style.display !== 'none'){
+                    number_segments++;
+                }
+            });
+            return number_segments;
+        };
+
+        if (get_number_segments() === 0){
+            let div = document.getElementById('div_alerts_box');
+            div.innerHTML = '<div class="alert alert-warning" role="alert">No segment is loaded </div>';
+            setTimeout(function(){
+                div.innerHTML = '';
+            }, 3000);
+            return;
+        }
+        else if (get_number_segments() === 1){
+            let div = document.getElementById('div_alerts_box');
+            div.innerHTML = '<div class="alert alert-warning" role="alert">One single segment is loaded. At least two are required to modify order.</div>';
+            setTimeout(function(){
+                div.innerHTML = '';
+            }, 3000);
+            return;
+        }
+        else {
+            modal.style.display = "block";
+            change_order_content.innerHTML = '';
+        }
+
+        Array.prototype.forEach.call(segments, el => {
+            if (el.style.display !== 'none'){
+                let color = get_color(el.dataset.segment_idx, alpha='-1');
+
+                console.log(el.innerHTML, el.dataset.segment_idx, el.style.display);
+
+                const p_name = document.createElement('p');
+                const span_name = document.createElement('span');
+                const span_marker = document.createElement('span');
+
+                span_marker.innerHTML = '&#9899';
+                span_marker.style = `font-size: 20px; color: transparent;  text-shadow: 0 0 0 ${color};`;
+
+                span_name.style = 'font-size: 18px; margin-left: 5px;';
+                span_name.innerHTML = el.innerHTML;
+
+                p_name.appendChild(span_marker);
+                p_name.appendChild(span_name);
+                change_order_content.appendChild(p_name);
+            }
+        });
+    }
+
 }
