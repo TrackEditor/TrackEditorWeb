@@ -415,9 +415,7 @@ class RenameSessionTest(EditorTestUtils):
                          json.dumps({'save': 'True'}),
                          content_type='application/json')
         response = self.client.post(
-            '/editor/rename_session',
-            json.dumps({'new_name': 'test_rename_session'}),
-            content_type='application/json')
+            '/editor/rename_session/test_rename_session')
         self.client.post('/editor/save_session',
                          json.dumps({'save': 'True'}),
                          content_type='application/json')
@@ -432,17 +430,22 @@ class RenameSessionTest(EditorTestUtils):
         Try to rename a non existing session
         """
         response = self.client.post(
-            '/editor/rename_session',
-            json.dumps({'new_name': 'test_rename_session_no_track'}),
-            content_type='application/json')
+            '/editor/rename_session/test_rename_session_no_track')
         self.assertEqual(response.status_code, 520)
 
     def test_rename_session_get(self):
         """
         Use get request instead of post and check response
         """
-        response = self.client.get('/editor/rename_session')
+        response = self.client.get('/editor/rename_session/new_name')
         self.assertEqual(response.status_code, 400)
+
+    def test_rename_session_invalid_endpoint(self):
+        """
+        Do not provide new_name in request
+        """
+        response = self.client.post('/editor/rename_session/')
+        self.assertEqual(response.status_code, 404)
 
 
 class DownloadSessionTest(EditorTestUtils):
@@ -828,7 +831,7 @@ class LoginRequiredTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_rename_segment(self):
-        response = self.client.get('/editor/rename_segment')
+        response = self.client.get('/editor/rename_segment/1/new_name')
         self.assertEqual(response.status_code, 302)
 
     def test_remove_segment(self):
@@ -852,7 +855,7 @@ class LoginRequiredTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_rename_session(self):
-        response = self.client.get('/editor/rename_session')
+        response = self.client.get('/editor/rename_session/new_name')
         self.assertEqual(response.status_code, 302)
 
     def test_download_session(self):

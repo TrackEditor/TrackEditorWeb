@@ -208,10 +208,7 @@ def remove_session(request, index):
 @login_required
 @csrf_exempt
 @check_view('POST', 528)
-def rename_session(request):
-    data = json.loads(request.body)
-    new_name = data['new_name']
-
+def rename_session(request, new_name):
     dict_track = json.loads(request.session['json_track'])
     dict_track['title'] = new_name.replace('\n', '').strip()
     request.session['json_track'] = json.dumps(dict_track)

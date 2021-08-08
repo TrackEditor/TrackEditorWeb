@@ -543,12 +543,9 @@ function update_session_name() {
     let e_title = document.querySelector('#h_session_name');
 
     e_title.addEventListener('blur', function() {
-
-        fetch('/editor/rename_session', {
+        let new_name = e_title.innerHTML;
+        fetch(`/editor/rename_session/${new_name}`, {
             method: 'POST',
-            body: JSON.stringify({
-                new_name: e_title.innerHTML
-            })
         })
         .then(response => console.log(response));
     });
