@@ -85,16 +85,12 @@ function manage_track_names() {
                              `segment id: ${1 + parseInt(span_name.getAttribute('data-index'))}\n`,
                              `old_name: ${span_name.getAttribute('data-original_name')}\n`,
                              `new_name: ${span_name.innerHTML}`);
-
-                fetch('/editor/rename_segment', {
+                let new_name = span_name.innerHTML;
+                let index = parseInt(span_name.getAttribute('data-index'));
+                fetch(`/editor/rename_segment/${index}/${new_name}`, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        index:  parseInt(span_name.getAttribute('data-index')),
-                        new_name: span_name.innerHTML
-                    })
                 });
                 // TODO use the data-original_name if response is not OK
-
             });
 
             button_remove.setAttribute('class', 'btn-close');
@@ -127,11 +123,8 @@ function manage_track_names() {
                 }
 
                 // Remove segment in back end
-                fetch('/editor/remove_segment', {
+                fetch(`/editor/remove_segment/${segment_idx}`, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        index:  segment_idx  // segments start to count in 1, not 0
-                    })
                 })
                 .then( _ => {
                     fetch('/editor/get_segments_links')
@@ -514,9 +507,6 @@ function save_session() {
         document.querySelector('#div_spinner').style.display = 'inline-block';
         fetch('/editor/save_session', {
             method: 'POST',
-                body: JSON.stringify({
-                    save:  'True',
-                })
         })
         .then(response => {
             document.querySelector('#div_spinner').style.display = 'none';
@@ -547,12 +537,9 @@ function update_session_name() {
     let e_title = document.querySelector('#h_session_name');
 
     e_title.addEventListener('blur', function() {
-
-        fetch('/editor/rename_session', {
+        let new_name = e_title.innerHTML;
+        fetch(`/editor/rename_session/${new_name}`, {
             method: 'POST',
-            body: JSON.stringify({
-                new_name: e_title.innerHTML
-            })
         })
         .then(response => console.log(response));
     });

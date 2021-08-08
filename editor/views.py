@@ -102,11 +102,7 @@ def editor(request, index=None):
 @login_required
 @csrf_exempt
 @check_view('POST', 522)
-def rename_segment(request):
-    data = json.loads(request.body)
-    index = int(data['index'])
-    new_name = data['new_name']
-
+def rename_segment(request, index, new_name):
     dict_track = json.loads(request.session['json_track'])
     dict_track['segment_names'][index] = new_name
     request.session['json_track'] = json.dumps(dict_track)
@@ -118,10 +114,7 @@ def rename_segment(request):
 @login_required
 @csrf_exempt
 @check_view('POST', 523)
-def remove_segment(request):
-    data = json.loads(request.body)
-    index = int(data['index'])
-
+def remove_segment(request, index):
     obj_track = track.Track(track_json=request.session['json_track'])
     obj_track.remove_segment(index)
     request.session['json_track'] = obj_track.to_json()
@@ -170,34 +163,25 @@ def get_summary(request):
 @csrf_exempt
 @check_view('POST', 526)
 def save_session(request):
-    data = json.loads(request.body)
-    save = data['save'] == 'True'
+    obj_track = track.Track(track_json=request.session['json_track'])
+    json_track = obj_track.to_json()
 
-    if save:
-        obj_track = track.Track(track_json=request.session['json_track'])
-        json_track = obj_track.to_json()
-
-        if request.session['index_db']:
-            index = request.session['index_db']
-            new_track = Track.objects.get(id=index)
-            new_track.track = json_track
-            new_track.title = obj_track.title
-            new_track.last_edit = datetime.now()
-            new_track.save()
-        else:
-            new_track = Track(user=request.user,
-                              track=json_track,
-                              title=obj_track.title)
-            new_track.save()
-            request.session['index_db'] = new_track.id
-
-        return JsonResponse({'message': 'Session has been saved'},
-                            status=201)
-
+    if request.session['index_db']:
+        index = request.session['index_db']
+        new_track = Track.objects.get(id=index)
+        new_track.track = json_track
+        new_track.title = obj_track.title
+        new_track.last_edit = datetime.now()
+        new_track.save()
     else:
-        # TODO
-        return JsonResponse({'error': 'This must be removed with issue #48'},
-                            status=526)
+        new_track = Track(user=request.user,
+                          track=json_track,
+                          title=obj_track.title)
+        new_track.save()
+        request.session['index_db'] = new_track.id
+
+    return JsonResponse({'message': 'Session has been saved'},
+                        status=201)
 
 
 @login_required
@@ -212,10 +196,7 @@ def remove_session(request, index):
 @login_required
 @csrf_exempt
 @check_view('POST', 528)
-def rename_session(request):
-    data = json.loads(request.body)
-    new_name = data['new_name']
-
+def rename_session(request, new_name):
     dict_track = json.loads(request.session['json_track'])
     dict_track['title'] = new_name.replace('\n', '').strip()
     request.session['json_track'] = json.dumps(dict_track)

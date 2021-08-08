@@ -18,13 +18,6 @@ from libs import track, constants as c
 from .models import User, Track
 from libs.utils import id_generator, auto_zoom
 
-# DEBUGGING
-import pandas
-pandas.set_option('display.max_rows', None)
-pandas.set_option('display.max_columns', None)
-pandas.set_option('display.max_colwidth', None)
-pandas.set_option('display.expand_frame_repr', False)
-
 
 def index_view(request):
     if request.user.is_authenticated:

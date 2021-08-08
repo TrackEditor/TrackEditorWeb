@@ -104,9 +104,7 @@ class EditorTest(EditorTestUtils):
         with open(sample_file, 'r') as f:
             self.client.post('/editor/', {'document': f})
 
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
 
         # Add another file to force that the last active session is not
         # the same than the loaded one
@@ -114,7 +112,8 @@ class EditorTest(EditorTestUtils):
             self.client.post('/editor/', {'document': f})
 
         # Load track
-        response = self.client.get(f'/editor/{self.client.session["index_db"]}')
+        response = self.client.get(
+            f'/editor/{self.client.session["index_db"]}')
         session_track = json.loads(self.client.session['json_track'])
 
         # Create expected output
@@ -196,9 +195,7 @@ class SaveSessionTest(EditorTestUtils):
         session_track = json.loads(self.client.session['json_track'])
 
         # Save session
-        response = self.client.post('/editor/save_session',
-                                    json.dumps({'save': 'True'}),
-                                    content_type='application/json')
+        response = self.client.post('/editor/save_session')
 
         # Get reference data
         saved_track = models.Track.objects.\
@@ -219,18 +216,15 @@ class SaveSessionTest(EditorTestUtils):
         sample_file = self.get_sample_file()
         with open(sample_file, 'r') as f:
             self.client.post('/editor/', {'document': f})
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
 
         with open(sample_file, 'r') as f:
             self.client.post('/editor/', {'document': f})
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
 
         # Load track
-        response = self.client.get(f'/editor/{self.client.session["index_db"]}')
+        response = self.client.get(
+            f'/editor/{self.client.session["index_db"]}')
         session_track = json.loads(self.client.session['json_track'])
 
         # Create expected output
@@ -266,32 +260,25 @@ class SaveSessionTest(EditorTestUtils):
                          json.dumps({'new_name': 'test_save_remove_save'}),
                          content_type='application/json')
 
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
 
         # Remove segments and save
-        self.client.post('/editor/remove_segment',
-                         json.dumps({'index': 2}),
-                         content_type='application/json')
+        self.client.post('/editor/remove_segment/2')
+        self.client.post('/editor/remove_segment/4')
 
-        self.client.post('/editor/remove_segment',
-                         json.dumps({'index': 4}),
-                         content_type='application/json')
-
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
 
         # Load db record
         track_db = json.loads(
             models.Track.objects.get(id=self.client.session['index_db']).track)
+        segments_names = track_db['segment_names']
 
         self.assertEqual(set(track_db['segment']), {1, 3, 5})
-        self.assertEqual(track_db['segment_names'],
-                         ['island_1.gpx', None,
-                          'island_3.gpx', None,
-                          'island_5.gpx'])
+        self.assertRegex(segments_names[0], 'island_1.*.gpx')
+        self.assertIsNone(segments_names[1])
+        self.assertRegex(segments_names[2], 'island_3.*.gpx')
+        self.assertIsNone(segments_names[3])
+        self.assertRegex(segments_names[4], 'island_5.*.gpx')
 
     def test_save_rename_save(self):
         """
@@ -300,23 +287,18 @@ class SaveSessionTest(EditorTestUtils):
         """
         self.create_session()
 
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
 
-        self.client.post('/editor/rename_session',
-                         json.dumps({'new_name': 'test_save_rename_save'}),
-                         content_type='application/json')
+        self.client.post('/editor/rename_session/test_save_rename_save')
 
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
 
         # Load db record
         record = models.Track.objects.get(id=self.client.session['index_db'])
 
         self.assertEqual(record.title, 'test_save_rename_save')
-        self.assertEqual(json.loads(record.track)['title'], 'test_save_rename_save')
+        self.assertEqual(json.loads(record.track)['title'],
+                         'test_save_rename_save')
 
     def test_save_session_get(self):
         """
@@ -326,23 +308,11 @@ class SaveSessionTest(EditorTestUtils):
         response = self.client.get('/editor/save_session')
         self.assertEqual(response.status_code, 400)
 
-    def test_save_session_wrong_request(self):
-        """
-        Check response of request with False value in the save option
-        """
-        self.create_session()
-        response = self.client.post('/editor/save_session',
-                                    json.dumps({'save': 'False'}),
-                                    content_type='application/json')
-        self.assertEqual(response.status_code, 526)
-
     def test_save_session_no_track(self):
         """
         Try to save a non existing session
         """
-        response = self.client.post('/editor/save_session',
-                                    json.dumps({'save': 'False'}),
-                                    content_type='application/json')
+        response = self.client.post('/editor/save_session')
         self.assertEqual(response.status_code, 520)
 
 
@@ -360,9 +330,7 @@ class RemoveSessionTest(EditorTestUtils):
         Create a session, save and remove it from db
         """
         self.create_session()
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
 
         before = models.Track.objects.\
             filter(id=self.client.session['index_db']).count()
@@ -408,16 +376,10 @@ class RenameSessionTest(EditorTestUtils):
         Create a session, rename and save
         """
         self.create_session()
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+        self.client.post('/editor/save_session')
         response = self.client.post(
-            '/editor/rename_session',
-            json.dumps({'new_name': 'test_rename_session'}),
-            content_type='application/json')
-        self.client.post('/editor/save_session',
-                         json.dumps({'save': 'True'}),
-                         content_type='application/json')
+            '/editor/rename_session/test_rename_session')
+        self.client.post('/editor/save_session')
 
         track_db = models.Track.objects.get(id=self.client.session['index_db'])
 
@@ -429,17 +391,22 @@ class RenameSessionTest(EditorTestUtils):
         Try to rename a non existing session
         """
         response = self.client.post(
-            '/editor/rename_session',
-            json.dumps({'new_name': 'test_rename_session_no_track'}),
-            content_type='application/json')
+            '/editor/rename_session/test_rename_session_no_track')
         self.assertEqual(response.status_code, 520)
 
     def test_rename_session_get(self):
         """
         Use get request instead of post and check response
         """
-        response = self.client.get('/editor/rename_session')
+        response = self.client.get('/editor/rename_session/new_name')
         self.assertEqual(response.status_code, 400)
+
+    def test_rename_session_invalid_endpoint(self):
+        """
+        Do not provide new_name in request
+        """
+        response = self.client.post('/editor/rename_session/')
+        self.assertEqual(response.status_code, 404)
 
 
 class DownloadSessionTest(EditorTestUtils):
@@ -461,16 +428,17 @@ class DownloadSessionTest(EditorTestUtils):
         with open(sample_file, 'r') as f:
             self.client.post('/editor/', {'document': f})
 
-        self.client.post('/editor/rename_session',
-                         json.dumps({'new_name': 'test_download_session'}),
-                         content_type='application/json')
+        self.client.post('/editor/rename_session/test_download_session')
 
         response = self.client.post('/editor/download_session')
         resp_json = json.loads(response.content)
 
-        self.assertRegex(resp_json['url'], '/media/test_download_session_.{8}.gpx')
-        self.assertRegex(resp_json['filename'], 'test_download_session_.{8}.gpx')
-        self.assertEqual(os.path.basename(resp_json['url']), resp_json['filename'])
+        self.assertRegex(resp_json['url'],
+                         '/media/test_download_session_.{8}.gpx')
+        self.assertRegex(resp_json['filename'],
+                         'test_download_session_.{8}.gpx')
+        self.assertEqual(os.path.basename(resp_json['url']),
+                         resp_json['filename'])
 
         self.assertEqual(response.status_code, 200)
 
@@ -730,14 +698,31 @@ class RemoveSegmentTest(EditorTestUtils):
             with open(sample_file, 'r') as f:
                 self.client.post('/editor/', {'document': f})
 
-        response = self.client.post('/editor/remove_segment',
-                                    json.dumps({'index': '2'}),
-                                    content_type='application/json')
+        response = self.client.post('/editor/remove_segment/2')
         json_track = json.loads(self.client.session['json_track'])
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(json_track['size'], 3)
         self.assertEqual(set(json_track['segment']), {1, 3, 4})
+
+    def test_remove_segment_no_track(self):
+        response = self.client.post('/editor/remove_segment/2')
+        self.assertEqual(response.status_code, 520)
+
+    def test_remove_segment_wrong_index(self):
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        response = self.client.post('/editor/remove_segment/2')
+
+        self.assertEqual(response.status_code, 523)
+
+    def test_remove_segment_bad_request(self):
+        response = self.client.get('/editor/remove_segment/2')
+        self.assertEqual(response.status_code, 400)
 
 
 class RenameSegmentTest(EditorTestUtils):
@@ -763,15 +748,50 @@ class RenameSegmentTest(EditorTestUtils):
                 self.client.post('/editor/', {'document': f})
 
         response = self.client.post(
-            '/editor/rename_segment',
-            json.dumps({'index': '2',
-                        'new_name': 'test_rename_segment'}),
-            content_type='application/json')
+            '/editor/rename_segment/2/test_rename_segment')
         json_track = json.loads(self.client.session['json_track'])
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(json_track['size'], 4)
         self.assertEqual(json_track['segment_names'][2], 'test_rename_segment')
+
+    def test_rename_segment_wrong_endpoint(self):
+        """
+        Pass invalid endpoint to rename segment
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        response = self.client.post('/editor/rename_segment/2/')
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_rename_segment_non_existing_index(self):
+        """
+        Try to rename a non-existing index
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file()
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        response = self.client.post(
+            '/editor/rename_segment/5/test_rename_segment_non_existing_index')
+
+        self.assertEqual(response.status_code, 522)
+
+    def test_rename_segment_no_track(self):
+        """
+        Use rename segment with no created session
+        """
+        response = self.client.post(
+            '/editor/rename_segment/5/test_rename_segment_non_existing_index')
+
+        self.assertEqual(response.status_code, 520)
 
 
 class LoginRequiredTest(TestCase):
@@ -787,11 +807,11 @@ class LoginRequiredTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_rename_segment(self):
-        response = self.client.get('/editor/rename_segment')
+        response = self.client.get('/editor/rename_segment/1/new_name')
         self.assertEqual(response.status_code, 302)
 
     def test_remove_segment(self):
-        response = self.client.get('/editor/remove_segment')
+        response = self.client.get('/editor/remove_segment/1')
         self.assertEqual(response.status_code, 302)
 
     def test_get_segment(self):
@@ -811,7 +831,7 @@ class LoginRequiredTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_rename_session(self):
-        response = self.client.get('/editor/rename_session')
+        response = self.client.get('/editor/rename_session/new_name')
         self.assertEqual(response.status_code, 302)
 
     def test_download_session(self):

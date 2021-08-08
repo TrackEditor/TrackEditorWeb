@@ -4,7 +4,6 @@ import json
 import time
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.test import TestCase, RequestFactory
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -179,7 +178,8 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         compared versus reference.
         """
         # Remove previous testing files
-        for file in glob(os.path.join(self.downloads_dir, 'test_download_session*.gpx')):
+        for file in glob(os.path.join(self.downloads_dir,
+                                      'test_rename_and_download_session*.gpx')):
             os.remove(file)
 
         # Add files
@@ -195,7 +195,8 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         e_session_name = self.driver.find_element_by_id('h_session_name')
         e_session_name.click()
         self.driver.execute_script(
-            "arguments[0].innerText = 'test_download_session'", e_session_name)
+            "arguments[0].innerText = 'test_rename_and_download_session'",
+            e_session_name)
         self.driver.find_element_by_xpath("//html").click()
         time.sleep(0.5)  # small time to rename session
 
@@ -206,7 +207,8 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         time.sleep(2)
 
         downloaded_file = \
-            glob(os.path.join(self.downloads_dir, 'test_download_session*.gpx'))[-1]
+            glob(os.path.join(self.downloads_dir,
+                              'test_rename_and_download_session*.gpx'))[-1]
 
         self.assertEqual(
             md5sum(downloaded_file),
