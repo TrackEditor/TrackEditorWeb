@@ -674,7 +674,8 @@ function check_reverse_button() {
 function change_segments_order() {
     var modal = document.getElementById("div_change_order_modal");
     var btn = document.getElementById("btn_change_order");
-    var btn_cancel = document.getElementById("btn_change_order");
+    var btn_cancel = document.getElementById("btn_change_order_cancel");
+    var btn_ok = document.getElementById("btn_change_order_ok");
     var span = document.getElementById("close_change_order");
     var change_order_content = document.getElementById("div_change_order");
 
@@ -684,7 +685,7 @@ function change_segments_order() {
     }
 
     // When the user clicks cancel, close the modal
-    btn_change_cancel.onclick = function() {
+    btn_cancel.onclick = function() {
       modal.style.display = "none";
     }
 
@@ -697,8 +698,6 @@ function change_segments_order() {
 
     // When the user clicks on the button, open the modal
     btn.onclick = function() {
-
-
         let segments = document.getElementsByClassName('span_rename');
         const get_number_segments = () => {
             let number_segments = 0;
@@ -737,12 +736,14 @@ function change_segments_order() {
 
                 console.log(el.innerHTML, el.dataset.segment_idx, el.style.display);
 
-                const p_name = document.createElement('p');
+                const div_segment = document.createElement('div');
                 const span_name = document.createElement('span');
                 const span_marker = document.createElement('span');
                 const span_hover = document.createElement('span');
+                const i = document.createElement('i');
 
-                p_name.setAttribute('class', 'draggable-item');
+                div_segment.setAttribute('class', 'item draggable-item draggable-segment');
+                div_segment.setAttribute('data-segment_idx', el.dataset.segment_idx);
 
                 span_marker.innerHTML = '&#9899';
                 span_marker.style = `font-size: 20px; color: transparent;  text-shadow: 0 0 0 ${color};`;
@@ -753,11 +754,22 @@ function change_segments_order() {
                 span_hover.innerHTML = '&#8286&#8286 ';
                 span_hover.style = 'font-size: 20px; margin-left:15px;';
 
-                p_name.appendChild(span_hover);
-                p_name.appendChild(span_marker);
-                p_name.appendChild(span_name);
-                change_order_content.appendChild(p_name);
+                i.setAttribute('class', 'fas fa-bars');
+
+                div_segment.appendChild(span_hover);
+                div_segment.appendChild(span_marker);
+                div_segment.appendChild(span_name);
+                div_segment.appendChild(i);
+                change_order_content.appendChild(div_segment);
             }
+        });
+    }
+
+    // Accept the new order
+    btn_ok.onclick = function() {
+        let segments = document.getElementsByClassName('draggable-segment');
+        Array.prototype.forEach.call(segments, el => {
+            console.log(el.dataset.segment_idx);
         });
     }
 

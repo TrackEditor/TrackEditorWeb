@@ -8,6 +8,7 @@
 {% block script %}
     <script src="{% static 'editor/editor.js' %}"></script>
     <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
+    <script src="{% static 'TrackApp/libs/Sortable.min.js' %}"></script>
 {% endblock %}
 
 {% block body %}
@@ -72,14 +73,20 @@
             <div class="modal-content">
                 <span id="close_change_order" class="close">&times;</span>
                 <span><h3>Change segments order</h3></span>
-                <div id="div_change_order" class="container"></div>
-                <div class="container">
-                    <button type="button" class="btn btn-secondary" id="btn_change_ok">Ok</button>
-                    <button type="button" class="btn btn-secondary" id="btn_change_cancel">Cancel</button>
+                <div id="div_change_order" class="drag"></div>
+                <div class="button-area">
+                    <button type="button" class="btn btn-secondary" id="btn_change_order_ok">Ok</button>
+                    <button type="button" class="btn btn-secondary" id="btn_change_order_cancel">Cancel</button>
               </div>
           </div>
         </div>
     </div>
+    <script>
+        const dragArea = document.querySelector(".drag");
+        new Sortable(dragArea, {
+            animation: 350
+        });
+    </script>
 
     <!-- List of loaded tracks -->
     <div id="div_track_list" class="container" style="margin-top: 15px;" data-track_list="{{track_list}}" data-segment_list="{{segment_list}}">
