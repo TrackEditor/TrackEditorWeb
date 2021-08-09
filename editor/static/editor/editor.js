@@ -59,6 +59,7 @@ function manage_track_names() {
     let div_track_list = document.querySelector('#div_track_list');
     let track_list = eval(div_track_list.dataset.track_list);
     let segment_list = eval(div_track_list.dataset.segment_list);
+    div_track_list.innerHTML = '';
 
     if (typeof track_list !== 'undefined') {
         for (var i = 0; i < track_list.length; i++) {
@@ -769,9 +770,44 @@ function change_segments_order() {
     btn_ok.onclick = function() {
         let segments = document.getElementsByClassName('draggable-segment');
         let new_order = [];
+        document.querySelector('#div_spinner_change_order').style.display = 'inline-block';
+
         Array.prototype.forEach.call(segments, el => {
             new_order.push(parseInt(el.dataset.segment_idx));
         });
+
+        fetch('/editor/change_segments_order', {
+            method: 'POST',
+            body: JSON.stringify({
+                new_order:  new_order,
+            })
+        })
+        .then(response => {
+            document.querySelector('#div_spinner_change_order').style.display = 'none';
+
+            let div = document.getElementById('div_alerts_box');
+            if (response.status === 520){
+                div.innerHTML = '<div class="alert alert-danger" role="alert">No track is loaded</div>';
+                setTimeout(function(){
+                    div.innerHTML = '';
+                }, 3000);
+                modal.style.display = "none";
+                return;
+            }
+            else if (response.status === 532){
+                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Code: 532</div>';
+                setTimeout(function(){
+                    div.innerHTML = '';
+                }, 3000);
+                modal.style.display = "none";
+                return;
+            }
+            else if (response.status === 200){
+                document.getElementById('a_refresh_editor').click();
+            }
+
+        });
+
     }
 
 }

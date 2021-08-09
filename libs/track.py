@@ -411,6 +411,9 @@ class Track:
         return True
 
     def change_order(self, new_order: dict):
+        if len(new_order.keys()) != len(self.df_track.segment.unique()):
+            raise ValueError('Wrong new_order dict in change_order')
+
         self.df_track.segment = self.df_track.apply(
             lambda row: new_order[row.segment],
             axis=1)
@@ -419,6 +422,9 @@ class Track:
         self.df_track = self.df_track.sort_values(by=['segment', 'index1'])
         self.df_track = self.df_track.drop(labels=['index1'], axis=1)
         self.df_track = self.df_track.reset_index(drop=True)
+
+        new_order_list = [new_order[i] for i in sorted(list(new_order.keys()))]
+        self.segment_names = [self.segment_names[i-1] for i in new_order_list]
         self.update_summary()  # for full track
 
     def rename_segment(self, index: int, new_name: str) -> bool:

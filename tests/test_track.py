@@ -235,6 +235,8 @@ class TrackTest(TestCase):
         after_df = obj_track.df_track[['lat', 'lon', 'ele', 'segment']].copy()
 
         # Checks
+        self.assertEqual(obj_track.segment_names,
+                         ['island_3.gpx', 'island_1.gpx', 'island_2.gpx'])
         for n in new_order:
             segment_before = initial_df[
                 initial_df['segment'] == n].reset_index().\
@@ -243,6 +245,22 @@ class TrackTest(TestCase):
                 after_df['segment'] == new_order[n]].reset_index().\
                 drop(columns=['index', 'segment'])
             self.assertTrue((segment_before == segment_after).all().all())
+
+    def test_change_order_invalid_input(self):
+        """
+        Check that exception is raised when inputs are invalid
+        """
+
+        # Load data
+        obj_track = track.Track()
+        obj_track.add_gpx(f'{self.test_path}/samples/island_1.gpx')
+        obj_track.add_gpx(f'{self.test_path}/samples/island_2.gpx')
+        obj_track.add_gpx(f'{self.test_path}/samples/island_3.gpx')
+
+        # Apply function
+        new_order = {}
+
+        self.assertRaises(ValueError, obj_track.change_order, new_order)
 
     def test_fix_elevation(self):
         """
