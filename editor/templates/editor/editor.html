@@ -1,9 +1,14 @@
 {% extends "TrackApp/layout.html" %}
 {% load static %}
 
+{% block style %}
+    <link href="{% static 'editor/editor.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block script %}
     <script src="{% static 'editor/editor.js' %}"></script>
     <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
+    <script src="{% static 'TrackApp/libs/Sortable.min.js' %}"></script>
 {% endblock %}
 
 {% block body %}
@@ -25,7 +30,7 @@
 
     <!-- Management buttons -->
     <div class="container">
-        <button type="button" class="btn btn-secondary" id="btn_save">Save </button>
+        <button type="button" class="btn btn-secondary" id="btn_save">Save</button>
         <button type="button" class="btn btn-secondary" id="btn_download">Download</button>
 
         <form method="post" enctype="multipart/form-data" id="form" style="display: inline;">
@@ -51,16 +56,41 @@
 
     <!-- Summary Table -->
     <div class="container">
-        <div id="div_summary_modal" class="modal">
+        <div id="div_summary_modal" class="modal container">
 
           <!-- Modal content -->
           <div class="modal-content">
-            <span class="close">&times;</span>
+            <span id="close_summary" class="close">&times;</span>
             <div id="div_summary_content"></div>
           </div>
 
         </div>
     </div>
+
+    <!-- Change segments order -->
+    <div class="container">
+        <div id="div_change_order_modal" class="modal container">
+            <div class="modal-content">
+                <span id="close_change_order" class="close">&times;</span>
+                <span><h3>Change segments order</h3></span>
+                <div id="div_change_order" class="drag"></div>
+                <div class="button-area">
+                    <button type="button" class="btn btn-secondary" id="btn_change_order_ok">Ok</button>
+                    <button type="button" class="btn btn-secondary" id="btn_change_order_cancel">Cancel</button>
+                    <div class="spinner-border" id="div_spinner_change_order" role="status" style="display: none; vertical-align: -10px; margin-left: 30px; color: #3C565B">
+                        <span class="sr-only"></span>
+                        <a href="{% url 'editor' index=0 %}" id="a_refresh_editor" style="display: none;"></a>
+                    </div>
+              </div>
+          </div>
+        </div>
+    </div>
+    <script>
+        const dragArea = document.querySelector(".drag");
+        new Sortable(dragArea, {
+            animation: 350
+        });
+    </script>
 
     <!-- List of loaded tracks -->
     <div id="div_track_list" class="container" style="margin-top: 15px;" data-track_list="{{track_list}}" data-segment_list="{{segment_list}}">
@@ -72,6 +102,5 @@
 
     <div class="container" style="margin-top: 15px;">Elevation profile</div>
 
-<!--    <script src="{% static 'TrackApp/editor.js' %}"></script>-->
-<!--    <script src="{% static 'TrackApp/libs/ol.js' %}"></script>-->
+
 {% endblock %}

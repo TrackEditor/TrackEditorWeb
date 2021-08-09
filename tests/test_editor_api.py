@@ -611,7 +611,7 @@ class GetSegmentTest(EditorTestUtils):
 
     def test_get_segment(self):
         """
-        Test get segmente given a track of 4 segments each of them is
+        Test get segment given a track of 4 segments each of them is
         extracted
         """
         self.create_session()
@@ -794,6 +794,85 @@ class RenameSegmentTest(EditorTestUtils):
         self.assertEqual(response.status_code, 520)
 
 
+class ChangeOrderTest(EditorTestUtils):
+    """
+    Test the change_segments_order view of the editor api
+    """
+
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
+
+    def test_change_order(self):
+        """
+        Reorder a track of four files
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor/', {'document': f})
+
+        track_unchanged = \
+            track.Track(track_json=self.client.session['json_track']).\
+            df_track[['lat', 'lon', 'ele', 'segment']]
+
+        response = self.client.post('/editor/change_segments_order',
+                                    json.dumps({'new_order': [4, 3, 1, 2]}),
+                                    content_type='application/json')
+        track_changed = \
+            track.Track(track_json=self.client.session['json_track']).\
+            df_track[['lat', 'lon', 'ele', 'segment']]
+
+        self.assertEqual(response.status_code, 200)
+        for i, n in enumerate([4, 3, 1, 2]):
+            segment_unchanged = track_unchanged[
+                track_unchanged['segment'] == n].drop('segment', axis=1).\
+                reset_index()
+            segment_changed = track_changed[
+                track_changed['segment'] == i + 1].drop('segment', axis=1).\
+                reset_index()
+            self.assertTrue((segment_unchanged == segment_changed).
+                            all().drop('index').all())
+
+    def test_change_order_no_track(self):
+        """
+        Reorder when no track is available
+        """
+        response = self.client.post('/editor/change_segments_order',
+                                    json.dumps({'new_order': '[1]'}),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 520)
+
+    def test_change_order_wrong_request(self):
+        """
+        Use get request instead of post
+        """
+        response = self.client.get('/editor/change_segments_order')
+        self.assertEqual(response.status_code, 400)
+
+    def test_change_order_invalid(self):
+        """
+        Input invalid order
+        """
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor/', {'document': f})
+
+        response = self.client.post('/editor/change_segments_order',
+                                    json.dumps({'new_order': '[7, 9]'}),
+                                    content_type='application/json')
+
+        self.assertEqual(response.status_code, 532)
+
+
 class LoginRequiredTest(TestCase):
     """
     All tests to check the login required are grouped in this class
@@ -844,4 +923,8 @@ class LoginRequiredTest(TestCase):
 
     def test_reverse_segment(self):
         response = self.client.get('/editor/reverse_segment/1')
+        self.assertEqual(response.status_code, 302)
+
+    def test_change_segments_order(self):
+        response = self.client.get('/editor/change_segments_order')
         self.assertEqual(response.status_code, 302)

@@ -56,18 +56,35 @@ def editor(request, index=None):
               'maximum_files': c.maximum_files,
               'valid_extensions': c.valid_extensions}
 
-    if index:  # load existing session
-        request.session['json_track'] = Track.objects.get(id=index).track
-        request.session['index_db'] = index
-        json_track = json.loads(request.session['json_track'])
+    if index is not None:
+        if index == 0:  # reload
+            try:
+                obj_track = track.Track(track_json=request.session['json_track'])
 
-        return render(
-            request,
-            'editor/editor.html',
-            {'track_list': [n for n in json_track['segment_names'] if n],
-             'segment_list': list(set(json_track['segment'])),
-             'title': json_track['title'],
-             **config})
+                return render(request,
+                              'editor/editor.html',
+                              {'track_list': [n for n in obj_track.segment_names if n],
+                               'segment_list':
+                                   list(obj_track.df_track['segment'].unique()),
+                               'title': obj_track.title,
+                               **config})
+            except Exception as e:
+                return JsonResponse(
+                    {'error': f'Unexpected error (521): {e}'},
+                    status=521)
+
+        elif index > 0:  # load existing session
+            request.session['json_track'] = Track.objects.get(id=index).track
+            request.session['index_db'] = index
+            json_track = json.loads(request.session['json_track'])
+
+            return render(
+                request,
+                'editor/editor.html',
+                {'track_list': [n for n in json_track['segment_names'] if n],
+                 'segment_list': list(set(json_track['segment'])),
+                 'title': json_track['title'],
+                 **config})
 
     if request.method == 'POST':  # add files to session
         try:
@@ -248,4 +265,19 @@ def reverse_segment(request, index):
     obj_track = track.Track(track_json=request.session['json_track'])
     obj_track.reverse_segment(index)
     request.session['json_track'] = obj_track.to_json()
+    return JsonResponse({'message': 'Segment is reversed'}, status=200)
+
+
+@login_required
+@csrf_exempt
+@check_view('POST', 532)
+def change_segments_order(request):
+    data = json.loads(request.body)
+    new_order = data['new_order']
+    order_dict = {n: i + 1 for i, n in enumerate(new_order)}
+
+    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track.change_order(order_dict)
+    request.session['json_track'] = obj_track.to_json()
+
     return JsonResponse({'message': 'Segment is reversed'}, status=200)
