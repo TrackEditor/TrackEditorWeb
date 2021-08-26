@@ -153,12 +153,14 @@ def get_segment(request, index):
     lat = json_track['lat'][segment_init_idx:segment_end_idx]
     lon = json_track['lon'][segment_init_idx:segment_end_idx]
     ele = json_track['ele'][segment_init_idx:segment_end_idx]
+    distance = json_track['distance'][segment_init_idx:segment_end_idx]
     extremes = json_track['extremes']
 
     return JsonResponse({'size': len(lat),
                          'lat': lat,
                          'lon': lon,
                          'ele': ele,
+                         'distance': distance,
                          'map_center': [sum(extremes[2:]) / 2,
                                         sum(extremes[:2]) / 2],
                          'map_zoom': int(auto_zoom(*extremes)),

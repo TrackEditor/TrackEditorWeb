@@ -638,6 +638,12 @@ class GetSegmentTest(EditorTestUtils):
         self.assertEqual(segments[2]['lon'], list(range(5, 0, -1)))
         self.assertEqual(segments[3]['lat'], list(range(-3, 2)))
         self.assertEqual(segments[3]['lon'], [0] * 5)
+        self.assertAlmostEqual(segments[0]['distance'][0], 0, places=3)
+        self.assertAlmostEqual(segments[3]['distance'][-1], 2108.121, places=3)
+        self.assertEqual((distance := sum([segments[i]['distance']
+                                           for i in range(4)],
+                                          [])),
+                         sorted(distance))  # ascendant order of cum distance
 
     def test_get_segment_no_track(self):
         """
