@@ -129,6 +129,22 @@ function manage_track_names() {
                     map.removeLayer(layersToRemove[j]);
                 }
 
+                // Remove elevation
+                let remove_elevation_index;
+                canvas.data.datasets.forEach((dataset, canvas_index) => {
+                    if (dataset.label === `elevation_${segment_idx}`) {
+                        remove_elevation_index = canvas_index;
+                    }
+                });
+
+                if (remove_elevation_index) {
+                    canvas.data.datasets.splice(remove_elevation_index, 1);
+                }
+                else if (canvas.data.datasets.length === 1){
+                    canvas.data.datasets = [];
+                }
+                canvas.update();
+
                 // Remove segment in back end
                 fetch(`/editor/remove_segment/${segment_idx}`, {
                     method: 'POST',
@@ -240,8 +256,6 @@ function plot_segment(map, canvas, index) {
             }
 
             // Plot elevation
-            console.log('distance', data.distance);
-            console.log('elevation', data.ele);
             let elevation_data = [];
             data.distance.forEach((distance, index) => {
 			    let elevation = data.ele[index];
