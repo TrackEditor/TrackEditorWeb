@@ -1,8 +1,10 @@
 var map;
+var canvas;
 var selected_segments = 0;
 
 document.addEventListener('DOMContentLoaded', function() {
     map = create_map();
+    canvas = create_canvas();
     submit_file();
     manage_track_names();
     plot_tracks();
@@ -37,7 +39,7 @@ function plot_tracks() {
 
     console.log(segment_list);
     if (typeof track_list !== 'undefined') {
-        segment_list.forEach(seg => plot_segment(map, seg));
+        segment_list.forEach(seg => plot_segment(map, canvas, seg));
 
         fetch('/editor/get_segments_links')
         .then(response => response.json())
@@ -213,9 +215,9 @@ function create_map() {
     return map;
 }
 
-function plot_segment(map, index) {
+function plot_segment(map, canvas, index) {
     /*
-    PLOT_LAST_SEGMENT create the source layer
+    PLOT_SEGMENT create the source layer
     Fetched data:
         - size: total number of elements in arrays lat/lon/ele
         - lat
@@ -236,6 +238,27 @@ function plot_segment(map, index) {
             if (data.size === 0) {  // do nothing if no data
                 return;
             }
+
+            // Plot elevation
+            console.log('distance', data.distance);
+            console.log('elevation', data.ele);
+            let elevation_data = [];
+            data.distance.forEach((distance, index) => {
+			    let elevation = data.ele[index];
+			    elevation_data.push({x: distance, y: elevation});
+		    });
+
+            canvas.data.datasets.push({
+                label: `elevation_${index}`,
+                fill: true,
+                lineTension: 0.4,
+                data: elevation_data,
+                showLine: true,
+                borderWidth: 3,
+                backgroundColor: get_color(index, '0.2'),
+                borderColor: get_color(index, '0.8'),
+            });
+            canvas.update();
 
             // Points to vector layer
             const points_vector_layer = new ol.layer.Vector({
@@ -297,6 +320,7 @@ function plot_segment(map, index) {
         map.getView().setCenter(ol.proj.fromLonLat(data.map_center));
     });
 }
+
 
 function get_points_source(lat, lon) {
     /*
@@ -810,4 +834,41 @@ function change_segments_order() {
 
     }
 
+}
+
+
+function create_canvas() {
+   var chart = new Chart("js-elevation", {
+      type: "scatter",
+      data: {
+      },
+      options: {
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltips: {
+                enabled: false
+            },
+        },
+        scales: {
+          x: {
+            ticks: {
+                callback: function (value, index, values) {
+                    return value + ' km';
+                }
+            }
+          },
+          y: {
+            ticks: {
+                callback: function (value, index, values) {
+                    return value + ' m';
+                }
+            }
+          },
+        }
+      }
+    });
+
+   return chart;
 }
