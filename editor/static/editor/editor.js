@@ -645,6 +645,21 @@ function reverse_segment(segment_idx) {
     .then( response => {
         document.querySelector('#div_spinner').style.display = 'inline-block';
 
+        // Reverse elevation
+		canvas.data.datasets.forEach((dataset, canvas_index) => {
+			if (dataset.label === `elevation_${segment_idx}`) {
+			    console.log('reverse-elevation', `elevation_${segment_idx}`, dataset.label);
+				let reversed_data = [];
+				let size = dataset.data.length;
+				for (let i = 0; i < size; i++){
+					reversed_data.push({x: dataset.data[i].x, y: dataset.data[size - i - 1].y});
+				}
+				console.log('reverse-elevation DONE');
+				dataset.data = reversed_data;
+			}
+		});
+		canvas.update();
+
         // Remove existing links
         let layersToRemove = [];
         map.getLayers().forEach(layer => {
@@ -664,6 +679,7 @@ function reverse_segment(segment_idx) {
             fetch('/editor/get_segments_links')
             .then(response => response.json())
             .then(data => {
+                // Re-do links
                 let links = eval(data.links);
                 links.forEach(link => plot_link(map, link));
             });
