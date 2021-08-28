@@ -272,6 +272,7 @@ function plot_segment(map, canvas, index) {
                 borderWidth: 3,
                 backgroundColor: get_color(index, '0.2'),
                 borderColor: get_color(index, '0.8'),
+                hidden: false,
             });
             canvas.update();
 
@@ -317,11 +318,13 @@ function plot_segment(map, canvas, index) {
                         document.querySelector(`#span_rename_${index}`).style.fontWeight = 'bolder';
 
                     }
+                    elevation_show_segment(index);
                     selected_segment_idx = index;
                     selected_segments++;
                 }
                 else {
                     console.log('deselect');
+                    elevation_show_segment(undefined, true);
                     selected_segment_idx = undefined;
                     selected_segments--;
                 }
@@ -714,7 +717,7 @@ function reverse_segment() {
         .then( _ => {
             document.querySelector('#div_spinner').style.display = 'none';
         });
-    }
+    });
 }
 
 
@@ -914,4 +917,26 @@ function create_canvas() {
     });
 
    return chart;
+}
+
+
+function elevation_show_segment(index=undefined, all=false) {
+    console.log('all', all);
+    canvas.data.datasets.forEach((dataset, canvas_index) => {
+        console.log('all-forEach', all);
+        if (all) {
+            dataset.hidden = false;
+        }
+        else if (typeof index !== 'undefined') {
+            dataset.hidden = true;
+            if (dataset.label === `elevation_${index}`) {
+                dataset.hidden = false;
+            }
+        }
+        else {
+            return false;
+        }
+    });
+    canvas.update();
+    return true;
 }
