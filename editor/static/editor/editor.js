@@ -1,8 +1,11 @@
 var map;
+var canvas;
 var selected_segments = 0;
+var selected_segment_idx;
 
 document.addEventListener('DOMContentLoaded', function() {
     map = create_map();
+    canvas = create_canvas();
     submit_file();
     manage_track_names();
     plot_tracks();
@@ -10,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     save_session();
     update_session_name();
     download_session();
-    check_reverse_button();
+    reverse_segment();
     change_segments_order();
 });
 
@@ -37,7 +40,7 @@ function plot_tracks() {
 
     console.log(segment_list);
     if (typeof track_list !== 'undefined') {
-        segment_list.forEach(seg => plot_segment(map, seg));
+        segment_list.forEach(seg => plot_segment(map, canvas, seg));
 
         fetch('/editor/get_segments_links')
         .then(response => response.json())
@@ -127,6 +130,22 @@ function manage_track_names() {
                     map.removeLayer(layersToRemove[j]);
                 }
 
+                // Remove elevation
+                let remove_elevation_index;
+                canvas.data.datasets.forEach((dataset, canvas_index) => {
+                    if (dataset.label === `elevation_${segment_idx}`) {
+                        remove_elevation_index = canvas_index;
+                    }
+                });
+
+                if (remove_elevation_index) {
+                    canvas.data.datasets.splice(remove_elevation_index, 1);
+                }
+                else if (canvas.data.datasets.length === 1){
+                    canvas.data.datasets = [];
+                }
+                canvas.update();
+
                 // Remove segment in back end
                 fetch(`/editor/remove_segment/${segment_idx}`, {
                     method: 'POST',
@@ -213,9 +232,9 @@ function create_map() {
     return map;
 }
 
-function plot_segment(map, index) {
+function plot_segment(map, canvas, index) {
     /*
-    PLOT_LAST_SEGMENT create the source layer
+    PLOT_SEGMENT create the source layer
     Fetched data:
         - size: total number of elements in arrays lat/lon/ele
         - lat
@@ -236,6 +255,26 @@ function plot_segment(map, index) {
             if (data.size === 0) {  // do nothing if no data
                 return;
             }
+
+            // Plot elevation
+            let elevation_data = [];
+            data.distance.forEach((distance, index) => {
+			    let elevation = data.ele[index];
+			    elevation_data.push({x: distance, y: elevation});
+		    });
+
+            canvas.data.datasets.push({
+                label: `elevation_${index}`,
+                fill: true,
+                lineTension: 0.4,
+                data: elevation_data,
+                showLine: true,
+                borderWidth: 3,
+                backgroundColor: get_color(index, '0.2'),
+                borderColor: get_color(index, '0.8'),
+                hidden: false,
+            });
+            canvas.update();
 
             // Points to vector layer
             const points_vector_layer = new ol.layer.Vector({
@@ -278,15 +317,15 @@ function plot_segment(map, index) {
                         // Bold track name
                         document.querySelector(`#span_rename_${index}`).style.fontWeight = 'bolder';
 
-                        // Reversing segment is possible
-                        let btn_reverse = document.getElementById('btn_reverse');
-                        btn_reverse.addEventListener('click',
-                                                     () => reverse_segment(index));
                     }
+                    elevation_show_segment(index);
+                    selected_segment_idx = index;
                     selected_segments++;
                 }
                 else {
                     console.log('deselect');
+                    elevation_show_segment(undefined, true);
+                    selected_segment_idx = undefined;
                     selected_segments--;
                 }
 
@@ -297,6 +336,7 @@ function plot_segment(map, index) {
         map.getView().setCenter(ol.proj.fromLonLat(data.map_center));
     });
 }
+
 
 function get_points_source(lat, lon) {
     /*
@@ -596,62 +636,88 @@ function download_session() {
 
 }
 
-function reverse_segment(segment_idx) {
-    console.log('reverse', segment_idx);
-    document.querySelector('#div_spinner').style.display = 'inline-block';
 
-    // Remove segment in back end
-    fetch(`/editor/reverse_segment/${segment_idx}`, {
-        method: 'POST',
-    })
-    .then( response => {
+function reverse_segment() {
+    let btn_reverse = document.getElementById('btn_reverse');
+    btn_reverse.addEventListener('click', () => {
         document.querySelector('#div_spinner').style.display = 'inline-block';
-
-        // Remove existing links
-        let layersToRemove = [];
-        map.getLayers().forEach(layer => {
-            if (layer.get('name') === 'layer_link') {
-                    layersToRemove.push(layer);
-                }
-        });
-
-        let len = layersToRemove.length;
-        for(let j = 0; j < len; j++) {
-            let layer_name = layersToRemove[j].get('name');
-            console.log(`Removing layer ${layer_name}`);
-            map.removeLayer(layersToRemove[j]);
-        }
-
-        if (response.status == 200){  // redo links
-            fetch('/editor/get_segments_links')
-            .then(response => response.json())
-            .then(data => {
-                let links = eval(data.links);
-                links.forEach(link => plot_link(map, link));
-            });
+        let segment_idx;
+        if (check_reverse_button()) {
+            segment_idx = selected_segment_idx;
         }
         else {
-            let div = document.getElementById('div_alerts_box');
-            if (response.status === 501){
-                div.innerHTML = '<div class="alert alert-warning" role="alert">Unable to reverse this segment.</div>';
+            return false;
+        }
+        console.log('reverse', segment_idx);
+
+        // Remove segment in back end
+        fetch(`/editor/reverse_segment/${segment_idx}`, {
+            method: 'POST',
+        })
+        .then( response => {
+            document.querySelector('#div_spinner').style.display = 'inline-block';
+
+            // Reverse elevation
+            canvas.data.datasets.forEach((dataset, canvas_index) => {
+                if (dataset.label === `elevation_${segment_idx}`) {
+                    console.log('reverse-elevation', `elevation_${segment_idx}`, dataset.label);
+                    let reversed_data = [];
+                    let size = dataset.data.length;
+                    for (let i = 0; i < size; i++){
+                        reversed_data.push({x: dataset.data[i].x, y: dataset.data[size - i - 1].y});
+                    }
+                    console.log('reverse-elevation DONE');
+                    dataset.data = reversed_data;
+                }
+            });
+            canvas.update();
+
+            // Remove existing links
+            let layersToRemove = [];
+            map.getLayers().forEach(layer => {
+                if (layer.get('name') === 'layer_link') {
+                        layersToRemove.push(layer);
+                    }
+            });
+
+            let len = layersToRemove.length;
+            for(let j = 0; j < len; j++) {
+                let layer_name = layersToRemove[j].get('name');
+                console.log(`Removing layer ${layer_name}`);
+                map.removeLayer(layersToRemove[j]);
             }
-            else if (response.status === 500){
-                div.innerHTML = '<div class="alert alert-danger" role="alert">No available track</div>';
+
+            if (response.status == 200){  // redo links
+                fetch('/editor/get_segments_links')
+                .then(response => response.json())
+                .then(data => {
+                    // Re-do links
+                    let links = eval(data.links);
+                    links.forEach(link => plot_link(map, link));
+                });
             }
             else {
-                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Unable to save</div>';
+                let div = document.getElementById('div_alerts_box');
+                if (response.status === 501){
+                    div.innerHTML = '<div class="alert alert-warning" role="alert">Unable to reverse this segment.</div>';
+                }
+                else if (response.status === 500){
+                    div.innerHTML = '<div class="alert alert-danger" role="alert">No available track</div>';
+                }
+                else {
+                    div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Unable to save</div>';
+                }
+
+                document.querySelector('#div_spinner').style.display = 'none';
+                setTimeout(function(){
+                    div.innerHTML = '';
+                }, 3000);
             }
-
+        })
+        .then( _ => {
             document.querySelector('#div_spinner').style.display = 'none';
-            setTimeout(function(){
-                div.innerHTML = '';
-            }, 3000);
-        }
-    })
-    .then( _ => {
-        document.querySelector('#div_spinner').style.display = 'none';
+        });
     });
-
 }
 
 
@@ -667,8 +733,12 @@ function check_reverse_button() {
                     div.style.display = 'none';
                     div.innerHTML = '';
                 }, 3000);
+
+                return false;  // TODO: is this returned after 3s?
         }
     });
+
+    return true;
 }
 
 
@@ -810,4 +880,63 @@ function change_segments_order() {
 
     }
 
+}
+
+
+function create_canvas() {
+   var chart = new Chart("js-elevation", {
+      type: "scatter",
+      data: {
+      },
+      options: {
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltips: {
+                enabled: false
+            },
+        },
+        scales: {
+          x: {
+            ticks: {
+                callback: function (value, index, values) {
+                    return value + ' km';
+                }
+            }
+          },
+          y: {
+            ticks: {
+                callback: function (value, index, values) {
+                    return value + ' m';
+                }
+            }
+          },
+        }
+      }
+    });
+
+   return chart;
+}
+
+
+function elevation_show_segment(index=undefined, all=false) {
+    console.log('all', all);
+    canvas.data.datasets.forEach((dataset, canvas_index) => {
+        console.log('all-forEach', all);
+        if (all) {
+            dataset.hidden = false;
+        }
+        else if (typeof index !== 'undefined') {
+            dataset.hidden = true;
+            if (dataset.label === `elevation_${index}`) {
+                dataset.hidden = false;
+            }
+        }
+        else {
+            return false;
+        }
+    });
+    canvas.update();
+    return true;
 }
