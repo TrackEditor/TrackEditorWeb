@@ -1,6 +1,7 @@
 var map;
 var canvas;
 var selected_segments = 0;
+var selected_segment_idx;
 
 document.addEventListener('DOMContentLoaded', function() {
     map = create_map();
@@ -12,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     save_session();
     update_session_name();
     download_session();
-    check_reverse_button();
+    reverse_segment();
     change_segments_order();
 });
 
@@ -315,15 +316,13 @@ function plot_segment(map, canvas, index) {
                         // Bold track name
                         document.querySelector(`#span_rename_${index}`).style.fontWeight = 'bolder';
 
-                        // Reversing segment is possible
-                        let btn_reverse = document.getElementById('btn_reverse');
-                        btn_reverse.addEventListener('click',
-                                                     () => reverse_segment(index));
                     }
+                    selected_segment_idx = index;
                     selected_segments++;
                 }
                 else {
                     console.log('deselect');
+                    selected_segment_idx = undefined;
                     selected_segments--;
                 }
 
@@ -634,78 +633,88 @@ function download_session() {
 
 }
 
-function reverse_segment(segment_idx) {
-    console.log('reverse', segment_idx);
-    document.querySelector('#div_spinner').style.display = 'inline-block';
 
-    // Remove segment in back end
-    fetch(`/editor/reverse_segment/${segment_idx}`, {
-        method: 'POST',
-    })
-    .then( response => {
+function reverse_segment() {
+    let btn_reverse = document.getElementById('btn_reverse');
+    btn_reverse.addEventListener('click', () => {
         document.querySelector('#div_spinner').style.display = 'inline-block';
-
-        // Reverse elevation
-		canvas.data.datasets.forEach((dataset, canvas_index) => {
-			if (dataset.label === `elevation_${segment_idx}`) {
-			    console.log('reverse-elevation', `elevation_${segment_idx}`, dataset.label);
-				let reversed_data = [];
-				let size = dataset.data.length;
-				for (let i = 0; i < size; i++){
-					reversed_data.push({x: dataset.data[i].x, y: dataset.data[size - i - 1].y});
-				}
-				console.log('reverse-elevation DONE');
-				dataset.data = reversed_data;
-			}
-		});
-		canvas.update();
-
-        // Remove existing links
-        let layersToRemove = [];
-        map.getLayers().forEach(layer => {
-            if (layer.get('name') === 'layer_link') {
-                    layersToRemove.push(layer);
-                }
-        });
-
-        let len = layersToRemove.length;
-        for(let j = 0; j < len; j++) {
-            let layer_name = layersToRemove[j].get('name');
-            console.log(`Removing layer ${layer_name}`);
-            map.removeLayer(layersToRemove[j]);
-        }
-
-        if (response.status == 200){  // redo links
-            fetch('/editor/get_segments_links')
-            .then(response => response.json())
-            .then(data => {
-                // Re-do links
-                let links = eval(data.links);
-                links.forEach(link => plot_link(map, link));
-            });
+        let segment_idx;
+        if (check_reverse_button()) {
+            segment_idx = selected_segment_idx;
         }
         else {
-            let div = document.getElementById('div_alerts_box');
-            if (response.status === 501){
-                div.innerHTML = '<div class="alert alert-warning" role="alert">Unable to reverse this segment.</div>';
+            return false;
+        }
+        console.log('reverse', segment_idx);
+
+        // Remove segment in back end
+        fetch(`/editor/reverse_segment/${segment_idx}`, {
+            method: 'POST',
+        })
+        .then( response => {
+            document.querySelector('#div_spinner').style.display = 'inline-block';
+
+            // Reverse elevation
+            canvas.data.datasets.forEach((dataset, canvas_index) => {
+                if (dataset.label === `elevation_${segment_idx}`) {
+                    console.log('reverse-elevation', `elevation_${segment_idx}`, dataset.label);
+                    let reversed_data = [];
+                    let size = dataset.data.length;
+                    for (let i = 0; i < size; i++){
+                        reversed_data.push({x: dataset.data[i].x, y: dataset.data[size - i - 1].y});
+                    }
+                    console.log('reverse-elevation DONE');
+                    dataset.data = reversed_data;
+                }
+            });
+            canvas.update();
+
+            // Remove existing links
+            let layersToRemove = [];
+            map.getLayers().forEach(layer => {
+                if (layer.get('name') === 'layer_link') {
+                        layersToRemove.push(layer);
+                    }
+            });
+
+            let len = layersToRemove.length;
+            for(let j = 0; j < len; j++) {
+                let layer_name = layersToRemove[j].get('name');
+                console.log(`Removing layer ${layer_name}`);
+                map.removeLayer(layersToRemove[j]);
             }
-            else if (response.status === 500){
-                div.innerHTML = '<div class="alert alert-danger" role="alert">No available track</div>';
+
+            if (response.status == 200){  // redo links
+                fetch('/editor/get_segments_links')
+                .then(response => response.json())
+                .then(data => {
+                    // Re-do links
+                    let links = eval(data.links);
+                    links.forEach(link => plot_link(map, link));
+                });
             }
             else {
-                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Unable to save</div>';
+                let div = document.getElementById('div_alerts_box');
+                if (response.status === 501){
+                    div.innerHTML = '<div class="alert alert-warning" role="alert">Unable to reverse this segment.</div>';
+                }
+                else if (response.status === 500){
+                    div.innerHTML = '<div class="alert alert-danger" role="alert">No available track</div>';
+                }
+                else {
+                    div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Unable to save</div>';
+                }
+
+                document.querySelector('#div_spinner').style.display = 'none';
+                setTimeout(function(){
+                    div.innerHTML = '';
+                }, 3000);
             }
-
+        })
+        .then( _ => {
             document.querySelector('#div_spinner').style.display = 'none';
-            setTimeout(function(){
-                div.innerHTML = '';
-            }, 3000);
-        }
-    })
-    .then( _ => {
-        document.querySelector('#div_spinner').style.display = 'none';
-    });
-
+        });
+    }
 }
 
 
@@ -721,8 +730,12 @@ function check_reverse_button() {
                     div.style.display = 'none';
                     div.innerHTML = '';
                 }, 3000);
+
+                return false;  // TODO: is this returned after 3s?
         }
     });
+
+    return true;
 }
 
 
