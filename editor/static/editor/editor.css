@@ -1,14 +1,10 @@
 .draggable-item:hover {
     color: black;
-    background-color: #7BCCB5;
+    background-color: var(--color-medium);
      border-radius: 15px;
 }
 
 #div_change_order {
     margin-top: 25px;
     margin-bottom: 25px;
-}
-
-#button-area {
-
 }
