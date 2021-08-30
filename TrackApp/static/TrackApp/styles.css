@@ -2,17 +2,26 @@
            https://encycolorpedia.com/cfdac6
            https://99designs.es/blog/tips/website-color-schemes/
 */
+
+:root {
+    --color-lighter: #f1f1f1;
+    --color-light: #f5f7f3;
+    --color-medium: #7BCCB5;
+    --color-dark: #3C565B;
+    --color-primary: #95676e;
+}
+
 body {
   font-family: "Lato", sans-serif;
-  background-color: #f5f7f3;
+  background-color: var(--color-light);
 }
 
 .link {
-    color: #7C565B;
+    color: #7C565B;  /* TODO */
 }
 
 .link:hover {
-    color: #3C565B;
+    color: #3C565B;  /* TODO */
 }
 
 .sidenav {
@@ -22,7 +31,7 @@ body {
   z-index: 1;
   top: 0;
   left: 0;
-  background-color: #7BCCB5;
+  background-color: var(--color-medium);
   overflow-x: hidden;
   padding-top: 20px;
 }
@@ -31,12 +40,12 @@ body {
   padding: 6px 6px 6px 32px;
   text-decoration: none;
   font-size: 23px;
-  color: #3C565B;
+  color: var(--color-dark);
   display: block;
 }
 
 .sidenav a:hover {
-  color: #f1f1f1;
+  color:  var(--color-lighter);
 }
 
 .sidenav img {
@@ -56,41 +65,35 @@ body {
 }
 
 .btn-primary {
-    background-color: #7C565B;
-    border-color: #7C565B;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
 }
 
 .btn-primary:hover, .btn-primary:active, .btn-primary:focus {
     outline: none !important;
     box-shadow: none !important;
-    background-color: #3C565B;
-    border-color: #3C565B;
+    background-color: var(--color-dark);
+    border-color: var(--color-dark);
 }
 
 .btn-select-file {
-    background-color: #f5f7f3;
-    border-color: #7C565B;
-    color: #7C565B;
+    background-color: var(--color-light);
+    color: var(--color-primary);
     width: 130px;
     border: 2px solid #d0d0d0;
     display: inline-block;
 }
 
 .btn-select-file:hover {
-    border: 2px solid #7C565B;
+    border: 2px solid var(--color-dark);
 }
 
-
-.btn-combine {
-    width: 130px;
-    margin-top: 30px;
-}
 
 input[type="file"] {
     display: none;
 }
 
-#file-name, #file-list {
+#file-list {
     font-size: 18px;
     vertical-align: middle;
     margin-left: 10px;
@@ -99,74 +102,6 @@ input[type="file"] {
 ul li {
     font-size: 18px;
     margin-top: 20px;
-}
-
-/* The container */
-.container_checkbox {
-  display: block;
-  position: relative;
-  padding-left: 35px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  font-size: 22px;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* Hide the browser's default checkbox */
-.container_checkbox input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
-
-/* Create a custom checkbox */
-.checkmark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 25px;
-  width: 25px;
-  background-color: #dcdede;
-}
-
-/* On mouse-over, add a grey background color */
-.container_checkbox:hover input ~ .checkmark {
-  background-color: #7BCCB5;
-}
-
-/* When the checkbox is checked, add a blue background */
-.container_checkbox input:checked ~ .checkmark {
-  background-color: #3C565B;
-}
-
-/* Create the checkmark/indicator (hidden when not checked) */
-.container_checkbox:after {
-  content: "";
-  position: absolute;
-  display: none;
-}
-
-/* Show the checkmark when checked */
-.container_checkbox input:checked ~ .checkmark:after {
-  display: block;
-}
-
-/* Style the checkmark/indicator */
-.container_checkbox .checkmark:after {
-  left: 9px;
-  top: 5px;
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 3px 3px 0;
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
 }
 
 /* The Modal (background) */
@@ -200,4 +135,10 @@ ul li {
   color: black;
   text-decoration: none;
   cursor: pointer;
+}
+
+.spinner-border {
+    display: none;
+    margin-left: 30px;
+    color: var(--color-dark);
 }

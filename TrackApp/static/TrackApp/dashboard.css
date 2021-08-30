@@ -1,13 +1,13 @@
 .table-header {
-    background-color: #7BCCB5;
-    color: #3C565B;
+    background-color: var(--color-medium);
+    color: var(--color-dark);
 }
 
 .btn-edit {
     font-size: 23px;
     font-weight: bold;
-    color: #3C565B;
     vertical-align: 5px;
+    color: var(--color-dark);
 }
 
 .track {
@@ -15,21 +15,15 @@
 }
 
 .page-link {
-    background-color: #f5f7f3;
-    color: #3C565B;
+    background-color: var(--color-light);
+    color: var(--color-dark);
 }
 
 .page-link:hover {
-    color: #3C565B;
-}
-
-#div_spinner, #div_spinner_modal {
-    display: none;
-    color: #3C565B;
-    margin-left: 20px;
+    color: var(--color-dark);
 }
 
 .page-link-selected, .page-link-selected:hover {
-    background-color: #7BCCB5;
-    color: #3C565B;
+    background-color: var(--color-medium);
+    color: var(--color-dark);
 }

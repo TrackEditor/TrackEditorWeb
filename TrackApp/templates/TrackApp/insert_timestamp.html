@@ -1,6 +1,14 @@
 {% extends "TrackApp/layout.html" %}
 {% load static %}
 
+{% block title %}
+Insert Timestamp
+{% endblock %}
+
+{% block style %}
+    <link href="{% static 'TrackApp/insert_timestamp.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block script %}
     <script src="{% static 'TrackApp/insert_timestamp.js' %}"></script>
 {% endblock %}
@@ -55,7 +63,7 @@
 
                 <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
                     <button type="button" class="btn btn-lg btn-primary btn-combine" id="input_btn_insert_timestamp" style="width: 190px; margin-bottom: 10px; display: inline-block; vertical-align: middle;">Insert Timestamp</button>
-                    <div class="spinner-border" id="div_spinner" role="status" style="display: none; vertical-align: -20px; margin-left: 30px; color: #3C565B">
+                    <div class="spinner-border" id="div_spinner" role="status" style="vertical-align: -20px;">
                         <span class="sr-only"></span>
                     </div>
                 </div>

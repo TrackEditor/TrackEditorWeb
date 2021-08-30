@@ -1,6 +1,14 @@
 {% extends "TrackApp/layout.html" %}
 {% load static %}
 
+{% block title %}
+Combine Tracks
+{% endblock %}
+
+{% block style %}
+    <link href="{% static 'TrackApp/combine_tracks.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block script %}
     <script src="{% static 'TrackApp/combine_tracks.js' %}"></script>
 {% endblock %}
@@ -38,7 +46,7 @@
 
                 <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
                     <input class="btn btn-lg btn-primary btn-combine" type="submit" id="input_btn_combine" value="Combine" style="margin-bottom: 10px; display: inline-block; vertical-align: middle;">
-                    <div class="spinner-border" id="div_spinner" role="status" style="display: none; vertical-align: -20px; margin-left: 30px; color: #3C565B">
+                    <div class="spinner-border" id="div_spinner" role="status" style="vertical-align: -20px;>
                         <span class="sr-only"></span>
                     </div>
                 </div>
