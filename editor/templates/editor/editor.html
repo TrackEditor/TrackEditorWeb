@@ -45,7 +45,7 @@ Track Editor
                 <input id="select-file" type="file" accept=".gpx" name="document">
             </label>
         </form>
-        <div class="spinner-border" id="div_spinner" role="status" style="display: none; vertical-align: -10px; margin-left: 30px; color: #3C565B">
+        <div class="spinner-border" id="div_spinner" role="status" style="vertical-align: -10px;">
             <span class="sr-only"></span>
         </div>
     </div>
@@ -81,7 +81,7 @@ Track Editor
                 <div class="button-area"> <!-- TODO: don't know why but this class cannot be removed in html -->
                     <button type="button" class="btn btn-secondary" id="btn_change_order_ok">Ok</button>
                     <button type="button" class="btn btn-secondary" id="btn_change_order_cancel">Cancel</button>
-                    <div class="spinner-border" id="div_spinner_change_order" role="status" style="display: none; vertical-align: -10px; margin-left: 30px; color: #3C565B">
+                    <div class="spinner-border" id="div_spinner_change_order" role="status" style="vertical-align: -10px;">
                         <span class="sr-only"></span>
                         <a href="{% url 'editor' index=0 %}" id="a_refresh_editor" style="display: none;"></a>
                     </div>
