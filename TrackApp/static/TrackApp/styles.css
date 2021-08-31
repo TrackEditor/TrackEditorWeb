@@ -24,19 +24,8 @@ body {
     color: #3C565B;  /* TODO */
 }
 
-.sidenav {
-  height: 100%;
-  width: 230px;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  background-color: var(--color-medium);
-  overflow-x: hidden;
-  padding-top: 20px;
-}
 
-.sidenav a {
+.sidebar a {
   padding: 6px 6px 6px 32px;
   text-decoration: none;
   font-size: 23px;
@@ -44,24 +33,53 @@ body {
   display: block;
 }
 
-.sidenav a:hover {
+.sidebar a:hover {
   color:  var(--color-lighter);
 }
 
-.sidenav img {
+.sidebar img {
   padding: 6px 6px 6px 32px;
   display: block;
   margin-left: 40px;
+  margin-top: 20px;
 }
 
-.main {
-  margin-left: 240px; /* Same as the width of the sidenav */
-  margin-top: 40px;
+/* The side navigation menu */
+.sidebar {
+  margin: 0;
+  padding: 0;
+  width: 230px;
+  background-color: var(--color-medium);
+  position: fixed;
+  height: 100%;
+  overflow: auto;
 }
 
-@media screen and (max-height: 450px) {
-  .sidenav {padding-top: 15px;}
-  .sidenav a {font-size: 18px;}
+/* Page content. The value of the margin-left property should match the value of the sidebar's width property */
+div.content {
+  margin-left: 240px;
+  padding: 1px 16px;
+  height: 1000px;
+  text-align: left;
+}
+
+/* On screens that are less than 700px wide, make the sidebar into a topbar */
+@media screen and (max-width: 700px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  .sidebar a {float: left;}
+  div.content {margin-left: 10px;}
+}
+
+/* On screens that are less than 400px, display the bar vertically, instead of horizontally */
+@media screen and (max-width: 400px) {
+  .sidebar a {
+    text-align: center;
+    float: none;
+  }
 }
 
 .btn-primary {

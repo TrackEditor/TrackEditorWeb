@@ -18,7 +18,7 @@
         {% endblock %}
     </head>
     <body>
-        <div class="sidenav">
+        <div class="sidebar">
             <img src="{% static 'TrackApp/compass.png' %}" alt="compass" width="120">
             <a href="{% url 'combine_tracks' %}" id="a_combine_tracks">Combine Tracks</a>
             <a href="{% url 'insert_timestamp' %}" id="a_insert_timestamp">Insert Timestamp</a>
@@ -37,9 +37,11 @@
             {% endif %}
         </div>
 
-        <div class="container main">
-            {% block body %}
-            {% endblock %}
+        <div class="content">
+            <div style="margin-top: 20px;">
+                {% block body %}
+                {% endblock %}
+            </div>
         </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
