@@ -889,6 +889,8 @@ function create_canvas() {
       data: {
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: false

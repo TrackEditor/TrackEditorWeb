@@ -17,7 +17,7 @@ Track Editor
 {% endblock %}
 
 {% block body %}
-    <h2 contenteditable="true" id="h_session_name">
+    <h2 contenteditable="true" id="h_session_name" style="max-width: 600px;">
         {% if title %}
         {{title}}
         {% else %}
@@ -34,7 +34,7 @@ Track Editor
     </div>
 
     <!-- Management buttons -->
-    <div class="container">
+    <div>
         <button type="button" class="btn btn-secondary" id="btn_save">Save</button>
         <button type="button" class="btn btn-secondary" id="btn_download">Download</button>
 
@@ -51,11 +51,11 @@ Track Editor
     </div>
 
     <!-- Edition buttons -->
-    <div class="container" style="margin-top: 15px;">
-        <button type="button" class="btn btn-select-file" id="btn_reverse">Reverse</button>
-        <button type="button" class="btn btn-select-file" id="btn_split">Split</button>
-        <button type="button" class="btn btn-select-file" id="btn_change_order">Change order</button>
-        <button type="button" class="btn btn-select-file" id="btn_summary">Summary</button>
+    <div>
+        <button type="button" class="btn btn-edition" id="btn_reverse">Reverse</button>
+        <button type="button" class="btn btn-edition" id="btn_split">Split</button>
+        <button type="button" class="btn btn-edition" id="btn_change_order">Change order</button>
+        <button type="button" class="btn btn-edition" id="btn_summary">Summary</button>
     </div>
 
     <!-- Summary Table -->
@@ -101,12 +101,14 @@ Track Editor
     </div>
 
     <!-- Map -->
-    <div id="js-map" class="map" style="height: 40vh; width: 72vh; margin-top: 20px;"></div>
+    <div id="js-map" class="map map-format"></div>
 
     <!-- Elevation profile -->
-    <div style="height: 40vh; width: 72vh; margin-top: 20px; margin-right: 20px;">
+    <div style="height: 400px; min-width: 340px; max-width: 1200px; margin-top: 20px; margin-right: 20px;">
         <canvas id="js-elevation"></canvas>
     </div>
 
+    <!-- Blank gap below -->
+    <div style="height: 30px;"></div>
 
 {% endblock %}
