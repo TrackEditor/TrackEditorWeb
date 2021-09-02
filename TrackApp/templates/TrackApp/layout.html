@@ -20,22 +20,43 @@
     <body>
         <div class="sidebar">
             <img src="{% static 'TrackApp/compass.png' %}" alt="compass" width="120">
-            <a href="{% url 'combine_tracks' %}" id="a_combine_tracks">Combine Tracks</a>
-            <a href="{% url 'insert_timestamp' %}" id="a_insert_timestamp">Insert Timestamp</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'editor' %}" id="a_editor">Editor</a>
-            {% else %}
-                <a href="{% url 'users_only' %}" id="a_editor" onmouseover="this.style.color='#4169E1';" onmouseout="this.style.color='';">Editor</a>
-            {% endif %}
 
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" id="a_dashboard">Dashboard</a>
-                <a href="{% url 'log_out' %}"  id="a_logout">Log Out</a>
-            {% else %}
-                <a href="{% url 'login' %}" id="a_login">Log In</a>
-                <a href="{% url 'register' %}" id="a_register">Register</a>
-            {% endif %}
+            <div class="btn-menu-div" style="margin-bottom: 10px;">
+                <button id="open-menu" class="btn btn-menu" onclick="openNav()">☰ Menu</button>
+                <button id="close-menu" class="btn btn-menu" onclick="closeNav()">☰ Collapse</button>
+            </div>
+
+            <div id="menu">
+                <a href="{% url 'combine_tracks' %}" id="a_combine_tracks">Combine Tracks</a>
+                <a href="{% url 'insert_timestamp' %}" id="a_insert_timestamp">Insert Timestamp</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'editor' %}" id="a_editor">Editor</a>
+                {% else %}
+                    <a href="{% url 'users_only' %}" id="a_editor" onmouseover="this.style.color='#4169E1';" onmouseout="this.style.color='';">Editor</a>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" id="a_dashboard">Dashboard</a>
+                    <a href="{% url 'log_out' %}"  id="a_logout">Log Out</a>
+                {% else %}
+                    <a href="{% url 'login' %}" id="a_login">Log In</a>
+                    <a href="{% url 'register' %}" id="a_register">Register</a>
+                {% endif %}
+            </div>
         </div>
+        <script>
+            function openNav() {
+                document.getElementById("menu").style.display = "block"
+                document.getElementById("open-menu").style.display = "none";
+                document.getElementById("close-menu").style.display = "block";
+            }
+
+            function closeNav() {
+                document.getElementById("menu").style.display = "none"
+                document.getElementById("open-menu").style.display = "block";
+                document.getElementById("close-menu").style.display = "none";
+            }
+        </script>
 
         <div class="content">
             <div style="margin-top: 20px;">

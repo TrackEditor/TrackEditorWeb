@@ -63,6 +63,13 @@ div.content {
   text-align: left;
 }
 
+/* Big screen behaviour */
+@media screen and (min-width: 701px) {
+  #open-menu, #close-menu {
+    display: none;
+  }
+}
+
 /* On screens that are less than 700px wide, make the sidebar into a topbar */
 @media screen and (max-width: 700px) {
   .sidebar {
@@ -75,7 +82,20 @@ div.content {
     display: block;
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: 15px;
   }
+  #open-menu {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #close-menu {
+    display: none;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #menu {display: none;}
   div.content {margin-left: 10px;}
 }
 
@@ -103,6 +123,16 @@ div.content {
     border: 2px solid var(--color-dark);
 }
 
+.btn-menu {
+  font-size: 23px;
+  color: var(--color-dark);
+  border: 2px solid var(--color-dark);
+}
+
+.btn-menu:hover {
+    color: var(--color-light);
+    border: 2px solid var(--color-light);
+}
 
 input[type="file"] {
     display: none;
