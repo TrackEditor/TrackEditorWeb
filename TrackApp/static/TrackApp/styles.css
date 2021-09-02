@@ -70,16 +70,13 @@ div.content {
     height: auto;
     position: relative;
   }
-  .sidebar a {float: left;}
-  div.content {margin-left: 10px;}
-}
-
-/* On screens that are less than 400px, display the bar vertically, instead of horizontally */
-@media screen and (max-width: 400px) {
-  .sidebar a {
-    text-align: center;
-    float: none;
+  .sidebar a {text-align: center;}
+  .sidebar img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
+  div.content {margin-left: 10px;}
 }
 
 .btn-primary {
@@ -159,4 +156,11 @@ ul li {
     display: none;
     margin-left: 30px;
     color: var(--color-dark);
+}
+
+.map-format {
+    height: 400px;
+    min-width: 340px;
+    max-width: 1200px;
+    margin-top: 20px;
 }
