@@ -16,15 +16,6 @@ body {
   background-color: var(--color-light);
 }
 
-.link {
-    color: #7C565B;  /* TODO */
-}
-
-.link:hover {
-    color: #3C565B;  /* TODO */
-}
-
-
 .sidebar a {
   padding: 6px 6px 6px 32px;
   text-decoration: none;

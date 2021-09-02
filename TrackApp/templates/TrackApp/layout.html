@@ -23,7 +23,6 @@
 
             <div class="btn-menu-div" style="margin-bottom: 10px;">
                 <button id="open-menu" class="btn btn-menu" onclick="openNav()">☰ Menu</button>
-                <button id="close-menu" class="btn btn-menu" onclick="closeNav()">☰ Collapse</button>
             </div>
 
             <div id="menu">
@@ -46,16 +45,29 @@
         </div>
         <script>
             function openNav() {
-                document.getElementById("menu").style.display = "block"
-                document.getElementById("open-menu").style.display = "none";
-                document.getElementById("close-menu").style.display = "block";
+                if ( document.getElementById("open-menu").innerHTML === "☰ Menu") {
+                    document.getElementById("open-menu").innerHTML = "☰ Collapse";
+                    document.getElementById("menu").style.display = "block";
+                }
+                else {
+                    document.getElementById("open-menu").innerHTML = "☰ Menu";
+                    document.getElementById("menu").style.display = "none";
+                }
             }
 
-            function closeNav() {
-                document.getElementById("menu").style.display = "none"
-                document.getElementById("open-menu").style.display = "block";
-                document.getElementById("close-menu").style.display = "none";
-            }
+            var x = window.matchMedia("(max-width: 700px)");
+            x.addListener((event) => {
+                if (event.matches) {
+                    document.getElementById("open-menu").style.display = "block";
+                    document.getElementById("open-menu").innerHTML = "☰ Menu";
+                    document.getElementById("menu").style.display = "none";
+                }
+                else {
+                    document.getElementById("open-menu").style.display = "none";
+                    document.getElementById("menu").style.display = "block";
+                }
+            });
+
         </script>
 
         <div class="content">
