@@ -1,10 +1,24 @@
 .draggable-item:hover {
     color: black;
     background-color: var(--color-medium);
-     border-radius: 15px;
+    border-radius: 15px;
 }
 
 #div_change_order {
     margin-top: 25px;
     margin-bottom: 25px;
+}
+
+/* Same style as btn-select-file */
+.btn-edition {
+    background-color: var(--color-light);
+    color: var(--color-primary);
+    width: 130px;
+    border: 2px solid #d0d0d0;
+    display: inline-block;
+    margin-top: 15px;
+}
+
+.btn-edition:hover {
+    border: 2px solid var(--color-dark);
 }
