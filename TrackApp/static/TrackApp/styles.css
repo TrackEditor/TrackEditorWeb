@@ -68,6 +68,9 @@ div.content {
   #open-menu, #close-menu {
     display: none;
   }
+  #menu {
+    display: block;
+  }
 }
 
 /* On screens that are less than 700px wide, make the sidebar into a topbar */
