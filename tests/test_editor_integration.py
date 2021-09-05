@@ -218,8 +218,13 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
                    )
         )
 
-    def test_editor_no_logged(self):
+    def test_editor_non_logged(self):
+        """
+        Editor is not available for non logged users. Logout before accesing to
+        editor.
+        """
         self.driver.get(self.live_server_url)
+        self.driver.find_element_by_id('a_logout').click()
 
         link = self.driver.find_element_by_id('a_editor')
         link.click()
@@ -232,6 +237,9 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
                          urljoin(self.live_server_url, 'users_only'))
 
     def test_editor_logged(self):
+        """
+        Editor for logged users is available
+        """
         self.driver.get(self.live_server_url)
 
         link = self.driver.find_element_by_id('a_editor')
