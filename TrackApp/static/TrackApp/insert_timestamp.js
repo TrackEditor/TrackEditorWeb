@@ -71,7 +71,6 @@ function check_extension(new_file, element_alert) {
     }
     else {
         element_alert.style.display = 'none';
-        return true;
     }
     return true;
 }

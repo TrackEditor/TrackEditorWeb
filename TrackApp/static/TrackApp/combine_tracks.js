@@ -105,8 +105,8 @@ function check_extension(new_file){
     }
     else {
         element_alert.style.display = 'none';
-        return true;
     }
+
     return true;
 }
 

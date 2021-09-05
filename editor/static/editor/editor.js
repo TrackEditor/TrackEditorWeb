@@ -178,7 +178,7 @@ function get_color(color_index, alpha='0.5') {
     colors
     */
     if (color_index < 0) {
-        color_index == 0
+        color_index = 0;
     }
     else {
         color_index = color_index - 1;  // indexing from 1
