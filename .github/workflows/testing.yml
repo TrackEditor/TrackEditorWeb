@@ -36,7 +36,7 @@ jobs:
 
     - name: Flake8
       run: |
-        flake8 . --max-line-length=100 --max-complexity 10 --ignore=W504
+        flake8 . --max-line-length=100 --max-complexity 10 --ignore=W504,F401
 
     - name: Run tests
       env:
