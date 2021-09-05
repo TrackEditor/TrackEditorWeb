@@ -217,3 +217,24 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
                                 'test_combine_tracks.gpx')
                    )
         )
+
+    def test_editor_no_logged(self):
+        self.driver.get(self.live_server_url)
+
+        link = self.driver.find_element_by_id('a_editor')
+        link.click()
+
+        warning_msg = self.driver.find_element_by_id('div_warning_msg')
+
+        self.assertIn('only available for users', warning_msg.text)
+
+        self.assertEqual(self.driver.current_url.rstrip('/'),
+                         urljoin(self.live_server_url, 'users_only'))
+
+    def test_editor_logged(self):
+        self.driver.get(self.live_server_url)
+
+        link = self.driver.find_element_by_id('a_editor')
+        link.click()
+        self.assertEqual(self.driver.current_url.rstrip('/'),
+                         urljoin(self.live_server_url, 'editor'))
