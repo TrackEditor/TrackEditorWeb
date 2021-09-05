@@ -3,6 +3,10 @@
 ![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/alguerre/8064b57379b6b83061b9c28f6b950594/raw/coverage.json)
 ![Python](https://img.shields.io/badge/python-3.9-blue.svg)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alguerre_TrackEditorWeb&metric=alert_status)](https://sonarcloud.io/dashboard?id=alguerre_TrackEditorWeb)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alguerre_TrackEditorWeb&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=alguerre_TrackEditorWeb)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alguerre_TrackEditorWeb&metric=security_rating)](https://sonarcloud.io/dashboard?id=alguerre_TrackEditorWeb)
+
 # TrackEditorWeb
 This is an online tool to manipulate your GPS track files, like GPX. 
 You can use it to execute operations such as: combine tracks, add timestamp, cut, split, visualize, ... 
@@ -13,8 +17,9 @@ It is not only a migration from desktop app to web, but the format in which this
 
 
 ## Repository organization
-- **TrackApp**: main app of the web
 - **TrackEditorWeb**: contains django configuration
+- **TrackApp**: main app of the web, defines the layout, login/register modules, combining tracks, insert timestamp...
+- **editor**: track editor app
 - manage.py: django script to launch the application
 - requirements.txt: list of python packages dependencies 
 
