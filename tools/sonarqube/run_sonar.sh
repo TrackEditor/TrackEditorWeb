@@ -1,10 +1,16 @@
-sysctl -w vm.max_map_count=524288
-sysctl -w fs.file-max=131072
+# Variables definition
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
+# Needed system settings
+# https://github.com/SonarSource/docker-sonarqube/blob/master/example-compose-files/sq-with-postgres/docker-compose.yml
+sysctl -w vm.max_map_count=524288
+sysctl -w fs.file-max=131072
+
+# Launch container
 cd $SCRIPTPATH
 docker-compose up -d
 
+# Run sonar
 cd $SCRIPTPATH/../..
 /opt/sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner \
   -Dsonar.projectKey=TrackEditor \
