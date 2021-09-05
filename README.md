@@ -1,5 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Build Status](https://github.com/alguerre/TrackEditorWeb/actions/workflows/python-app.yml/badge.svg)
+![Build Status](https://github.com/alguerre/TrackEditorWeb/actions/workflows/testing.yml/badge.svg)
 ![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/alguerre/8064b57379b6b83061b9c28f6b950594/raw/coverage.json)
 ![Python](https://img.shields.io/badge/python-3.9-blue.svg)
 
