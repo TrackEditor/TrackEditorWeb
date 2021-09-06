@@ -52,6 +52,7 @@ def check_view(method, error_code):
 
 @login_required
 def editor(request, index=None):
+    template_editor = 'editor/editor.html'
     config = {'maximum_file_size': c.maximum_file_size,
               'maximum_files': c.maximum_files,
               'valid_extensions': c.valid_extensions}
@@ -62,7 +63,7 @@ def editor(request, index=None):
                 obj_track = track.Track(track_json=request.session['json_track'])
 
                 return render(request,
-                              'editor/editor.html',
+                              template_editor,
                               {'track_list': [n for n in obj_track.segment_names if n],
                                'segment_list':
                                    list(obj_track.df_track['segment'].unique()),
@@ -80,7 +81,7 @@ def editor(request, index=None):
 
             return render(
                 request,
-                'editor/editor.html',
+                template_editor,
                 {'track_list': [n for n in json_track['segment_names'] if n],
                  'segment_list': list(set(json_track['segment'])),
                  'title': json_track['title'],
@@ -99,7 +100,7 @@ def editor(request, index=None):
             request.session['json_track'] = obj_track.to_json()
 
             return render(request,
-                          'editor/editor.html',
+                          template_editor,
                           {'track_list': [n for n in obj_track.segment_names if n],
                            'segment_list':
                                list(obj_track.df_track['segment'].unique()),
@@ -113,7 +114,7 @@ def editor(request, index=None):
     # Create new session
     request.session['json_track'] = track.Track().to_json()
     request.session['index_db'] = None
-    return render(request, 'editor/editor.html', {**config})
+    return render(request, template_editor, {**config})
 
 
 @login_required
