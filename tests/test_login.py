@@ -33,18 +33,18 @@ class LoginIntegrationTest(StaticLiveServerTestCase):
 
     def test_login(self):
         testing_utils.login(driver=self.driver,
-                    live_server_url=self.live_server_url,
-                    username='default_user',
-                    password='default_password_1234')
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
 
         self.assertEqual(self.driver.current_url.rstrip('/'),
                          self.live_server_url)
 
     def test_log_out(self):
         testing_utils.login(driver=self.driver,
-                    live_server_url=self.live_server_url,
-                    username='default_user',
-                    password='default_password_1234')
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
 
         link = self.driver.find_element_by_id('a_logout')
         link.click()
@@ -53,17 +53,17 @@ class LoginIntegrationTest(StaticLiveServerTestCase):
 
     def test_wrong_password(self):
         testing_utils.login(driver=self.driver,
-                    live_server_url=self.live_server_url,
-                    username='default_user',
-                    password='wrong_password')
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
         error_msg = self.driver.find_element_by_id('div_error_msg').text
         self.assertIn('Invalid username and/or password.', error_msg)
 
     def test_wrong_user(self):
         testing_utils.login(driver=self.driver,
-                    live_server_url=self.live_server_url,
-                    username='wrong_user',
-                    password='default_password_1234')
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
 
         error_msg = self.driver.find_element_by_id('div_error_msg').text
         self.assertIn('Invalid username and/or password.', error_msg)
