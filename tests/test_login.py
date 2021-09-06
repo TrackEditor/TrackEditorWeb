@@ -1,16 +1,26 @@
 import os
-import time
+from unittest import skip
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from glob import glob
+from django.test import TestCase
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 
-import libs.constants as c
-from libs.utils import md5sum
 from TrackApp.models import User
+
+
+@skip('Not implemented')
+class LoginApiTest(TestCase):
+    def test_login(self):
+        assert False
+
+    def test_logout(self):
+        assert False
+
+    def test_wrong_password(self):
+        assert False
+
+    def test_wrong_user(self):
+        assert False
 
 
 class LoginIntegrationTest(StaticLiveServerTestCase):
@@ -39,14 +49,7 @@ class LoginIntegrationTest(StaticLiveServerTestCase):
     def setUp(self):
         options = webdriver.ChromeOptions()
         options.headless = True
-        self.downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
-        preferences = \
-            {'download.default_directory': self.downloads_dir,
-             'safebrowsing.enabled': 'false'}
-        options.add_experimental_option('prefs', preferences)
-
         self.driver = webdriver.Chrome(chrome_options=options)
-
         self.test_path = os.path.dirname(__file__)
         self.user = self.create_user()
 
@@ -70,3 +73,20 @@ class LoginIntegrationTest(StaticLiveServerTestCase):
         link = self.driver.find_element_by_id('a_logout')
         link.click()
         self.assertEqual(self.driver.current_url.rstrip('/'), self.live_server_url)
+
+    def test_wrong_password(self):
+        self.login(driver=self.driver,
+                   live_server_url=self.live_server_url,
+                   username='default_user',
+                   password='wrong_password')
+        error_msg = self.driver.find_element_by_id('div_error_msg').text
+        self.assertIn('Invalid username and/or password.', error_msg)
+
+    def test_wrong_user(self):
+        self.login(driver=self.driver,
+                   live_server_url=self.live_server_url,
+                   username='wrong_user',
+                   password='default_password_1234')
+
+        error_msg = self.driver.find_element_by_id('div_error_msg').text
+        self.assertIn('Invalid username and/or password.', error_msg)
