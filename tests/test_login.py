@@ -55,14 +55,14 @@ class LoginIntegrationTest(StaticLiveServerTestCase):
         testing_utils.login(driver=self.driver,
                             live_server_url=self.live_server_url,
                             username='default_user',
-                            password='default_password_1234')
+                            password='wrong_password')
         error_msg = self.driver.find_element_by_id('div_error_msg').text
         self.assertIn('Invalid username and/or password.', error_msg)
 
     def test_wrong_user(self):
         testing_utils.login(driver=self.driver,
                             live_server_url=self.live_server_url,
-                            username='default_user',
+                            username='wrong_user',
                             password='default_password_1234')
 
         error_msg = self.driver.find_element_by_id('div_error_msg').text
