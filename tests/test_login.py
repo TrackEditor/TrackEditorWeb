@@ -9,7 +9,7 @@ from TrackApp.models import User
 
 
 @skip('Not implemented')
-class LoginApiTest(TestCase):
+class LoginViewTest(TestCase):
     def test_login(self):
         assert False
 
