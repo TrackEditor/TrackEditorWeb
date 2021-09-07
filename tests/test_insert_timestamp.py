@@ -16,7 +16,7 @@ from libs.utils import md5sum
 class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
 
     def setUp(self):
-        self.driver = testing_utils.get_webdriver(headless=False)
+        self.driver = testing_utils.get_webdriver(headless=True)
         self.test_path = os.path.dirname(__file__)
         self.user = testing_utils.create_user()
         self.downloads_dir = testing_utils.get_downloads_dir()
@@ -116,7 +116,8 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
                                 'test_insert_time.gpx')
                    )
         )
-        self.assertFalse(self.driver.find_element_by_id('js-map').is_displayed())
+
+        self.assertTrue(self.driver.find_element_by_id('js-map').is_displayed())
 
     def test_timestamp_upload_wrong_extension(self):
         self.driver.\
