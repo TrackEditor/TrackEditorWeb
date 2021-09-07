@@ -29,10 +29,14 @@ def create_user(username: str = 'default_user',
     return user
 
 
+def get_downloads_dir():
+    return os.path.join(os.path.expanduser('~'), 'Downloads')
+
+
 def get_webdriver(headless: bool = True):
     options = webdriver.ChromeOptions()
     options.headless = headless
-    downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
+    downloads_dir = get_downloads_dir()
     preferences = \
         {'download.default_directory': downloads_dir,
          'safebrowsing.enabled': 'false'}
