@@ -30,7 +30,8 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.driver.quit()
 
-    def insert_data(self, file, date, init_time, speed, consider_elevation=False):
+    def insert_data(self, file: str, date: str, init_time: str, speed: str,
+                    consider_elevation: bool = False):
         if file:
             self.driver.\
                 find_element_by_id('select-file-1').\
