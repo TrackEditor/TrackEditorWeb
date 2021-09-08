@@ -133,7 +133,7 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
             "Extension for wrong_extension.txt is not valid ['gpx'].")
 
     def test_timestamp_no_file(self):
-        self.insert_data(file=None,
+        self.insert_data(file='',
                          date='01012011',
                          init_time='0150',
                          speed='1')
@@ -158,7 +158,7 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
         self.insert_data(file='island_1.gpx',
                          date='01012011',
                          init_time='0150',
-                         speed=None)
+                         speed='')
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
         self.assertEqual(error_msg.text,
@@ -167,7 +167,7 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
     def test_timestamp_missing_time(self):
         self.insert_data(file='island_1.gpx',
                          date='01012011',
-                         init_time=None,
+                         init_time='',
                          speed='1')
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()
         error_msg = self.driver.find_element_by_id('div_error_msg_js')
@@ -175,7 +175,7 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
 
     def test_timestamp_missing_date(self):
         self.insert_data(file='island_1.gpx',
-                         date=None,
+                         date='',
                          init_time='0150',
                          speed='1')
         self.driver.find_element_by_id('input_btn_insert_timestamp').click()

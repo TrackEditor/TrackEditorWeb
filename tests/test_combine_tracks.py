@@ -3,65 +3,66 @@ import time
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from glob import glob
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 
-import libs.constants as c
+import tests.testing_utils as testing_utils
 from libs.utils import md5sum
-from TrackApp.models import User
 
 
-class ViewsTest(StaticLiveServerTestCase):
-
-    @staticmethod
-    def login(driver, live_server_url, username, password):
-        driver.get(urljoin(live_server_url, 'login'))
-        driver.find_element_by_id('input_txt_username').send_keys(username)
-        driver.find_element_by_id('input_txt_password').send_keys(password)
-        driver.find_element_by_id('input_btn_login').click()
-
-    @staticmethod
-    def create_user(username='default_user',
-                    password='default_password_1234',
-                    email='default_user@example.com'):
-        if not User.objects.filter(username=username):
-            user = User.objects.create(username=username,
-                                       email=email,
-                                       password='!')
-            user.set_password(password)
-            user.save()
-        else:
-            user = User.objects.get(username=username)
-        return user
+class CombineTracksIntegrationTest(StaticLiveServerTestCase):
 
     def setUp(self):
-        options = webdriver.ChromeOptions()
-        options.headless = True
-        self.downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
-        preferences = \
-            {'download.default_directory': self.downloads_dir,
-             'safebrowsing.enabled': 'false'}
-        options.add_experimental_option('prefs', preferences)
-
-        self.driver = webdriver.Chrome(chrome_options=options)
-
+        self.driver = testing_utils.get_webdriver(headless=True)
         self.test_path = os.path.dirname(__file__)
-        self.user = self.create_user()
+        self.user = testing_utils.create_user()
+        self.downloads_dir = testing_utils.get_downloads_dir()
+        self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
+
+        # Remove previous testing files
+        for file in glob(os.path.join(self.downloads_dir,
+                                      'TrackEditor_combine_tracks*.gpx')):
+            os.remove(file)
 
     def tearDown(self):
         self.driver.quit()
 
     def test_combine_tracks(self):
-        self.login(driver=self.driver,
-                   live_server_url=self.live_server_url,
-                   username='default_user',
-                   password='default_password_1234')
+        self.driver. \
+            find_element_by_id('select-file-1'). \
+            send_keys(os.path.join(self.test_path,
+                                   'samples',
+                                   'island_1.gpx'))
 
-        # Remove previous testing files
-        for file in glob(os.path.join(self.downloads_dir, 'TrackEditor_combine_tracks*.gpx')):
-            os.remove(file)
+        self.driver. \
+            find_element_by_id('select-file-2'). \
+            send_keys(os.path.join(self.test_path,
+                                   'samples',
+                                   'island_2.gpx'))
+
+        self.driver.find_element_by_id('input_btn_combine').click()
+        self.driver.find_element_by_id('input_btn_download').click()
+        time.sleep(2)  # wait download
+        downloaded_file = \
+            glob(os.path.join(self.downloads_dir,
+                              'TrackEditor_combine_tracks*.gpx'))[-1]
+
+        self.assertEqual(
+            md5sum(downloaded_file),
+            md5sum(os.path.join(self.test_path,
+                                'references',
+                                'test_combine_tracks.gpx')
+                   )
+        )
+
+        self.assertRaises(NoSuchElementException,
+                          self.driver.find_element_by_id,
+                          'js-map')
+
+    def test_combine_tracks_logged_user(self):
+        testing_utils.login(driver=self.driver,
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
 
         self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
 
@@ -90,19 +91,9 @@ class ViewsTest(StaticLiveServerTestCase):
                                 'test_combine_tracks.gpx')
                    )
         )
-        self.assertIsNotNone(self.driver.find_element_by_id('js-map'))
 
+        self.assertTrue(self.driver.find_element_by_id('js-map').is_displayed())
 
-class CombineTracksTest(StaticLiveServerTestCase):
-    def setUp(self):
-        options = webdriver.ChromeOptions()
-        options.headless = True
-        self.driver = webdriver.Chrome(chrome_options=options)
-        self.test_path = os.path.dirname(__file__)
-        self.driver.get(urljoin(self.live_server_url, 'combine_tracks'))
-
-    def tearDown(self):
-        self.driver.quit()
 
     def test_upload_too_many_tracks(self):
         for i in range(1, 6):
