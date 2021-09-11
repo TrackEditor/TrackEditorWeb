@@ -192,6 +192,9 @@ def insert_timestamp(request):
             output_url = fs.url(output_filename)
             obj_track.save_gpx(output_location)
 
+            map_center = [sum(obj_track.extremes[2:]) / 2,
+                          sum(obj_track.extremes[:2]) / 2]
+
         except Exception as e:
             error = 'Error loading files'
             print(f'Exception: {e}')
@@ -207,6 +210,8 @@ def insert_timestamp(request):
                        'lat': list(obj_track.df_track.lat.values),
                        'lon': list(obj_track.df_track.lon.values),
                        'ele': list(obj_track.df_track.ele.values),
+                       'map_center': map_center,
+                       'map_zoom': auto_zoom(*obj_track.extremes),
                        **config})
 
     return render(request, template_timestamp,
