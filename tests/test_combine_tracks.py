@@ -92,8 +92,10 @@ class CombineTracksIntegrationTest(StaticLiveServerTestCase):
                    )
         )
 
-        self.assertTrue(self.driver.find_element_by_id('js-map').is_displayed())
-
+        self.assertTrue(
+            self.driver.find_element_by_id('js-map').is_displayed())
+        self.assertTrue(
+            self.driver.find_element_by_class_name('ol-viewport').is_displayed())
 
     def test_upload_too_many_tracks(self):
         for i in range(1, 6):
