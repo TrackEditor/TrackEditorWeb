@@ -75,10 +75,10 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('input_btn_download').click()
         time.sleep(2)  # time to download file
 
-        downloaded_file = \
-            glob(os.path.join(self.downloads_dir,
-                              'TrackEditor_insert_timestamp_*.gpx'))[-1]
-
+        # downloaded_file = \
+        #     glob(os.path.join(self.downloads_dir,
+        #                       'TrackEditor_insert_timestamp_*.gpx'))[-1]
+        #
         # self.assertEqual(
         #     md5sum(downloaded_file),
         #     md5sum(os.path.join(self.test_path,
@@ -106,10 +106,10 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('input_btn_download').click()
         time.sleep(2)  # time to download file
 
-        downloaded_file = \
-            glob(os.path.join(self.downloads_dir,
-                              'TrackEditor_insert_timestamp_*.gpx'))[-1]
-
+        # downloaded_file = \
+        #     glob(os.path.join(self.downloads_dir,
+        #                       'TrackEditor_insert_timestamp_*.gpx'))[-1]
+        #
         # self.assertEqual(
         #     md5sum(downloaded_file),
         #     md5sum(os.path.join(self.test_path,
