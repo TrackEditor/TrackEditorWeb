@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from glob import glob
 
 import libs.track as track
-from libs.utils import md5sum
+import tests.testing_utils as testing_utils
 import TrackApp.models as models
 
 
@@ -209,14 +209,10 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         downloaded_file = \
             glob(os.path.join(self.downloads_dir,
                               'test_rename_and_download_session*.gpx'))[-1]
+        sample_file = os.path.join(self.test_path, 'references', 'test_combine_tracks.gpx')
 
-        self.assertEqual(
-            md5sum(downloaded_file),
-            md5sum(os.path.join(self.test_path,
-                                'references',
-                                'test_combine_tracks.gpx')
-                   )
-        )
+        self.assertTrue(
+            testing_utils.compare_tracks(downloaded_file, sample_file))
 
     def test_editor_non_logged(self):
         """

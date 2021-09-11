@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 from selenium import webdriver
 
 from TrackApp.models import User
+from libs.track import Track
 
 
 def login(driver: webdriver,
@@ -44,3 +45,10 @@ def get_webdriver(headless: bool = True):
 
     driver = webdriver.Chrome(chrome_options=options)
     return driver
+
+
+def compare_tracks(reference_file: str, checked_file: str):
+    track_ref = Track().add_gpx(reference_file)
+    track_check = Track().add_gpx(checked_file)
+
+    return track_ref == track_check

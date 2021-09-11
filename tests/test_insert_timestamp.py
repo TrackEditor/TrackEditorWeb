@@ -10,7 +10,6 @@ from selenium.common.exceptions import NoSuchElementException
 
 import tests.testing_utils as testing_utils
 import libs.constants as c
-from libs.utils import md5sum
 
 
 class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
@@ -75,18 +74,14 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('input_btn_download').click()
         time.sleep(2)  # time to download file
 
-        # downloaded_file = \
-        #     glob(os.path.join(self.downloads_dir,
-        #                       'TrackEditor_insert_timestamp_*.gpx'))[-1]
-        #
-        # self.assertEqual(
-        #     md5sum(downloaded_file),
-        #     md5sum(os.path.join(self.test_path,
-        #                         'references',
-        #                         'test_insert_time.gpx')
-        #            )
-        # )
+        downloaded_file = \
+            glob(os.path.join(self.downloads_dir,
+                              'TrackEditor_insert_timestamp_*.gpx'))[-1]
 
+        sample_file = os.path.join(self.test_path, 'references', 'test_insert_time.gpx')
+
+        self.assertTrue(
+            testing_utils.compare_tracks(downloaded_file, sample_file))
         self.assertTrue(
             self.driver.find_element_by_id('js-map').is_displayed())
         self.assertTrue(
@@ -106,17 +101,14 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('input_btn_download').click()
         time.sleep(2)  # time to download file
 
-        # downloaded_file = \
-        #     glob(os.path.join(self.downloads_dir,
-        #                       'TrackEditor_insert_timestamp_*.gpx'))[-1]
-        #
-        # self.assertEqual(
-        #     md5sum(downloaded_file),
-        #     md5sum(os.path.join(self.test_path,
-        #                         'references',
-        #                         'test_insert_time.gpx')
-        #            )
-        # )
+        downloaded_file = \
+            glob(os.path.join(self.downloads_dir,
+                              'TrackEditor_insert_timestamp_*.gpx'))[-1]
+
+        sample_file = os.path.join(self.test_path, 'references', 'test_insert_time.gpx')
+
+        self.assertTrue(
+            testing_utils.compare_tracks(downloaded_file, sample_file))
 
         self.assertRaises(NoSuchElementException,
                           self.driver.find_element_by_id,

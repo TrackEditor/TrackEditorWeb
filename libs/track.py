@@ -64,6 +64,12 @@ class Track:
                f'total_downhill: {self.total_downhill}\n' + \
                f'segment_names: {self.segment_names}\n'
 
+    def __eq__(self, other):
+        for col in self.columns:
+            if not self.df_track[col].equals(other.df_track[col]):
+                return False
+        return True
+
     def to_json(self) -> str:
         if self.size > 0:
             # Convert objet to json file

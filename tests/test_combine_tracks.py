@@ -6,7 +6,6 @@ from glob import glob
 from selenium.common.exceptions import NoSuchElementException
 
 import tests.testing_utils as testing_utils
-from libs.utils import md5sum
 
 
 class CombineTracksIntegrationTest(StaticLiveServerTestCase):
@@ -45,15 +44,10 @@ class CombineTracksIntegrationTest(StaticLiveServerTestCase):
         downloaded_file = \
             glob(os.path.join(self.downloads_dir,
                               'TrackEditor_combine_tracks*.gpx'))[-1]
+        sample_file = os.path.join(self.test_path, 'references', 'test_combine_tracks.gpx')
 
-        self.assertEqual(
-            md5sum(downloaded_file),
-            md5sum(os.path.join(self.test_path,
-                                'references',
-                                'test_combine_tracks.gpx')
-                   )
-        )
-
+        self.assertTrue(
+            testing_utils.compare_tracks(downloaded_file, sample_file))
         self.assertRaises(NoSuchElementException,
                           self.driver.find_element_by_id,
                           'js-map')
@@ -83,15 +77,10 @@ class CombineTracksIntegrationTest(StaticLiveServerTestCase):
         time.sleep(2)  # wait download
         downloaded_file = \
             glob(os.path.join(self.downloads_dir, 'TrackEditor_combine_tracks*.gpx'))[-1]
+        sample_file = os.path.join(self.test_path, 'references', 'test_combine_tracks.gpx')
 
-        self.assertEqual(
-            md5sum(downloaded_file),
-            md5sum(os.path.join(self.test_path,
-                                'references',
-                                'test_combine_tracks.gpx')
-                   )
-        )
-
+        self.assertTrue(
+            testing_utils.compare_tracks(downloaded_file, sample_file))
         self.assertTrue(
             self.driver.find_element_by_id('js-map').is_displayed())
         self.assertTrue(
