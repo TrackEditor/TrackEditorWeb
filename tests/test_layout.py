@@ -1,37 +1,14 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from selenium import webdriver
 
-from TrackApp.models import User
+import tests.testing_utils as testing_utils
 
 
 class LayoutTest(StaticLiveServerTestCase):
-    @staticmethod
-    def login(driver, live_server_url, username, password):
-        driver.get(live_server_url + '/login')
-        driver.find_element_by_id('input_txt_username').send_keys(username)
-        driver.find_element_by_id('input_txt_password').send_keys(password)
-        driver.find_element_by_id('input_btn_login').click()
-
-    @staticmethod
-    def create_user(username='default_user',
-                    password='default_password_1234',
-                    email='default_user@example.com'):
-        if not User.objects.filter(username=username):
-            user = User.objects.create(username=username,
-                                       email=email,
-                                       password='!')
-            user.set_password(password)
-            user.save()
-        else:
-            user = User.objects.get(username=username)
-        return user
 
     def setUp(self):
-        options = webdriver.ChromeOptions()
-        options.headless = True
-        self.driver = webdriver.Chrome(chrome_options=options)
+        self.driver = testing_utils.get_webdriver()
         self.driver.get(self.live_server_url)
-        self.user = self.create_user()
+        self.user = testing_utils.create_user()
 
     def tearDown(self):
         self.driver.quit()
@@ -53,10 +30,10 @@ class LayoutTest(StaticLiveServerTestCase):
         )
 
     def test_link_logout(self):
-        self.login(driver=self.driver,
-                   live_server_url=self.live_server_url,
-                   username='default_user',
-                   password='default_password_1234')
+        testing_utils.login(driver=self.driver,
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
         self.assertTrue(
             self.check_link(html_id='a_logout',
                             endpoint='')
