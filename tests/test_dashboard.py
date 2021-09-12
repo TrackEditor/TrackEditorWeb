@@ -146,7 +146,7 @@ class DashboardIntegrationTest(StaticLiveServerTestCase):
         WebDriverWait(self.driver, 5).\
             until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
-        self.check_page(1, n, n, True)
+        self.check_page(1, n, n, False)
 
     def test_dashboard_no_track(self):
         WebDriverWait(self.driver, 5).\
