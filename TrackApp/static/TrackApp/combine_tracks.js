@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    var count = 1;
-    var files = [];
+    const count = 1;
+    const files = [];
     btn_select_gpx(count, files);
     activate_spinner();
 });
@@ -11,23 +11,24 @@ function btn_select_gpx(count, files) {
     let element_label = document.querySelector(`#label-select-file-${count}`);
     let element_div = document.querySelector('#div_form');
 
-    element_input.onchange = function() {
-        var new_file = this.files[0];
+    element_input.onchange = function () {
+        let new_file = this.files[0];
 
-        if ( check_number_files(count) &&
-             check_file_size(new_file) &&
-             check_repeated_element(files, new_file) &&
-             check_extension(new_file) ) {
+        if (check_number_files(count) &&
+            check_file_size(new_file) &&
+            check_repeated_element(files, new_file) &&
+            check_extension(new_file)) {
             files.push(`${new_file.name}-${new_file.size}-${new_file.lastModified}`);
             console.log(files);
             document.querySelector('#file-list').innerHTML += `<p>${new_file.name}</p>`;
             element_label.style.display = 'none';
 
-            new_element = create_btn_select_gpx(count+1);
+            let new_element = create_btn_select_gpx(count + 1);
             element_div.append(new_element);
-            btn_select_gpx(count+1, files);
+            btn_select_gpx(count + 1, files);
         }
     }
+
 }
 
 

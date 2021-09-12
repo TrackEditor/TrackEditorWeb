@@ -11,6 +11,7 @@ Combine Tracks
 
 {% block script %}
     <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
+    <script src="{% static 'TrackApp/libs/jquery.min.js' %}"></script>
     <script src="{% static 'TrackApp/combine_tracks.js' %}"></script>
     <script src="{% static 'TrackApp/map.js' %}"></script>
 {% endblock %}
@@ -57,7 +58,7 @@ Combine Tracks
         {% else %}
             <a href="{{file}}" download class="btn btn-lg btn-primary btn-combine" id="input_btn_download">Download</a>
             {% if user.is_authenticated %}
-                <div id="js-map" class="map map-format" data-map_center="{{map_center}}" data-map_zoom="{{map_zoom}}" data-lat='{{lat}}' data-lon='{{lon}}' data-ele="{{ele}}"></div>
+                <div id="js-map" class="map map-format" data-map_center="{{map_center}}" data-map_zoom="{{map_zoom}}" data-lat="{{lat}}" data-lon="{{lon}}"></div>
             {% endif %}
         {% endif %}
     </div>

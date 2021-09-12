@@ -79,6 +79,6 @@ def auto_zoom(lat_min: float, lat_max: float,
         if (width == c.map_size and height < c.map_size) or \
                 (width < c.map_size and height == c.map_size):
             # this provides bigger auto_zoom than using >= in previous case
-            return zoom
+            return zoom - 1
 
     return c.max_zoom
