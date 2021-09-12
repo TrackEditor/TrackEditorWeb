@@ -59,14 +59,14 @@ class DashboardViewTest(TestCase):
     def test_dashboard_context(self):
         self.load_tracks(n := 25)
         response = self.client.get('/dashboard')
-        self.assertEqual(response.context['pages'], list(range(1, n//10 + 1 + 1)))
-        self.assertEqual(response.context['number_pages'], n//10 + 1)
+        self.assertEqual(response.context['pages'], list(range(1, n // 10 + 1 + 1)))
+        self.assertEqual(response.context['number_pages'], n // 10 + 1)
 
     def test_get_tracks_from_db(self):
         self.load_tracks(n := 25)
         title_n = n
 
-        for i in range(1, n//10 + 2):
+        for i in range(1, n // 10 + 2):
             response = self.client.get(f'/get_tracks_from_db/{i}')
             content = literal_eval(str(response.content, encoding='utf8'))
 
@@ -81,7 +81,7 @@ class DashboardViewTest(TestCase):
         self.assertEqual(response.context['number_pages'], 0)
 
     def test_get_tracks_from_db_no_records(self):
-        response = self.client.get(f'/get_tracks_from_db/1')
+        response = self.client.get('/get_tracks_from_db/1')
         content = literal_eval(str(response.content, encoding='utf8'))
         self.assertEqual(content, [])
 
