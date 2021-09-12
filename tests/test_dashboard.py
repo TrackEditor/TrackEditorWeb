@@ -1,8 +1,12 @@
 import os
+from time import sleep
 from ast import literal_eval
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import TestCase
 from django.test.utils import tag
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 import tests.testing_utils as testing_utils
 from libs import track
@@ -88,16 +92,95 @@ class DashboardViewTest(TestCase):
 
 class DashboardIntegrationTest(StaticLiveServerTestCase):
 
+    def load_tracks(self, n):
+        for i in range(n):
+            Track(user=self.user,
+                  track=track.Track().to_json(),
+                  title=f'title_{i}').save()
+
     def setUp(self):
         self.driver = testing_utils.get_webdriver(headless=True)
-
-        self.test_path = os.path.dirname(__file__)
         self.user = testing_utils.create_user()
+        self.test_path = os.path.dirname(__file__)
+
+        method = getattr(self, self._testMethodName)
+        tags = getattr(method, 'tags', {})
+        if 'no_login' not in tags:
+            testing_utils.login(driver=self.driver,
+                                live_server_url=self.live_server_url,
+                                username='default_user',
+                                password='default_password_1234')
 
     def tearDown(self):
         self.driver.quit()
 
-    # TODO solve the spinner issue for no tracks
-    # TODO check "no track" message if no track available
-    # TODO test editor and remove buttons
-    # TODO test pagination for 1 and > 1 pages
+    def test_dashboard_load(self):
+        self.assertEqual(self.driver.title, 'Dashboard')
+
+    @tag('no_login')
+    def test_dashboard_table(self):
+        self.load_tracks(n := 25)
+
+        testing_utils.login(driver=self.driver,
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+
+        # First page
+        titles = self.driver.find_elements_by_class_name('dashboard-title')
+        self.assertEqual(len(titles), 10)
+        for t in titles:
+            n -= 1
+            self.assertEqual(t.text, f'title_{n}')
+
+        # Second page
+        self.driver.execute_script(
+            "window.scrollTo(0, document.body.scrollHeight)")
+        sleep(0.5)
+        self.driver.find_element_by_id('page_2').click()
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        titles = self.driver.find_elements_by_class_name('dashboard-title')
+        self.assertEqual(len(titles), 10)
+        for t in titles:
+            n -= 1
+            self.assertEqual(t.text, f'title_{n}')
+
+        # Third page
+        self.driver.execute_script(
+            "window.scrollTo(0, document.body.scrollHeight)")
+        sleep(0.5)
+        self.driver.find_element_by_id('page_3').click()
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        titles = self.driver.find_elements_by_class_name('dashboard-title')
+        self.assertEqual(len(titles), 5)
+        for t in titles:
+            n -= 1
+            self.assertEqual(t.text, f'title_{n}')
+
+    @tag('no_login')
+    def test_dashboard_table_one_page(self):
+        self.load_tracks(n := 2)
+
+        testing_utils.login(driver=self.driver,
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+
+        # First page
+        titles = self.driver.find_elements_by_class_name('dashboard-title')
+        self.assertEqual(len(titles), n)
+        for t in titles:
+            n -= 1
+            self.assertEqual(t.text, f'title_{n}')
+
+    def test_dashboard_no_track(self):
+        WebDriverWait(self.driver, 5).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        self.assertIn('No tracks have been found',
+                      self.driver.find_element_by_id('div_no_track').text)

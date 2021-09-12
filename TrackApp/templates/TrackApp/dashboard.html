@@ -48,11 +48,22 @@ Dashboard
             </tbody>
         </table>
     </div>
+    {% if number_pages == 0 %}
+    <div class="container" style="width: 72vh; margin-left: 0px;">
+        <div class="alert alert-primary" id="div_no_track" role="alert">
+            <p>No tracks have been found.</p>
+            <p>Go to the editor and create your first Track!</p>
+        </div>
+    </div>
+    {% endif %}
+    <div class="container" style="width: 72vh; margin-left: 0px;">
+        <div class="alert alert-warning" id="div_warning_msg" role="alert" style="display: none;">
+        </div>
+    </div>
 
     <div class="container">
         <nav aria-label="Page navigation example">
             <ul class="pagination" id="pagination" data-number_pages="{{number_pages}}">
-
                 {% if number_pages > 1 %}
                     <li class="page-item"><a class="page-link" data-page="previous">Previous</a></li>
                     {% for page in pages %}
