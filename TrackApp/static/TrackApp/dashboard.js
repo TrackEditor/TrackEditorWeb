@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.addEventListener('click', () => {
                 let previous_item = document.querySelector(`#page_${page}`);
 
-                if (item.innerHTML !== page) {
+                if (item.innerHTML != page) {
                     if (item.innerHTML === 'Next') {
                         if (page < number_pages) {
                             previous_item.classList.remove('page-link-selected');
