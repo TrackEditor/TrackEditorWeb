@@ -1,9 +1,12 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     insert_map();
 });
 
 
 function get_color(color_index, alpha='0.5') {
+    /*
+    
+     */
     const colors = ['255, 127, 80',  // coral
                     '30, 144, 255',  // dodgerblue
                     '50, 205, 50', // limegreen
@@ -27,7 +30,7 @@ function get_color(color_index, alpha='0.5') {
 
 function create_map(map_center, map_zoom) {
     // Create map
-    const map = new ol.Map({
+    return new ol.Map({
         view: new ol.View({
             center: ol.proj.fromLonLat(map_center),
             zoom: map_zoom,
@@ -41,59 +44,50 @@ function create_map(map_center, map_zoom) {
         ],
         target: "js-map"
     });
-
-    return map;
 }
 
 
 function get_link_style() {
-    const link_style = new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: 'rgb(0, 0, 128, 0.1)',  // navy color
-                width: 3,
-            })
-        });
-    return link_style;
+    return new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'rgb(0, 0, 128, 0.1)',  // navy color
+            width: 3,
+        })
+    });
 }
 
 
 function get_points_style(color_index) {
-    const points_style = new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({color: get_color(color_index)}),  // inner color
-                radius: 3,  // circle radius
-//                stroke: new ol.style.Stroke({  // edge definition
-//                    color:  new ol.style.Fill({color: get_color(color_index, '0.8')}),  // edge color
-//                    width: 1,  // edge size
-//                })
-            }),
-        });
-    return points_style;
+    return new ol.style.Style({
+        image: new ol.style.Circle({
+            fill: new ol.style.Fill({color: get_color(color_index)}),  // inner color
+            radius: 3,  // circle radius
+        }),
+    });
 }
 
 function get_line_style(color_index) {
-    const line_style = new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: get_color(color_index),
-                width: 5,
-            })
-        });
-    return line_style;
+    return new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: get_color(color_index),
+            width: 5,
+        })
+    });
 }
 
 
 function insert_map() {
     // Read data
     const element_div_map = document.querySelector('#js-map');
-    var lat = eval(element_div_map.dataset.lat);
-    var lon = eval(element_div_map.dataset.lon);
-    var map_center = eval(element_div_map.dataset.map_center);
-    var map_zoom = element_div_map.dataset.map_zoom;
+    const lat = eval(element_div_map.dataset.lat);
+    const lon = eval(element_div_map.dataset.lon);
+    const map_center = eval(element_div_map.dataset.map_center);
+    const map_zoom = element_div_map.dataset.map_zoom;
 
     // Map generation
-    var map = create_map(map_center, map_zoom);
+    const map = create_map(map_center, map_zoom);
 
-    for (var i = 0; i < lon.length; i++) {
+    for (let i = 0; i < lon.length; i++) {
         // Points to vector layer
         const points_vector_layer = new ol.layer.Vector({
             source: get_points_source(lat[i], lon[i]),
@@ -133,18 +127,16 @@ function get_points_source(lat, lon) {
     }
 
     // create the source and layer for features
-    const vectorSource = new ol.source.Vector({
+    return new ol.source.Vector({
         features
     });
-
-    return vectorSource;
 }
 
 
 function get_lines_source(lat, lon) {
     // create points
     const points = [];
-    for (i = 0; i < lat.length; i++) {
+    for (let i = 0; i < lat.length; i++) {
         points.push(ol.proj.fromLonLat([lon[i], lat[i]]));
     }
 
@@ -153,11 +145,9 @@ function get_lines_source(lat, lon) {
     });
 
     // create the source and layer for features
-    var lineSource = new ol.source.Vector({
+    return new ol.source.Vector({
         features: [featureLine]
     });
-
-    return lineSource;
 }
 
 
@@ -172,9 +162,7 @@ function get_links_source(lat, lon, lat_next, lon_next) {
     });
 
     // create the source and layer for features
-    var linkSource = new ol.source.Vector({
+    return new ol.source.Vector({
         features: [featureLink]
     });
-
-    return linkSource;
 }
