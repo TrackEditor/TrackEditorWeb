@@ -2,8 +2,8 @@ import os
 from urllib.parse import urljoin
 from selenium import webdriver
 
-from TrackApp.models import User
-from libs.track import Track
+from TrackApp.models import User, Track
+from libs import track
 
 
 def login(driver: webdriver,
@@ -48,7 +48,14 @@ def get_webdriver(headless: bool = True):
 
 
 def compare_tracks(reference_file: str, checked_file: str):
-    track_ref = Track().add_gpx(reference_file)
-    track_check = Track().add_gpx(checked_file)
+    track_ref = track.Track().add_gpx(reference_file)
+    track_check = track.Track().add_gpx(checked_file)
 
     return track_ref == track_check
+
+
+def record_tracks(user: User, n: int, title='title'):
+    for i in range(n):
+        Track(user=user,
+              track=track.Track().to_json(),
+              title=f'{title}_{i}').save()
