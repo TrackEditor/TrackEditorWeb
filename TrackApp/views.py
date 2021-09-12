@@ -59,6 +59,8 @@ def register_view(request):
 
 
 def login_view(request):
+    template_login = 'TrackApp/login.html'
+
     if request.method == 'POST':
 
         # Attempt to sign user in
@@ -71,11 +73,11 @@ def login_view(request):
             login(request, user)
             return HttpResponseRedirect(reverse('index'))
         else:
-            return render(request, 'TrackApp/login.html', {
+            return render(request, template_login, {
                 'error': 'Invalid username and/or password.'
             })
     else:
-        return render(request, 'TrackApp/login.html')
+        return render(request, template_login)
 
 
 def logout_view(request):
@@ -86,6 +88,7 @@ def logout_view(request):
 
 @csrf_exempt
 def combine_tracks(request):
+    template_combine = 'TrackApp/combine_tracks.html'
     config = {'maximum_file_size': c.maximum_file_size,
               'maximum_files': c.maximum_files,
               'valid_extensions': c.valid_extensions}
@@ -96,7 +99,7 @@ def combine_tracks(request):
 
         if len(request.FILES.getlist('document')) == 0:
             warning = 'No file has been selected.'
-            return render(request, 'TrackApp/combine_tracks.html',
+            return render(request, template_combine,
                           {'download': False,
                            'warning': warning,
                            **config})
@@ -120,7 +123,7 @@ def combine_tracks(request):
         except Exception as e:
             error = 'Error loading files'
             print(e)
-            return render(request, 'TrackApp/combine_tracks.html',
+            return render(request, template_combine,
                           {'download': False,
                            'error': error,
                            **config})
@@ -137,7 +140,7 @@ def combine_tracks(request):
             lon.append(list(segment['lon'].values))
             ele.append(list(segment['ele'].values))
 
-        return render(request, 'TrackApp/combine_tracks.html',
+        return render(request, template_combine,
                       {'download': True,
                        'file': output_url,
                        'lat': lat,
@@ -147,12 +150,13 @@ def combine_tracks(request):
                        'map_zoom': auto_zoom(*obj_track.extremes),
                        **config})
 
-    return render(request, 'TrackApp/combine_tracks.html',
+    return render(request, template_combine,
                   {'download': False,
                    **config})
 
 
 def insert_timestamp(request):
+    template_timestamp = 'TrackApp/insert_timestamp.html'
     config = {'maximum_file_size': c.maximum_file_size,
               'maximum_speed': c.maximum_speed,
               'valid_extensions': c.valid_extensions}
@@ -188,24 +192,29 @@ def insert_timestamp(request):
             output_url = fs.url(output_filename)
             obj_track.save_gpx(output_location)
 
+            map_center = [sum(obj_track.extremes[2:]) / 2,
+                          sum(obj_track.extremes[:2]) / 2]
+
         except Exception as e:
             error = 'Error loading files'
             print(f'Exception: {e}')
             traceback.print_exc()
-            return render(request, 'TrackApp/insert_timestamp.html',
+            return render(request, template_timestamp,
                           {'download': False,
                            'error': error,
                            **config})
 
-        return render(request, 'TrackApp/insert_timestamp.html',
+        return render(request, template_timestamp,
                       {'download': True,
                        'file': output_url,
                        'lat': list(obj_track.df_track.lat.values),
                        'lon': list(obj_track.df_track.lon.values),
                        'ele': list(obj_track.df_track.ele.values),
+                       'map_center': map_center,
+                       'map_zoom': auto_zoom(*obj_track.extremes),
                        **config})
 
-    return render(request, 'TrackApp/insert_timestamp.html',
+    return render(request, template_timestamp,
                   {'download': False,
                    **config})
 

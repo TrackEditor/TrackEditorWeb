@@ -4,14 +4,13 @@ import json
 import time
 from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from glob import glob
 
 import libs.track as track
-from libs.utils import md5sum
+import tests.testing_utils as testing_utils
 import TrackApp.models as models
 
 
@@ -21,45 +20,19 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
     selenium, so they directly use the front-end as io interface.
     """
 
-    def login(self, username, password):
-        self.driver.get(urljoin(self.live_server_url, 'login'))
-        self.driver.find_element_by_id('input_txt_username').send_keys(username)
-        self.driver.find_element_by_id('input_txt_password').send_keys(password)
-        self.driver.find_element_by_id('input_btn_login').click()
-
-    def create_user(self,
-                    username='default_user',
-                    password='default_password_1234',
-                    email='default_user@example.com'):
-        if not models.User.objects.filter(username=username):
-            user = models.User.objects.create(username=username,
-                                              email=email,
-                                              password='!')
-            user.set_password(password)
-            user.save()
-        else:
-            user = models.User.objects.get(username=username)
-        return user
-
     def setUp(self):
-        # Selenium configuration
-        options = webdriver.ChromeOptions()
-        options.headless = True
-        self.downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
-        preferences = \
-            {'download.default_directory': self.downloads_dir,
-             'safebrowsing.enabled': 'false'}
-        options.add_experimental_option('prefs', preferences)
-
-        self.driver = webdriver.Chrome(chrome_options=options)
+        self.driver = testing_utils.get_webdriver(headless=True)
+        self.downloads_dir = testing_utils.get_downloads_dir()
 
         # Test configuration
         self.test_path = os.path.dirname(__file__)
-        self.user = self.create_user()
+        self.user = testing_utils.create_user()
 
         # Open editor
-        self.login(username='default_user',
-                   password='default_password_1234')
+        testing_utils.login(driver=self.driver,
+                            live_server_url=self.live_server_url,
+                            username='default_user',
+                            password='default_password_1234')
         self.driver.get(urljoin(self.live_server_url, 'editor'))
 
     def tearDown(self):
@@ -209,11 +182,36 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         downloaded_file = \
             glob(os.path.join(self.downloads_dir,
                               'test_rename_and_download_session*.gpx'))[-1]
+        sample_file = os.path.join(self.test_path, 'references', 'test_combine_tracks.gpx')
 
-        self.assertEqual(
-            md5sum(downloaded_file),
-            md5sum(os.path.join(self.test_path,
-                                'references',
-                                'test_combine_tracks.gpx')
-                   )
-        )
+        self.assertTrue(
+            testing_utils.compare_tracks(downloaded_file, sample_file))
+
+    def test_editor_non_logged(self):
+        """
+        Editor is not available for non logged users. Logout before accesing to
+        editor.
+        """
+        self.driver.get(self.live_server_url)
+        self.driver.find_element_by_id('a_logout').click()
+
+        link = self.driver.find_element_by_id('a_editor')
+        link.click()
+
+        warning_msg = self.driver.find_element_by_id('div_warning_msg')
+
+        self.assertIn('only available for users', warning_msg.text)
+
+        self.assertEqual(self.driver.current_url.rstrip('/'),
+                         urljoin(self.live_server_url, 'users_only'))
+
+    def test_editor_logged(self):
+        """
+        Editor for logged users is available
+        """
+        self.driver.get(self.live_server_url)
+
+        link = self.driver.find_element_by_id('a_editor')
+        link.click()
+        self.assertEqual(self.driver.current_url.rstrip('/'),
+                         urljoin(self.live_server_url, 'editor'))

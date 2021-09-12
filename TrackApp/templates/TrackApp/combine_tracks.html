@@ -10,7 +10,9 @@ Combine Tracks
 {% endblock %}
 
 {% block script %}
+    <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
     <script src="{% static 'TrackApp/combine_tracks.js' %}"></script>
+    <script src="{% static 'TrackApp/map.js' %}"></script>
 {% endblock %}
 
 {% block body %}
@@ -46,7 +48,7 @@ Combine Tracks
 
                 <div class="form-group" style="margin-bottom: 10px; margin-top: 10px">
                     <input class="btn btn-lg btn-primary btn-combine" type="submit" id="input_btn_combine" value="Combine" style="margin-bottom: 10px; display: inline-block; vertical-align: middle;">
-                    <div class="spinner-border" id="div_spinner" role="status" style="vertical-align: -20px;">
+                    <div class="spinner-border" id="div_spinner" role="status" style="vertical-align: -25px;">
                         <span class="sr-only"></span>
                     </div>
                 </div>
@@ -60,6 +62,4 @@ Combine Tracks
         {% endif %}
     </div>
 
-    <script src="{% static 'TrackApp/map.js' %}"></script>
-    <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
 {% endblock %}

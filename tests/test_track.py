@@ -572,3 +572,27 @@ class TrackTest(TestCase):
         self.assertFalse(pd.isnull(obj_track_check.df_track.time.iloc[0]))
         self.assertTrue(pd.isnull(obj_track_check.df_track.time.iloc[-1]))
         self.assertTrue(obj_track_check.df_track.ele.isnull().values.any())
+
+    def test_equal_operator_true(self):
+        obj_track_1 = track.Track()
+        obj_track_1.add_gpx(
+            os.path.join(self.test_path, 'samples', 'simple_numbers.gpx'))
+
+        obj_track_2 = track.Track()
+        obj_track_2.add_gpx(
+            os.path.join(self.test_path, 'samples', 'simple_numbers.gpx'))
+
+        self.assertEqual(obj_track_1, obj_track_2)
+
+    def test_equal_operator_false(self):
+        obj_track_1 = track.Track()
+        obj_track_1.add_gpx(
+            os.path.join(self.test_path, 'samples',
+                         'simple_numbers_down.gpx'))
+
+        obj_track_2 = track.Track()
+        obj_track_2.add_gpx(
+            os.path.join(self.test_path, 'samples',
+                         'simple_numbers_up.gpx'))
+
+        self.assertNotEqual(obj_track_1, obj_track_2)

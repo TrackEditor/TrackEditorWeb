@@ -4,6 +4,7 @@ from django.test import TestCase
 
 import libs.track as track
 import TrackApp.models as models
+import tests.testing_utils as testing_utils
 
 
 class EditorTestUtils(TestCase):
@@ -11,14 +12,9 @@ class EditorTestUtils(TestCase):
                     username='default_user',
                     password='default_password_1234',
                     email='default_user@example.com'):
-        if not models.User.objects.filter(username=username):
-            user = models.User.objects.create(username=username,
-                                              email=email,
-                                              password='!')
-            user.set_password(password)
-            user.save()
-        else:
-            user = models.User.objects.get(username=username)
+        user = testing_utils.create_user(username=username,
+                                         password=password,
+                                         email=email)
 
         self.user, self.username, self.password = user, username, password
         return user, username, password
