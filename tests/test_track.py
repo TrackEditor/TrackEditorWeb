@@ -476,7 +476,7 @@ class TrackTest(TestCase):
                       ' "segment_names": ["simple_numbers.gpx"],' \
                       ' "title": "tesing track"}'
 
-        obj_track = track.Track(track_json=json_string)
+        obj_track = track.Track.from_json(json_string)
 
         self.assertEqual(obj_track.df_track.shape, (5, 8))
         self.assertEqual(obj_track.size, 1)
@@ -493,7 +493,7 @@ class TrackTest(TestCase):
                       ' "total_uphill": 0, "total_downhill": 0, ' + \
                       ' "segment_names": [], "title": "my_track_name"}'
 
-        obj_track = track.Track(track_json=json_string)
+        obj_track = track.Track.from_json(json_string)
 
         self.assertEqual(obj_track.df_track.shape, (0, 5))
         self.assertEqual(obj_track.size, 0)

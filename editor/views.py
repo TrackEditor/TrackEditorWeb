@@ -60,7 +60,7 @@ def editor(request, index=None):
     if index is not None:
         if index == 0:  # reload
             try:
-                obj_track = track.Track(track_json=request.session['json_track'])
+                obj_track = track.Track.from_json(request.session['json_track'])
 
                 return render(request,
                               template_editor,
@@ -94,7 +94,7 @@ def editor(request, index=None):
             filename = fs.save(uploaded_file.name, uploaded_file)
             filepath = os.path.join(fs.location, filename)
 
-            obj_track = track.Track(track_json=request.session['json_track'])
+            obj_track = track.Track.from_json(request.session['json_track'])
             obj_track.add_gpx(filepath)
 
             request.session['json_track'] = obj_track.to_json()
@@ -133,7 +133,7 @@ def rename_segment(request, index, new_name):
 @csrf_exempt
 @check_view('POST', 523)
 def remove_segment(request, index):
-    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.remove_segment(index)
     request.session['json_track'] = obj_track.to_json()
 
@@ -172,7 +172,7 @@ def get_segment(request, index):
 @login_required
 @check_view('GET', 525)
 def get_summary(request):
-    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.update_summary()
     summary = obj_track.get_summary()
 
@@ -183,7 +183,7 @@ def get_summary(request):
 @csrf_exempt
 @check_view('POST', 526)
 def save_session(request):
-    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track = track.Track.from_json(request.session['json_track'])
     json_track = obj_track.to_json()
 
     if request.session['index_db']:
@@ -229,7 +229,7 @@ def rename_session(request, new_name):
 @csrf_exempt
 @check_view('POST', 529)
 def download_session(request):
-    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track = track.Track.from_json(request.session['json_track'])
     fs = FileSystemStorage()
 
     output_filename = \
@@ -246,7 +246,7 @@ def download_session(request):
 @login_required
 @check_view('GET', 530)
 def get_segments_links(request):
-    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track = track.Track.from_json(request.session['json_track'])
     df_track = obj_track.df_track
     segments = obj_track.df_track['segment'].unique()
     links = []
@@ -265,7 +265,7 @@ def get_segments_links(request):
 @csrf_exempt
 @check_view('POST', 531)
 def reverse_segment(request, index):
-    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.reverse_segment(index)
     request.session['json_track'] = obj_track.to_json()
     return JsonResponse({'message': 'Segment is reversed'}, status=200)
@@ -279,7 +279,7 @@ def change_segments_order(request):
     new_order = data['new_order']
     order_dict = {n: i + 1 for i, n in enumerate(new_order)}
 
-    obj_track = track.Track(track_json=request.session['json_track'])
+    obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.change_order(order_dict)
     request.session['json_track'] = obj_track.to_json()
 

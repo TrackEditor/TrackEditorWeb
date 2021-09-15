@@ -7,6 +7,7 @@ carried out througout the Edit Menu.
 Author: alguerre
 License: MIT
 """
+from __future__ import annotations
 import datetime as dt
 import pandas as pd
 import numpy as np
@@ -15,7 +16,7 @@ import gpxpy.gpx
 import json
 import os
 import io
-from time import time
+import time
 
 from libs import constants as c, gpx
 
@@ -32,7 +33,7 @@ class Track:
         cumulated distance or elevation.
         - Properties to store overall information
     """
-    def __init__(self, track_json=None):
+    def __init__(self):
         # Define dataframe and types
         self.columns = ['lat', 'lon', 'ele', 'segment', 'time']
         self.df_track = pd.DataFrame(columns=self.columns)
@@ -47,9 +48,6 @@ class Track:
         self.total_downhill = 0
         self.segment_names = []  # indexing in line with segment index, diff 1
         self.title = 'track_name (edit me)'
-
-        if track_json:
-            self.from_json(track_json)
 
     def __str__(self):
         return f'title: {self.title}\n' + \
@@ -94,13 +92,16 @@ class Track:
                           'segment_names': [], 'title': self.title}
             return json.dumps(track_dict)
 
-    def from_json(self, json_string: str) -> bool:
-        json_dict = json.loads(json_string)
+    @classmethod
+    def from_json(cls, json_file: str) -> Track:
+        track = cls()  # define object
+
+        json_dict = json.loads(json_file)
         if json_dict['size'] == 0:
             if 'title' in json_dict:
                 if json_dict['title']:
-                    self.title = json_dict['title']
-            return False  # there are no data to load
+                    track.title = json_dict['title']
+            return track
 
         df_keys = ['lat', 'lon', 'ele', 'segment',
                    'ele_pos_cum', 'ele_neg_cum', 'distance']
@@ -108,22 +109,22 @@ class Track:
         df_dict = dict((k, json_dict[k]) for k in df_keys if k in json_dict)
 
         # Load dataframe
-        self.df_track = pd.DataFrame(df_dict)
-        self.insert_timestamp(dt.datetime(2000, 1, 1, 0, 0, 0), 1)
+        track.df_track = pd.DataFrame(df_dict)
+        track.insert_timestamp(dt.datetime(2000, 1, 1, 0, 0, 0), 1)
         # TODO consider time within json
-        self._force_columns_type()
+        track._force_columns_type()
 
         # Load metadata
-        self.size = json_dict['size']
-        self.last_segment_idx = json_dict['last_segment_idx']
-        self.extremes = json_dict['extremes']
-        self.total_distance = json_dict['total_distance']
-        self.total_uphill = json_dict['total_uphill']
-        self.total_downhill = json_dict['total_downhill']
-        self.segment_names = json_dict['segment_names']
-        self.title = json_dict['title']
+        track.size = json_dict['size']
+        track.last_segment_idx = json_dict['last_segment_idx']
+        track.extremes = json_dict['extremes']
+        track.total_distance = json_dict['total_distance']
+        track.total_uphill = json_dict['total_uphill']
+        track.total_downhill = json_dict['total_downhill']
+        track.segment_names = json_dict['segment_names']
+        track.title = json_dict['title']
 
-        return True
+        return track
 
     def add_gpx(self, file: str):
         gpx_track = gpx.Gpx(file)
@@ -226,7 +227,7 @@ class Track:
             speed_elevation = desired_speed * speed_factor
 
             used_time = 0
-            start = time()
+            start = time.time()
             avg_speed = desired_speed * 10
             time_delta = np.nan  # this default value would force and error
 
@@ -235,7 +236,7 @@ class Track:
                 time_delta = dist_diff / speed_elevation
                 avg_speed = sum(dist_diff)/sum(time_delta)
                 speed_elevation -= avg_speed - desired_speed
-                used_time = time() - start
+                used_time = time.time() - start
 
             relative_time = np.append(0, np.cumsum(time_delta))
             self.df_track['relative_time'] = relative_time
