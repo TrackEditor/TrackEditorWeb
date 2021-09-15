@@ -35,8 +35,8 @@ function plot_tracks() {
     PLOT_TRACKS plots all available segments in the map
     */
     let div_track_list = document.querySelector('#div_track_list');  // TODO modify with API endpoint
-    let track_list = eval(div_track_list.dataset.track_list);
-    let segment_list = eval(div_track_list.dataset.segment_list);
+    let track_list = JSON.parse(div_track_list.dataset.track_list);
+    let segment_list = JSON.parse(div_track_list.dataset.segment_list);
 
     console.log(segment_list);
     if (typeof track_list !== 'undefined') {
@@ -45,7 +45,7 @@ function plot_tracks() {
         fetch('/editor/get_segments_links')
         .then(response => response.json())
         .then(data => {
-            let links = eval(data.links);
+            let links = JSON.parse(data.links);
             links.forEach(link => plot_link(map, link));
         });
 
@@ -60,8 +60,8 @@ function manage_track_names() {
     It also manage the call to remove a track and renaming.
     */
     let div_track_list = document.querySelector('#div_track_list');
-    let track_list = eval(div_track_list.dataset.track_list);
-    let segment_list = eval(div_track_list.dataset.segment_list);
+    let track_list = JSON.parse(div_track_list.dataset.track_list);
+    let segment_list = JSON.parse(div_track_list.dataset.segment_list);
     div_track_list.innerHTML = '';
 
     if (typeof track_list !== 'undefined') {
@@ -154,7 +154,7 @@ function manage_track_names() {
                     fetch('/editor/get_segments_links')
                     .then(response => response.json())
                     .then(data => {
-                        let links = eval(data.links);
+                        let links = JSON.parse(data.links);
                         links.forEach(link => plot_link(map, link));
                     });
                 });
@@ -692,7 +692,7 @@ function reverse_segment() {
                 .then(response => response.json())
                 .then(data => {
                     // Re-do links
-                    let links = eval(data.links);
+                    let links = JSON.parse(data.links);
                     links.forEach(link => plot_link(map, link));
                 });
             }

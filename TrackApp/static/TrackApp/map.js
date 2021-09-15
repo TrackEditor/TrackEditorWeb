@@ -110,11 +110,11 @@ function get_line_style(color_index) {
  */
 function insert_map() {
     // Read data
-    const div_map = $('#js-map');
+    const div_map = document.querySelector('#js-map');
     const lat = div_map.data('lat');
     const lon = div_map.data('lon');
-    const map_center = div_map.data('map_center');
-    const map_zoom = div_map.data('map_zoom');
+    const map_center = JSON.parse(div_map.dataset.map_center);
+    const map_zoom = JSON.parse(div_map.dataset.map_zoom);
 
     // Map generation
     const map = create_map(map_center, map_zoom);
