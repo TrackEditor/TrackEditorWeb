@@ -599,16 +599,14 @@ class Track:
         gained elevation.
         :return: None
         """
-        self.df_track['ele diff'] = self.df_track['ele'].diff()
-        negative_gain = self.df_track['ele diff'] < 0
-        self.df_track.loc[negative_gain, 'ele diff'] = 0
+        # Isolate negative elevation changes
+        elevation_diff = self.df_track['ele'].diff()
+        negative_gain = elevation_diff < 0
+        elevation_diff.loc[negative_gain] = 0
 
         # Define new column
         self.df_track['ele_pos_cum'] = \
-            self.df_track['ele diff'].cumsum().astype('float32')
-
-        # Drop temporary columns
-        self.df_track = self.df_track.drop(labels=['ele diff'], axis=1)
+            elevation_diff.cumsum().astype('float32')
 
     def _insert_negative_elevation(self):
         """
@@ -616,16 +614,14 @@ class Track:
         lost elevation.
         :return: None
         """
-        self.df_track['ele diff'] = self.df_track['ele'].diff()
-        negative_gain = self.df_track['ele diff'] > 0
-        self.df_track.loc[negative_gain, 'ele diff'] = 0
+        # Isolate positive elevation changes
+        elevation_diff = self.df_track['ele'].diff()
+        negative_gain = elevation_diff > 0
+        elevation_diff.loc[negative_gain] = 0
 
         # Define new column
         self.df_track['ele_neg_cum'] = \
-            self.df_track['ele diff'].cumsum().astype('float32')
-
-        # Drop temporary columns
-        self.df_track = self.df_track.drop(labels=['ele diff'], axis=1)
+            elevation_diff.cumsum().astype('float32')
 
     def _insert_distance(self):
         """
