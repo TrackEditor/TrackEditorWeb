@@ -35,8 +35,8 @@ function plot_tracks() {
     PLOT_TRACKS plots all available segments in the map
     */
     let div_track_list = document.querySelector('#div_track_list');  // TODO modify with API endpoint
-    let track_list = JSON.parse(div_track_list.dataset.track_list);
-    let segment_list = JSON.parse(div_track_list.dataset.segment_list);
+    let track_list = JSON.parse(div_track_list.dataset.track_list.replace(/'/g, '"'));
+    let segment_list = JSON.parse(div_track_list.dataset.segment_list.replace(/'/g, '"'));
 
     console.log(segment_list);
     if (typeof track_list !== 'undefined') {
@@ -60,12 +60,12 @@ function manage_track_names() {
     It also manage the call to remove a track and renaming.
     */
     let div_track_list = document.querySelector('#div_track_list');
-    let track_list = JSON.parse(div_track_list.dataset.track_list);
-    let segment_list = JSON.parse(div_track_list.dataset.segment_list);
+    let track_list = JSON.parse(div_track_list.dataset.track_list.replace(/'/g, '"'));
+    let segment_list = JSON.parse(div_track_list.dataset.segment_list.replace(/'/g, '"'));
     div_track_list.innerHTML = '';
 
     if (typeof track_list !== 'undefined') {
-        for (var i = 0; i < track_list.length; i++) {
+        for (let i = 0; i < track_list.length; i++) {
             let segment_idx = segment_list[i];
             let color = get_color(segment_idx, alpha='-1');
 
