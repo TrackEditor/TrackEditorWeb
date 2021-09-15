@@ -9,7 +9,7 @@ function btn_select_gpx() {
     let element_alert = document.querySelector('#div_alert');
 
     element_input.onchange = () => {
-        const new_file = this.files[0];
+        const new_file = element_input.files[0];
         if ( check_file_size(new_file, element_alert) &&
              check_extension(new_file, element_alert) ) {
             document.querySelector('#file-list').innerHTML = `<p>${new_file.name}</p>`;
