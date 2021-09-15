@@ -27,7 +27,7 @@ map_size = 2  # number of tiles for auto zoom
 app_path = os.path.dirname(os.path.realpath(__file__))
 
 # OSM request options
-version = "v0.0"
+version = "v0.1"
 email = "alguerre@outlook.com"
 tool = "TrackEditor"
 
