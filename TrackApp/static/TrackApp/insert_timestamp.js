@@ -5,12 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function btn_select_gpx() {
-    let element_input = document.querySelector('#select-file-1');
-    let element_label = document.querySelector('#label-select-file-1');
-    let element_div = document.querySelector('#div_form');
+    let element_input = document.querySelector('#select-file');
     let element_alert = document.querySelector('#div_alert');
 
-    element_input.onchange = function() {
+    element_input.onchange = () => {
         const new_file = this.files[0];
         if ( check_file_size(new_file, element_alert) &&
              check_extension(new_file, element_alert) ) {
@@ -19,17 +17,17 @@ function btn_select_gpx() {
     }
 
     let element_speed = document.querySelector('#input_desired_speed');
-    element_speed.onchange = function() {
+    element_speed.onchange = () => {
         check_speed(element_speed, element_alert);
     }
 
     let element_date = document.querySelector('#input_date');
-    element_date.onchange = function() {
+    element_date.onchange = () => {
         check_date(element_date, element_alert);
     }
 
     let element_time = document.querySelector('#input_time');
-    element_time.onchange = function() {
+    element_time.onchange = () => {
         check_time(element_time, element_alert);
     }
 
@@ -124,20 +122,20 @@ function check_date(element_date, element_alert) {
         return false;
     }
     else {
-        if ( (!((date_array[1] < 2100) && (date_array[1] > 1900))) ||
-             (!((date_array[2] < 12) && (date_array[2] > 0))) ||
-             (!((date_array[3] < 31) && (date_array[3] > 0))) ) {
+        if ( (date_array[1] > 2100) || (date_array[1] < 1900) ||
+             (date_array[2] > 12) || (date_array[2] < 1) ||
+             (date_array[3] > 31) || (date_array[3] < 1) ) {
             element_alert.style.display = 'block';
             element_alert.className = 'alert alert-danger';
             element_alert.setAttribute('role', 'alert');
             element_alert.setAttribute('id', 'div_error_msg_js');
-            if ( !((date_array[1] < 2100) && (date_array[1] > 1900))) {
+            if ((date_array[1] > 2100) || (date_array[1] < 1900)) {
                 element_alert.innerHTML = `Year ${date_array[1]} is not in range 1900 to 2100.`;
             }
-            else if (!((date_array[2] < 13) && !(date_array[2] > 0))) {
+            else if ((date_array[2] > 12) ||  (date_array[2] < 1)) {
                 element_alert.innerHTML = `Month ${date_array[2]} is not in range 1 to 12.`;
             }
-            else if (!((date_array[3] < 32) && !(date_array[3] > 0))) {
+            else if ((date_array[3] > 31) || (date_array[3] < 1)) {
                 element_alert.innerHTML = `Day ${date_array[3]} is not in range 1 to 31.`;
             }
             return false;
@@ -162,16 +160,16 @@ function check_time(element_time, element_alert) {
         return false;
     }
     else {
-        if ( (!((time_array[1] < 24) && (time_array[1] >= 0))) ||
-             (!((time_array[2] < 60) && (time_array[2] >= 0))) ) {
+        if ( (time_array[1] > 23) || (time_array[1] < 0) ||
+             (time_array[2] > 59) || (time_array[2] < 0) ) {
             element_alert.style.display = 'block';
             element_alert.className = 'alert alert-danger';
             element_alert.setAttribute('role', 'alert');
             element_alert.setAttribute('id', 'div_error_msg_js');
-            if ( !((time_array[1] < 24) && (time_array[1] > 0)) ) {
+            if ( (time_array[1] > 23) || (time_array[1] < 0) ) {
                 element_alert.innerHTML = `Hour ${time_array[1]} is not in range 00 to 23.`;
             }
-            else if ( !((time_array[2] < 60) && !(time_array[2] > 0)) ) {
+            else if ( (time_array[2] < 60) || (time_array[2] < 0) ) {
                 element_alert.innerHTML = `Minute ${time_array[2]} is not in range 00 to 59.`;
             }
 
@@ -206,11 +204,10 @@ function btn_insert_timestamp() {
     let element_insert_btn = document.querySelector('#input_btn_insert_timestamp');
     let element_alert = document.querySelector('#div_alert');
     let element_speed = document.querySelector('#input_desired_speed');
-    let element_elevation_speed = document.querySelector('#input_elevation_speed');
     let element_date = document.querySelector('#input_date');
     let element_time = document.querySelector('#input_time');
     let element_form = document.querySelector('#form');
-    let element_file = document.querySelector('#select-file-1');
+    let element_file = document.querySelector('#select-file');
 
     element_insert_btn.onclick = () => {
         if ( check_speed(element_speed, element_alert) &&
@@ -218,13 +215,10 @@ function btn_insert_timestamp() {
              check_time(element_time, element_alert) &&
              check_file(element_file, element_alert)) {
             element_form.submit();
-            activate_spinner();
+
+            // Activate spinner
+            let spinner = document.querySelector('#div_spinner');
+            spinner.style.display = 'inline-block';
         }
     }
-}
-
-
-function activate_spinner(){
-    let spinner = document.querySelector('#div_spinner');
-    spinner.style.display = 'inline-block';
 }
