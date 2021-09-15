@@ -33,7 +33,7 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
                     consider_elevation: bool = False):
         if file:
             self.driver.\
-                find_element_by_id('select-file-1').\
+                find_element_by_id('select-file').\
                 send_keys(os.path.join(self.test_path, 'samples', file))
 
         if date:
@@ -116,7 +116,7 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
 
     def test_timestamp_upload_wrong_extension(self):
         self.driver.\
-            find_element_by_id('select-file-1').\
+            find_element_by_id('select-file').\
             send_keys(os.path.join(self.test_path,
                                    'samples',
                                    'wrong_extension.txt'))

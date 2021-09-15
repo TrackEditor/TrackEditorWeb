@@ -819,14 +819,14 @@ class ChangeOrderTest(EditorTestUtils):
                 self.client.post('/editor/', {'document': f})
 
         track_unchanged = \
-            track.Track(track_json=self.client.session['json_track']).\
+            track.Track.from_json(self.client.session['json_track']).\
             df_track[['lat', 'lon', 'ele', 'segment']]
 
         response = self.client.post('/editor/change_segments_order',
                                     json.dumps({'new_order': [4, 3, 1, 2]}),
                                     content_type='application/json')
         track_changed = \
-            track.Track(track_json=self.client.session['json_track']).\
+            track.Track.from_json(self.client.session['json_track']).\
             df_track[['lat', 'lon', 'ele', 'segment']]
 
         self.assertEqual(response.status_code, 200)

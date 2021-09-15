@@ -33,9 +33,9 @@ Insert Timestamp
                 {% csrf_token %}
                 <div id="div_form" class="form-group" style="margin-bottom: 10px; margin-top: 10px; display: inline-block;">
 
-                    <label id="label-select-file-1" class="btn btn-lg btn-select-file">
+                    <label id="label-select-file" class="btn btn-lg btn-select-file">
                         Select gpx
-                        <input id="select-file-1" type="file" accept=".gpx" name="document">
+                        <input id="select-file" type="file" accept=".gpx" name="document">
                     </label>
                     <span id="file-list" style="display: inline-block; vertical-align: 0px; margin-left: 10px;"></span>
 
@@ -74,7 +74,7 @@ Insert Timestamp
         {% else %}
             <a href="{{file}}" download class="btn btn-lg btn-primary btn-combine" id="input_btn_download">Download</a>
             {% if user.is_authenticated %}
-                <div id="js-map" class="map map-format" data-file="{{file}}"  data-map_center="{{map_center}}" data-map_zoom="{{map_zoom}}" data-lat='{{lat}}' data-lon='{{lon}}' data-ele="{{ele}}"></div>
+                <div id="js-map" class="map map-format" data-file="{{file}}"  data-map_center="{{map_center}}" data-map_zoom="{{map_zoom}}" data-lat="{{lat}}" data-lon="{{lon}}"></div>
             {% endif %}
         {% endif %}
 

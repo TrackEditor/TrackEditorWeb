@@ -19,14 +19,14 @@ class UtilsTest(TestCase):
                        'lat_max': -37.28434,
                        'lon_min': -12.698120000000001,
                        'lon_max': -12.64469}
-        self.assertEqual(utils.auto_zoom(**coordinates), 14)
+        self.assertEqual(utils.auto_zoom(**coordinates), 13)
 
     def test_auto_zoom_bike_ride(self):
         coordinates = {'lat_min': 40.468258,
                        'lat_max': 40.752925,
                        'lon_min': -3.794208,
                        'lon_max': -3.682484}
-        self.assertEqual(utils.auto_zoom(**coordinates), 11)
+        self.assertEqual(utils.auto_zoom(**coordinates), 10)
 
     def test_auto_zoom_st_james(self):
         coordinates = {'lat_min': 42.258258,
