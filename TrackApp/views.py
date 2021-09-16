@@ -32,6 +32,8 @@ def index_view(request):
 
 
 def register_view(request):
+    template_register = 'TrackApp/register.html'
+
     if request.method == 'POST':
         username = request.POST['username']
         email = request.POST['email']
@@ -40,7 +42,7 @@ def register_view(request):
         password = request.POST['password']
         confirmation = request.POST['confirmation']
         if password != confirmation:
-            return render(request, 'TrackApp/register.html', {
+            return render(request, template_register, {
                 'error': 'Passwords must match.'
             })
 
@@ -49,13 +51,13 @@ def register_view(request):
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
-            return render(request, 'TrackApp/register.html', {
+            return render(request, template_register, {
                 'error': 'Username already taken.'
             })
         login(request, user)
         return HttpResponseRedirect(reverse('index'))
     else:
-        return render(request, 'TrackApp/register.html')
+        return render(request, template_register)
 
 
 def login_view(request):
