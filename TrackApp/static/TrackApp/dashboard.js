@@ -5,36 +5,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (number_pages > 0) {
         load_tracks(page, number_pages);
-
-        // Manage page changes
-        document.querySelectorAll('.page-link').forEach(item => {
-            item.addEventListener('click', () => {
-                let previous_item = document.querySelector(`#page_${page}`);
-
-                if (item.innerHTML != page) {
-                    if (item.innerHTML === 'Next') {
-                        if (page < number_pages) {
-                            previous_item.classList.remove('page-link-selected');
-                            page++;
-                            load_tracks(page, number_pages);
-                        }
-                    } else if (item.innerHTML === 'Previous') {
-                        if (page > 1) {
-                            previous_item.classList.remove('page-link-selected');
-                            page--;
-                            load_tracks(page, number_pages);
-                        }
-                    } else {
-                        previous_item.classList.remove('page-link-selected');
-                        page = parseInt(item.innerHTML);
-                        load_tracks(page, number_pages);
-                    }
-                }
-            })
-        });
+        page_management(page, number_pages);
     }
 
 });
+
+function page_management(page, number_pages) {
+    // Manage page changes
+    document.querySelectorAll('.page-link').forEach(item => {
+        item.addEventListener('click', () => {
+            let previous_item = document.querySelector(`#page_${page}`);
+
+            if (item.innerHTML != page) {
+                if (item.innerHTML === 'Next') {
+                    if (page < number_pages) {
+                        previous_item.classList.remove('page-link-selected');
+                        page++;
+                        load_tracks(page, number_pages);
+                    }
+                } else if (item.innerHTML === 'Previous') {
+                    if (page > 1) {
+                        previous_item.classList.remove('page-link-selected');
+                        page--;
+                        load_tracks(page, number_pages);
+                    }
+                } else {
+                    previous_item.classList.remove('page-link-selected');
+                    page = parseInt(item.innerHTML);
+                    load_tracks(page, number_pages);
+                }
+            }
+        })
+    });
+}
 
 
 function load_tracks(page, number_pages) {
