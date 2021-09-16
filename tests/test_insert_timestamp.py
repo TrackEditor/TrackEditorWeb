@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
 import tests.testing_utils as testing_utils
-import libs.constants as c
+from libs.constants import Constants as c
 
 
 class InsertTimestampIntegrationTest(StaticLiveServerTestCase):

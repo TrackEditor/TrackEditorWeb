@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import gpxpy
 
-from libs import constants as c
+from libs.constants import Constants as c
 
 
 class LoadGpxError(Exception):
@@ -60,14 +60,8 @@ class Gpx:
                 for i_point in self._gpx.tracks[i_track].segments[i_seg].points:
                     self._gpx_dict['lat'].append(i_point.latitude)
                     self._gpx_dict['lon'].append(i_point.longitude)
-                    if i_point.elevation:
-                        self._gpx_dict['ele'].append(i_point.elevation)
-                    else:
-                        self._gpx_dict['ele'].append(np.nan)
-                    if i_point.time:
-                        self._gpx_dict['time'].append(i_point.time)
-                    else:
-                        self._gpx_dict['time'].append(np.nan)
+                    self._gpx_dict['ele'].append(i_point.elevation if i_point.elevation else np.nan)
+                    self._gpx_dict['time'].append(i_point.time if i_point.time else np.nan)
                     self._gpx_dict['track'].append(i_seg)
                     self._gpx_dict['segment'].append(i_track)
         return self._gpx_dict
