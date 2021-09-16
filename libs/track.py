@@ -18,7 +18,8 @@ import os
 import io
 from time import time as timer
 
-from libs import constants as c, gpx
+import libs.gpx as gpx
+from libs.constants import Constants as c
 
 
 class Track:

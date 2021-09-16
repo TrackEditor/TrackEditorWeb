@@ -14,7 +14,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
 
-from libs import track, constants as c
+import libs.track as track
+from libs.constants import Constants as c
 from .models import User, Track
 from libs.utils import id_generator, auto_zoom
 

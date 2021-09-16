@@ -7,7 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 
-from libs import track, constants as c
+import libs.track as track
+from libs.constants import Constants as c
 from TrackApp.models import Track
 from libs.utils import id_generator, auto_zoom
 
