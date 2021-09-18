@@ -67,7 +67,7 @@ function manage_track_names() {
     if (typeof track_list !== 'undefined') {
         for (let i = 0; i < track_list.length; i++) {
             let segment_idx = segment_list[i];
-            let color = get_color(segment_idx, alpha='-1');
+            let color = get_color(segment_idx, '-1');
 
             const p_name = document.createElement('p');
             const span_name = document.createElement('span');
@@ -114,7 +114,7 @@ function manage_track_names() {
 
                 // Remove layer
                 console.log(`Remove track with index: ${segment_idx}`);
-                var layersToRemove = [];
+                const layersToRemove = [];
                 map.getLayers().forEach(layer => {
                     if ((layer.get('name') === `layer_points_${segment_idx}`) ||
                         (layer.get('name') === `layer_lines_${segment_idx}`) ||
@@ -123,8 +123,8 @@ function manage_track_names() {
                         }
                 });
 
-                var len = layersToRemove.length;
-                for(var j = 0; j < len; j++) {
+                const len = layersToRemove.length;
+                for(let j = 0; j < len; j++) {
                     let layer_name = layersToRemove[j].get('name');
                     console.log(`Removing layer ${layer_name}`);
                     map.removeLayer(layersToRemove[j]);
@@ -214,7 +214,7 @@ function create_map() {
     CREATE_MAP produces the basic map object when track layers will be
     displayed
     */
-    let map = new ol.Map({
+    return new ol.Map({
         view: new ol.View({
             center: ol.proj.fromLonLat([0, 0]),
             zoom: 1,
@@ -228,8 +228,6 @@ function create_map() {
         ],
         target: 'js-map'
     });
-
-    return map;
 }
 
 function plot_segment(map, canvas, index) {
@@ -382,11 +380,9 @@ function get_lines_source(lat, lon, id, style) {
     featureLine.setStyle(style);
 
     // create the source and layer for features
-    var lineSource = new ol.source.Vector({
+    return new ol.source.Vector({
         features: [featureLine]
     });
-
-    return lineSource;
 }
 
 
@@ -394,13 +390,12 @@ function get_points_style(color_index) {
     /*
     GET_POINTS_STYLE provides a style for points
     */
-    const points_style = new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({color: get_color(color_index)}),  // inner color
-                radius: 3,  // circle radius
-            }),
-        });
-    return points_style;
+    return new ol.style.Style({
+        image: new ol.style.Circle({
+            fill: new ol.style.Fill({color: get_color(color_index)}),  // inner color
+            radius: 3,  // circle radius
+        }),
+    });
 }
 
 
@@ -408,13 +403,12 @@ function get_lines_style(color_index, alpha) {
     /*
     GET_LINES_STYLE provides a style for lines
     */
-    const line_style = new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: get_color(color_index, alpha),
-                width: 5,
-            })
-        });
-    return line_style;
+    return new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: get_color(color_index, alpha),
+            width: 5,
+        })
+    });
 }
 
 
@@ -443,22 +437,19 @@ function get_links_source(lat, lon, lat_next, lon_next) {
     });
 
     // create the source and layer for features
-    var linkSource = new ol.source.Vector({
+    return new ol.source.Vector({
         features: [featureLink]
     });
-
-    return linkSource;
 }
 
 
 function get_link_style() {
-    const link_style = new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: 'rgb(0, 0, 128, 0.1)',  // navy color
-                width: 3,
-            })
-        });
-    return link_style;
+    return new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'rgb(0, 0, 128, 0.1)',  // navy color
+            width: 3,
+        })
+    });
 }
 
 
@@ -469,10 +460,10 @@ function show_summary() {
     */
 
     // Get elements
-    var modal = document.getElementById("div_summary_modal");
-    var btn = document.getElementById("btn_summary");
-    var span = document.getElementById("close_summary");
-    var summary_content = document.getElementById("div_summary_content");
+    const modal = document.getElementById("div_summary_modal");
+    const btn = document.getElementById("btn_summary");
+    const span = document.getElementById("close_summary");
+    const summary_content = document.getElementById("div_summary_content");
 
     // When the user clicks on <span> (x), close the modal
     span.onclick = function() {
@@ -492,10 +483,10 @@ function show_summary() {
       summary_content.innerHTML = '';
 
         // Table definition
-        var table = document.createElement('table');
+        const table = document.createElement('table');
         table.setAttribute('class', 'table');
-        var tblHead = document.createElement('thead');
-        var tblBody = document.createElement('tbody');
+        const tblHead = document.createElement('thead');
+        const tblBody = document.createElement('tbody');
 
         // Fill header
         let row = document.createElement("tr");
@@ -687,7 +678,7 @@ function reverse_segment() {
                 map.removeLayer(layersToRemove[j]);
             }
 
-            if (response.status == 200){  // redo links
+            if (response.status === 200){  // redo links
                 fetch('/editor/get_segments_links')
                 .then(response => response.json())
                 .then(data => {
@@ -743,12 +734,12 @@ function check_reverse_button() {
 
 
 function change_segments_order() {
-    var modal = document.getElementById("div_change_order_modal");
-    var btn = document.getElementById("btn_change_order");
-    var btn_cancel = document.getElementById("btn_change_order_cancel");
-    var btn_ok = document.getElementById("btn_change_order_ok");
-    var span = document.getElementById("close_change_order");
-    var change_order_content = document.getElementById("div_change_order");
+    const modal = document.getElementById("div_change_order_modal");
+    const btn = document.getElementById("btn_change_order");
+    const btn_cancel = document.getElementById("btn_change_order_cancel");
+    const btn_ok = document.getElementById("btn_change_order_ok");
+    const span = document.getElementById("close_change_order");
+    const change_order_content = document.getElementById("div_change_order");
 
     // When the user clicks on <span> (x), close the modal
     span.onclick = function() {
@@ -761,7 +752,7 @@ function change_segments_order() {
     }
 
     // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function(event) {
+    window.onclick = (event) => {
       if (event.target == modal) {
         modal.style.display = "none";
       }
@@ -803,7 +794,7 @@ function change_segments_order() {
 
         Array.prototype.forEach.call(segments, el => {
             if (el.style.display !== 'none'){
-                let color = get_color(el.dataset.segment_idx, alpha='-1');
+                let color = get_color(el.dataset.segment_idx, '-1');
 
                 console.log(el.innerHTML, el.dataset.segment_idx, el.style.display);
 
@@ -884,41 +875,38 @@ function change_segments_order() {
 
 
 function create_canvas() {
-   var chart = new Chart("js-elevation", {
-      type: "scatter",
-      data: {
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltips: {
-                enabled: false
-            },
-        },
-        scales: {
-          x: {
-            ticks: {
-                callback: function (value, index, values) {
-                    return value + ' km';
-                }
-            }
-          },
-          y: {
-            ticks: {
-                callback: function (value, index, values) {
-                    return value + ' m';
-                }
-            }
-          },
-        }
-      }
-    });
-
-   return chart;
+    return new Chart("js-elevation", {
+       type: "scatter",
+       data: {},
+       options: {
+           responsive: true,
+           maintainAspectRatio: false,
+           plugins: {
+               legend: {
+                   display: false
+               },
+               tooltips: {
+                   enabled: false
+               },
+           },
+           scales: {
+               x: {
+                   ticks: {
+                       callback: (value) => {
+                           return value + ' km';
+                       }
+                   }
+               },
+               y: {
+                   ticks: {
+                       callback: (value) => {
+                           return value + ' m';
+                       }
+                   }
+               },
+           }
+       }
+   });
 }
 
 
