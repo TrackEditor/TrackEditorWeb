@@ -344,7 +344,7 @@ function get_points_source(lat, lon) {
 
     // create points
     const features = [];
-    for (i = 0; i < lat.length; i++) {
+    for (let i = 0; i < lat.length; i++) {
         features.push(new ol.Feature({
             geometry: new ol.geom.Point(ol.proj.fromLonLat([
                 lon[i], lat[i]
@@ -353,11 +353,9 @@ function get_points_source(lat, lon) {
     }
 
     // create the source and layer for features
-    const vectorSource = new ol.source.Vector({
+    return new ol.source.Vector({
         features
     });
-
-    return vectorSource;
 }
 
 
@@ -369,7 +367,7 @@ function get_lines_source(lat, lon, id, style) {
 
     // create points
     const points = [];
-    for (i = 0; i < lat.length; i++) {
+    for (let i = 0; i < lat.length; i++) {
         points.push(ol.proj.fromLonLat([lon[i], lat[i]]));
     }
 
