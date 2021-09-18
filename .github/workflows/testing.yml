@@ -45,6 +45,7 @@ jobs:
           DB_PASSWORD: ${{secrets.DB_PASSWORD}}
           DB_PORT: 5432
           DB_HOST: localhost
+          SECRET_KEY: ${{secrets.SECRET_KEY}}
       run: |
         coverage run --parallel-mode --rcfile=./.coveragerc --source=. manage.py test tests --parallel 4
         coverage combine --rcfile=./.coveragerc
