@@ -12,7 +12,7 @@ jobs:
         image: postgres:10.8
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: ${{secrets.DB_PASSWORD}}
           POSTGRES_DB: track_db
         ports:
           - 5432:5432
@@ -42,9 +42,10 @@ jobs:
       env:
           DB_NAME: track_db
           DB_USER: postgres
-          DB_PASSWORD: postgres
+          DB_PASSWORD: ${{secrets.DB_PASSWORD}}
           DB_PORT: 5432
           DB_HOST: localhost
+          SECRET_KEY: ${{secrets.SECRET_KEY}}
       run: |
         coverage run --parallel-mode --rcfile=./.coveragerc --source=. manage.py test tests --parallel 4
         coverage combine --rcfile=./.coveragerc
