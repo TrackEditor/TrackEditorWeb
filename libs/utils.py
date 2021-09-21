@@ -83,3 +83,8 @@ def auto_zoom(lat_min: float, lat_max: float,
             return zoom - 1
 
     return c.max_zoom
+
+
+def map_center(lat_min: float, lat_max: float,
+               lon_min: float, lon_max: float) -> list[float]:
+    return [(lat_min + lat_max) / 2, (lon_min + lon_max) / 2]

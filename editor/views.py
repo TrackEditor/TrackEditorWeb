@@ -1,5 +1,6 @@
 import os
 import json
+import traceback
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -10,19 +11,7 @@ from django.contrib.auth.decorators import login_required
 import libs.track as track
 from libs.constants import Constants as c
 from TrackApp.models import Track
-from libs.utils import id_generator, auto_zoom
-
-
-def exist_track(request):
-    """
-    Checks whether a track is already created in the user session
-    :param request: from the view call it stores the session
-    :return: True if the track exists
-    """
-    if 'json_track' in request.session:
-        if request.session['json_track']:
-            return True
-    return False
+from libs.utils import id_generator, auto_zoom, map_center
 
 
 def check_view(method, error_code):
@@ -33,6 +22,12 @@ def check_view(method, error_code):
     :param error_code: numeric number to provide in case of excepction
     :return: function called through wrapper
     """
+    def exist_track(request):
+        if 'json_track' in request.session:
+            if request.session['json_track']:
+                return True
+        return False
+
     def decorator_function(func):
         def wrapper(request, *args, **kwargs):
             if request.method != method:
@@ -44,6 +39,9 @@ def check_view(method, error_code):
             try:
                 return func(request, *args, **kwargs)
             except Exception as e:
+                print(f'Error in function: {func.__name__}')
+                print(f'Call: {func.__name__}({args}, {kwargs})')
+                print(traceback.format_exc())
                 return JsonResponse(
                     {'error': f'Unexpected error ({error_code}): {e}'},
                     status=error_code)
@@ -168,6 +166,31 @@ def get_segment(request, index):
                          'map_zoom': int(auto_zoom(*extremes)),
                          'index': index
                          }, status=200)
+
+
+@login_required
+@check_view('GET', 524)
+def get_track(request):
+    obj_track = track.Track.from_json(request.session['json_track'])
+    df_track = obj_track.df_track
+
+    track_json = {'title': obj_track.title,
+                  'segments': [],
+                  'map_center': map_center(*obj_track.extremes),
+                  'map_zoom': int(auto_zoom(*obj_track.extremes))}
+
+    for segment_idx in obj_track.df_track['segment'].unique():
+        obj_segment = df_track[df_track['segment'] == segment_idx]
+        track_json['segments'].append(
+            {'lat': obj_segment['lat'].to_list(),
+             'lon': obj_segment['lon'].to_list(),
+             'ele': obj_segment['ele'].to_list(),
+             'distance': obj_segment['distance'].to_list(),
+             'index': int(segment_idx),  # ensure serializable value
+             'name': obj_track.segment_names[segment_idx - 1],
+             'size': obj_segment.shape[0]})
+
+    return JsonResponse(track_json, status=200)
 
 
 @login_required
