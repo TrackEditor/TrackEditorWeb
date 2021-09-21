@@ -716,11 +716,17 @@ class GetTrackTest(EditorTestUtils):
 
         # Coordinates links
         self.assertEqual(track['links_coor'][0],
-                         {'from': 1, 'to': 2, 'from_coor': [5.0, 1.0], 'to_coor': [6.0, 1.0]})
+                         {'from': 1, 'to': 2,
+                          'from_coor': {'lon': 5.0, 'lat': 1.0},
+                          'to_coor': {'lon': 6.0, 'lat':1.0}})
         self.assertEqual(track['links_coor'][1],
-                         {'from': 2, 'to': 3, 'from_coor': [6.0, -3.0], 'to_coor': [5.0, -3.0]})
+                         {'from': 2, 'to': 3,
+                          'from_coor': {'lon': 6.0, 'lat': -3.0},
+                          'to_coor': {'lon': 5.0, 'lat':-3.0}})
         self.assertEqual(track['links_coor'][2],
-                         {'from': 3, 'to': 4, 'from_coor': [1.0, -3.0], 'to_coor': [0.0, -3.0]})
+                         {'from': 3, 'to': 4,
+                          'from_coor': {'lon': 1.0, 'lat': -3.0},
+                          'to_coor': {'lon': 0.0, 'lat':-3.0}})
 
         # Elevation links
         self.assertEqual(track['links_ele'][0],

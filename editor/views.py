@@ -200,10 +200,10 @@ def get_track(request):
             track_json['links_coor'].append(
                 {'from': int(segment_idx),
                  'to': int(segments_indexing[i + 1]),
-                 'from_coor': [float(obj_segment['lon'].iloc[-1]),
-                               float(obj_segment['lat'].iloc[-1])],
-                 'to_coor': [float(obj_next_segment['lon'].iloc[0]),
-                             float(obj_next_segment['lat'].iloc[0])]})
+                 'from_coor': {'lon': float(obj_segment['lon'].iloc[-1]),
+                               'lat': float(obj_segment['lat'].iloc[-1])},
+                 'to_coor': {'lon': float(obj_next_segment['lon'].iloc[0]),
+                             'lat': float(obj_next_segment['lat'].iloc[0])}})
             track_json['links_ele'].append(
                 {'from': int(segment_idx),
                  'to': int(segments_indexing[i + 1]),
