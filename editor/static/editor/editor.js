@@ -44,6 +44,8 @@ function load_track() {
 
             // Plot track
             track_data['segments'].forEach(seg => plot_segment(seg));
+            track_data['links_coor'].forEach(link => plot_link_coor(link));
+            // track_data['links_ele'].forEach(link => plot_link_ele(link));
 
             if (typeof track_data.map_zoom !== 'undefined') {
                 map.getView().setZoom(track_data.map_zoom);
@@ -383,26 +385,21 @@ function get_lines_style(color_index, alpha) {
     });
 }
 
-
-function plot_link(map, link) {
-    /*
-    PLOT_LINK create linking lines between any two segment displayed on map
-    */
+function plot_link_coor(link) {
     const link_vector_layer = new ol.layer.Vector({
-        source: get_links_source(link[0][0], link[0][1], link[1][0], link[1][1]),  // [0] lat, [1] lon
+        source: get_links_source(link['from_coor'], link['to_coor']),
         style: get_link_style(),
-        name: 'layer_link',
+        name: `layer_link_${link['from']}_${link['to']}`,
     });
     map.addLayer(link_vector_layer);
-    console.log(`New link layer: ${link_vector_layer.get('name')}`);
 }
 
 
-function get_links_source(lat, lon, lat_next, lon_next) {
+function get_links_source(from, to) {
     // create points
     const points = [];
-    points.push(ol.proj.fromLonLat([lon, lat]));
-    points.push(ol.proj.fromLonLat([lon_next, lat_next]));
+    points.push(ol.proj.fromLonLat([from['lon'], from['lat']]));
+    points.push(ol.proj.fromLonLat([to['lon'], to['lat']]));
 
     const featureLink = new ol.Feature({
         geometry: new ol.geom.LineString(points)
