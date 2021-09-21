@@ -1,55 +1,60 @@
-var map;
-var canvas;
 var selected_segments = 0;
 var selected_segment_idx;
+var track;
+var map;
+var chart;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     map = create_map();
-    canvas = create_canvas();
+    chart = create_chart();  // elevation chart
+    track = load_track();  // data load includes plotting
     submit_file();
-    manage_track_names();
-    plot_tracks();
-    show_summary();
-    save_session();
-    update_session_name();
-    download_session();
-    reverse_segment();
-    change_segments_order();
+
+    // manage_track_names();
+    // show_summary();
+    // save_session();
+    // update_session_name();
+    // download_session();
+    // reverse_segment();
+    // change_segments_order();
 });
 
+function activate_spinner(spinner_selector) {
+    document.querySelector(spinner_selector).style.display = 'inline-block';
+}
 
+/**
+* SUBMIT_FILE submit the file when it is selected, not when a submit button
+* is clicked. A spinner is activated while the uploading.
+*/
 function submit_file() {
-    /*
-    SUBMIT_FILE submit the file when it is selected, not when a submit button
-    is clicked. A spinner is activated while the uploading.
-    */
     document.querySelector('#select-file').onchange = function() {
         document.querySelector('form').submit();
-        document.querySelector('#div_spinner').style.display = 'inline-block';
+        activate_spinner('#div_spinner');
     };
 }
 
-
-function plot_tracks() {
-    /*
-    PLOT_TRACKS plots all available segments in the map
-    */
-    let div_track_list = document.querySelector('#div_track_list');  // TODO modify with API endpoint
-    let track_list = JSON.parse(div_track_list.dataset.track_list.replace(/'/g, '"'));
-    let segment_list = JSON.parse(div_track_list.dataset.segment_list.replace(/'/g, '"'));
-
-    console.log(segment_list);
-    if (typeof track_list !== 'undefined') {
-        segment_list.forEach(seg => plot_segment(map, canvas, seg));
-
-        fetch('/editor/get_segments_links')
+function load_track() {
+    let track_data;
+    fetch('/editor/get_track')
         .then(response => response.json())
         .then(data => {
-            let links = JSON.parse(data.links);
-            links.forEach(link => plot_link(map, link));
+            track_data = data;
+            console.log('track_data', track_data);
+
+            // Plot track
+            track_data['segments'].forEach(seg => plot_segment(seg));
+
+            if (typeof track_data.map_zoom !== 'undefined') {
+                map.getView().setZoom(track_data.map_zoom);
+            }
+            if (typeof track_data.map_center !== 'undefined') {
+                map.getView().setCenter(ol.proj.fromLonLat(track_data.map_center));
+            }
+
         });
 
-    }
+    return track_data;
 }
 
 
@@ -210,10 +215,6 @@ function get_color(color_index, alpha='0.5') {
 
 
 function create_map() {
-    /*
-    CREATE_MAP produces the basic map object when track layers will be
-    displayed
-    */
     return new ol.Map({
         view: new ol.View({
             center: ol.proj.fromLonLat([0, 0]),
@@ -230,109 +231,82 @@ function create_map() {
     });
 }
 
-function plot_segment(map, canvas, index) {
-    /*
-    PLOT_SEGMENT create the source layer
-    Fetched data:
-        - size: total number of elements in arrays lat/lon/ele
-        - lat
-        - lon
-        - ele
-        - map_center
-        - map_zoom
-        - index
-    The API end point /editor/get_segment/<int:index> returns the information
-    of each segment by index. When index=0 the last available segment is
-    returned.
-    */
-
-    // Get data
-    fetch(`/editor/get_segment/${index}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.size === 0) {  // do nothing if no data
-                return;
-            }
-
-            // Plot elevation
-            let elevation_data = [];
-            data.distance.forEach((distance, index) => {
-			    let elevation = data.ele[index];
-			    elevation_data.push({x: distance, y: elevation});
-		    });
-
-            canvas.data.datasets.push({
-                label: `elevation_${index}`,
-                fill: true,
-                lineTension: 0.4,
-                data: elevation_data,
-                showLine: true,
-                borderWidth: 3,
-                backgroundColor: get_color(index, '0.2'),
-                borderColor: get_color(index, '0.8'),
-                hidden: false,
-            });
-            canvas.update();
-
-            // Points to vector layer
-            const points_vector_layer = new ol.layer.Vector({
-                source: get_points_source(data.lat, data.lon),
-                style: get_points_style(data.index),
-                name: `layer_points_${index}`,
-            });
-            map.addLayer(points_vector_layer);
-            console.log(`New layer: ${points_vector_layer.get('name')}`);
-
-            // Lines to vector layer
-            const lines_vector_layer = new ol.layer.Vector({
-                source: get_lines_source(data.lat, data.lon,
-                                         `features_lines_${index}`,
-                                         get_lines_style(data.index)),
-                name: `layer_lines_${index}`,
-            });
-            map.addLayer(lines_vector_layer);
-            console.log(`New layer: ${lines_vector_layer.get('name')}`);
-
-            // Interaction
-            let select_interaction = new ol.interaction.Select({
-                layers: [lines_vector_layer]
-            });
-            map.addInteraction(select_interaction);
-
-            select_interaction.on('select', function (e) {
-                console.log('(de)select');
-                document.querySelector(`#span_rename_${index}`).style.fontWeight = 'normal';
-                if (e.selected.length > 0) {
-                    if (e.selected[0].getId() === `features_lines_${index}`) {
-                        console.log('selected line:', e.selected[0].getId());
-                        console.log('data index:', data.index);
-                        e.selected[0].setStyle(new ol.style.Style({
-                            stroke: new ol.style.Stroke({
-                                color: get_color(index, '0.9'),
-                                width: 7,
-                            })
-                        }));
-                        // Bold track name
-                        document.querySelector(`#span_rename_${index}`).style.fontWeight = 'bolder';
-
-                    }
-                    elevation_show_segment(index);
-                    selected_segment_idx = index;
-                    selected_segments++;
-                }
-                else {
-                    console.log('deselect');
-                    elevation_show_segment(undefined, true);
-                    selected_segment_idx = undefined;
-                    selected_segments--;
-                }
-
-            });
-
-        // Adjust display
-        map.getView().setZoom(data.map_zoom);
-        map.getView().setCenter(ol.proj.fromLonLat(data.map_center));
+function plot_segment(segment) {
+    // Plot elevation
+    let elevation_data = [];
+    segment.distance.forEach((distance, index) => {
+        let elevation = segment.ele[index];
+        elevation_data.push({x: distance, y: elevation});
     });
+
+    chart.data.datasets.push({
+        label: `elevation_${segment.index}`,
+        fill: true,
+        lineTension: 0.4,
+        data: elevation_data,
+        showLine: true,
+        borderWidth: 3,
+        backgroundColor: get_color(segment.index, '0.2'),
+        borderColor: get_color(segment.index, '0.8'),
+        hidden: false,
+    });
+    chart.update();
+
+    // Points to vector layer
+    const points_vector_layer = new ol.layer.Vector({
+        source: get_points_source(segment.lat, segment.lon),
+        style: get_points_style(segment.index),
+        name: `layer_points_${segment.index}`,
+    });
+    map.addLayer(points_vector_layer);
+    console.log(`New layer: ${points_vector_layer.get('name')}`);
+
+    // Lines to vector layer
+    const lines_vector_layer = new ol.layer.Vector({
+        source: get_lines_source(segment.lat, segment.lon,
+                                 `features_lines_${segment.index}`,
+                                 get_lines_style(segment.index)),
+        name: `layer_lines_${segment.index}`,
+    });
+    map.addLayer(lines_vector_layer);
+    console.log(`New layer: ${lines_vector_layer.get('name')}`);
+
+    // Interaction
+    let select_interaction = new ol.interaction.Select({
+        layers: [lines_vector_layer]
+    });
+    map.addInteraction(select_interaction);
+
+    select_interaction.on('select', function (e) {
+        console.log('(de)select');
+        document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'normal';
+        if (e.selected.length > 0) {
+            if (e.selected[0].getId() === `features_lines_${segment.index}`) {
+                console.log('selected line:', e.selected[0].getId());
+                console.log('data index:', segment.index);
+                e.selected[0].setStyle(new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: get_color(segment.index, '0.9'),
+                        width: 7,
+                    })
+                }));
+                // Bold track name
+                document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'bolder';
+
+            }
+            elevation_show_segment(segment.index);
+            selected_segment_idx = segment.index;
+            selected_segments++;
+        }
+        else {
+            console.log('deselect');
+            elevation_show_segment(undefined, true);
+            selected_segment_idx = undefined;
+            selected_segments--;
+        }
+
+    });
+
 }
 
 
@@ -872,7 +846,7 @@ function change_segments_order() {
 }
 
 
-function create_canvas() {
+function create_chart() {
     return new Chart("js-elevation", {
        type: "scatter",
        data: {},
