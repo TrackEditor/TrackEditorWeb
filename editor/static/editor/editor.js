@@ -45,7 +45,7 @@ function load_track() {
             // Plot track
             track_data['segments'].forEach(seg => plot_segment(seg));
             track_data['links_coor'].forEach(link => plot_link_coor(link));
-            // track_data['links_ele'].forEach(link => plot_link_ele(link));
+            track_data['links_ele'].forEach(link => plot_link_ele(link));
 
             if (typeof track_data.map_zoom !== 'undefined') {
                 map.getView().setZoom(track_data.map_zoom);
@@ -394,7 +394,6 @@ function plot_link_coor(link) {
     map.addLayer(link_vector_layer);
 }
 
-
 function get_links_source(from, to) {
     // create points
     const points = [];
@@ -421,6 +420,23 @@ function get_link_style() {
     });
 }
 
+
+function plot_link_ele(link) {
+    let link_data = [link['from_ele'], link['to_ele']];
+    chart.data.datasets.push({
+        label: `link_${link.from}_${link.to}`,
+        fill: true,
+        data: link_data,
+        showLine: true,
+        borderWidth: 3,
+        backgroundColor: 'rgb(0, 0, 128, 0.05)',
+        borderColor: 'rgb(0, 0, 128, 0.1)',
+        hidden: false,
+        pointRadius: 0,
+    });
+
+    chart.update();
+}
 
 function show_summary() {
     /*
