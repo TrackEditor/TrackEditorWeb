@@ -173,13 +173,17 @@ def get_segment(request, index):
 def get_track(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     df_track = obj_track.df_track
+    segments_indexing = obj_track.df_track['segment'].unique()
 
     track_json = {'title': obj_track.title,
+                  'size': len(segments_indexing),
                   'segments': [],
+                  'links_coor': [],
+                  'links_ele': [],
                   'map_center': map_center(*obj_track.extremes),
                   'map_zoom': int(auto_zoom(*obj_track.extremes))}
 
-    for segment_idx in obj_track.df_track['segment'].unique():
+    for i, segment_idx in enumerate(segments_indexing):
         obj_segment = df_track[df_track['segment'] == segment_idx]
         track_json['segments'].append(
             {'lat': obj_segment['lat'].to_list(),
@@ -189,6 +193,24 @@ def get_track(request):
              'index': int(segment_idx),  # ensure serializable value
              'name': obj_track.segment_names[segment_idx - 1],
              'size': obj_segment.shape[0]})
+
+        if i < track_json['size'] - 1 and track_json['size'] > 1:
+            obj_next_segment = df_track[df_track['segment'] ==
+                                        segments_indexing[i + 1]]
+            track_json['links_coor'].append(
+                {'from': int(segment_idx),
+                 'to': int(segments_indexing[i + 1]),
+                 'from_coor': [float(obj_segment['lon'].iloc[-1]),
+                               float(obj_segment['lat'].iloc[-1])],
+                 'to_coor': [float(obj_next_segment['lon'].iloc[0]),
+                             float(obj_next_segment['lat'].iloc[0])]})
+            track_json['links_ele'].append(
+                {'from': int(segment_idx),
+                 'to': int(segments_indexing[i + 1]),
+                 'from_ele': {'x': float(obj_segment['distance'].iloc[-1]),
+                              'y': float(obj_segment['ele'].iloc[-1])},
+                 'to_ele': {'x': float(obj_next_segment['distance'].iloc[0]),
+                            'y': float(obj_next_segment['ele'].iloc[0])}})
 
     return JsonResponse(track_json, status=200)
 

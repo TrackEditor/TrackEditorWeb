@@ -697,6 +697,8 @@ class GetTrackTest(EditorTestUtils):
         track = json.loads(response.content)
 
         self.assertEqual(response.status_code, 200)
+
+        # Segments
         self.assertEqual(track['segments'][0]['lat'], [1] * 5)
         self.assertEqual(track['segments'][0]['lon'], list(range(1, 6)))
         self.assertEqual(track['segments'][1]['lat'], list(range(1, -4, -1)))
@@ -711,6 +713,31 @@ class GetTrackTest(EditorTestUtils):
                                            for i in range(4)],
                                           [])),
                          sorted(distance))  # ascendant order of cum distance
+
+        # Coordinates links
+        self.assertEqual(track['links_coor'][0],
+                         {'from': 1, 'to': 2, 'from_coor': [5.0, 1.0], 'to_coor': [6.0, 1.0]})
+        self.assertEqual(track['links_coor'][1],
+                         {'from': 2, 'to': 3, 'from_coor': [6.0, -3.0], 'to_coor': [5.0, -3.0]})
+        self.assertEqual(track['links_coor'][2],
+                         {'from': 3, 'to': 4, 'from_coor': [1.0, -3.0], 'to_coor': [0.0, -3.0]})
+
+        # Elevation links
+        self.assertEqual(track['links_ele'][0],
+                         {'from': 1,
+                          'to': 2,
+                          'from_ele': {'x': 445.2106018066406, 'y': 10.0},
+                          'to_ele': {'x': 556.5132446289062, 'y': 10.0}})
+        self.assertEqual(track['links_ele'][1],
+                         {'from': 2,
+                          'to': 3,
+                          'from_ele': {'x': 998.8134765625, 'y': 20.0},
+                          'to_ele': {'x': 1109.9814453125, 'y': 20.0}})
+        self.assertEqual(track['links_ele'][2],
+                         {'from': 3,
+                          'to': 4,
+                          'from_ele': {'x': 1554.6531982421875, 'y': 30.0},
+                          'to_ele': {'x': 1665.8211669921875, 'y': 10.0}})
 
     def test_get_track_no_track(self):
         response = self.client.get('/editor/get_track')
