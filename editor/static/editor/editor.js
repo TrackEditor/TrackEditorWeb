@@ -33,11 +33,9 @@ function submit_file() {
 }
 
 function load_track() {
-    let track_data;
-    fetch('/editor/get_track')
+    return fetch('/editor/get_track')
         .then(response => response.json())
-        .then(data => {
-            track_data = data;
+        .then(track_data => {
             console.log('track_data', track_data);
 
             // Plot track
@@ -55,9 +53,8 @@ function load_track() {
             // Create list of tracks
             track_data['segments'].forEach(seg => manage_segment_name(seg));
 
+            return track_data;
         });
-    console.log('load_track', track_data);  // TODO review promise behaviour to do this
-    return track_data;
 }
 
 
@@ -950,21 +947,18 @@ function create_chart() {
 
 function elevation_show_segment(index=undefined, all=false) {
     console.log('all', all);
-    canvas.data.datasets.forEach((dataset, canvas_index) => {
+    chart.data.datasets.forEach((dataset, canvas_index) => {
         console.log('all-forEach', all);
         if (all) {
             dataset.hidden = false;
         }
         else if (typeof index !== 'undefined') {
-            dataset.hidden = true;
-            if (dataset.label === `elevation_${index}`) {
-                dataset.hidden = false;
-            }
+            dataset.hidden = dataset.label !== `elevation_${index}`;
         }
         else {
             return false;
         }
     });
-    canvas.update();
+    chart.update();
     return true;
 }
