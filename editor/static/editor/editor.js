@@ -4,11 +4,14 @@ var track;
 var map;
 var chart;
 
-document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', async () => {
+    track = await load_track();
     map = create_map();
     chart = create_chart();  // elevation chart
-    track = load_track();  // data load includes plotting
     submit_file();
+    plot_track();
+    segments_manager();
     // show_summary();
     // save_session();
     // update_session_name();
@@ -21,44 +24,44 @@ function activate_spinner(spinner_selector) {
     document.querySelector(spinner_selector).style.display = 'inline-block';
 }
 
-/**
-* SUBMIT_FILE submit the file when it is selected, not when a submit button
-* is clicked. A spinner is activated while the uploading.
-*/
 function submit_file() {
+    /* Submit the file when it is selected, not when a submit button
+    * is clicked. */
     document.querySelector('#select-file').onchange = function() {
         document.querySelector('form').submit();
         activate_spinner('#div_spinner');
     };
 }
 
-function load_track() {
-    return fetch('/editor/get_track')
-        .then(response => response.json())
-        .then(track_data => {
-            console.log('track_data', track_data);
+async function load_track() {
+    try {
+        const response = await fetch('/editor/get_track');
+        return await response.json();
+    } catch (error) {
+        console.log('load track error');
+    }
+}
 
-            // Plot track
-            track_data['segments'].forEach(seg => plot_segment(seg));
-            track_data['links_coor'].forEach(link => plot_link_coor(link));
-            track_data['links_ele'].forEach(link => plot_link_ele(link));
+function plot_track() {
+    // Plot track
+    track['segments'].forEach(seg => plot_segment(seg));
+    track['links_coor'].forEach(link => plot_link_coor(link));
+    track['links_ele'].forEach(link => plot_link_ele(link));
 
-            if (typeof track_data.map_zoom !== 'undefined') {
-                map.getView().setZoom(track_data.map_zoom);
-            }
-            if (typeof track_data.map_center !== 'undefined') {
-                map.getView().setCenter(ol.proj.fromLonLat(track_data.map_center));
-            }
+    if (typeof track.map_zoom !== 'undefined') {
+        map.getView().setZoom(track.map_zoom);
+    }
+    if (typeof track.map_center !== 'undefined') {
+        map.getView().setCenter(ol.proj.fromLonLat(track.map_center));
+    }
+}
 
-            // Create list of tracks
-            track_data['segments'].forEach(seg => manage_segment_name(seg));
-
-            return track_data;
-        });
+function segments_manager() {
+    track['segments'].forEach(seg => manage_segment(seg));
 }
 
 
-function manage_segment_name(segment) {
+function manage_segment(segment) {
     let color = get_color(segment.index, '-1');
     const p_name = document.createElement('p');
     const span_name = document.createElement('span');
