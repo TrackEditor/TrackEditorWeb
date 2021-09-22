@@ -9,8 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     chart = create_chart();  // elevation chart
     track = load_track();  // data load includes plotting
     submit_file();
-
-    // manage_track_names();
     // show_summary();
     // save_session();
     // update_session_name();
@@ -54,13 +52,68 @@ function load_track() {
                 map.getView().setCenter(ol.proj.fromLonLat(track_data.map_center));
             }
 
-        });
+            // Create list of tracks
+            track_data['segments'].forEach(seg => manage_segment_name(seg));
 
+        });
+    console.log('load_track', track_data);  // TODO review promise behaviour to do this
     return track_data;
 }
 
 
-function manage_track_names() {
+function manage_segment_name(segment) {
+    let color = get_color(segment.index, '-1');
+    const p_name = document.createElement('p');
+    const span_name = document.createElement('span');
+    const span_marker = document.createElement('span');
+    const button_remove = document.createElement('button');
+
+    // Define the circle marker
+    span_marker.innerHTML = '&#9899';
+    span_marker.style = `font-size: 20px; color: transparent;  text-shadow: 0 0 0 ${color};`;
+
+    // Define editable track name
+    span_name.innerHTML = segment.name;
+    span_name.style = 'font-size: 18px; margin-left: 5px;';
+    span_name.setAttribute('contenteditable', 'true');
+    span_name.setAttribute('data-index', segment.index);
+    span_name.setAttribute('data-original_name', span_name.innerHTML);
+    span_name.setAttribute('id', `span_rename_${segment.index}`);
+    span_name.setAttribute('class', 'span_rename');
+    span_name.setAttribute('data-segment_idx', segment.index);
+
+    // Define remove segment button
+    button_remove.style = 'font-size: 18px; vertical-align: -3px; margin-left: 20px;';
+    button_remove.setAttribute('class', 'btn-close');
+    button_remove.setAttribute('type', 'button');
+    button_remove.setAttribute('aria-label', 'Close');
+    button_remove.setAttribute('data-index', segment.index);
+    button_remove.setAttribute('id', `btn_remove_${segment.index}`);
+
+    // Rename segment listener
+    span_name.addEventListener('blur', () => {
+        let new_name = span_name.innerHTML;
+        fetch(`/editor/rename_segment/${segment.index}/${new_name}`, {
+             method: 'POST',
+        });
+    });
+
+    // Remove segment listener
+    button_remove.addEventListener('click', () => {
+        console.log('remove segment', segment.index);
+        console.log(track);
+    });
+
+    // Add new elements to html div
+    let div_track_list = document.querySelector('#div_track_list');
+    p_name.appendChild(span_marker);
+    p_name.appendChild(span_name);
+    p_name.appendChild(button_remove);
+    div_track_list.appendChild(p_name);
+}
+
+
+function manage_track_names_old() {
     /*
     MANAGE_TRACK_NAMES displays the name of the track as soon as the
     corresponding GPX file.
@@ -104,7 +157,7 @@ function manage_track_names() {
                 fetch(`/editor/rename_segment/${index}/${new_name}`, {
                     method: 'POST',
                 });
-                // TODO use the data-original_name if response is not OK
+                // TODO use the data-original_name if response is NOK
             });
 
             button_remove.setAttribute('class', 'btn-close');
