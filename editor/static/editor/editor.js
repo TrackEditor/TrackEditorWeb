@@ -148,18 +148,15 @@ function remove_segment(segment_index, list) {
 }
 
 function remove_map(segment_index) {
-    // console.log(`Remove track with index: ${segment_index}`);
     let layersToRemove = [];
     map.getLayers().forEach(layer => {
         let layer_name = layer.get('name');
 
         if (typeof layer_name !== 'undefined') {
-            // console.log('checking layer: ', layer_name);
             if ((layer_name === `layer_points_${segment_index}`) ||
                 (layer_name === `layer_lines_${segment_index}`) ||
                 (RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
                 (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
-                // console.log('layer to remove:', layer_name);
                 layersToRemove.push(layer);
             }
         }
@@ -167,8 +164,6 @@ function remove_map(segment_index) {
 
     const len = layersToRemove.length;
     for(let j = 0; j < len; j++) {
-        // let layer_name = layersToRemove[j].get('name');
-        // console.log(`Removing layer ${layer_name}`);
         map.removeLayer(layersToRemove[j]);
     }
 }
@@ -187,7 +182,9 @@ function remove_elevation(segment_index) {
         }
     });
 
-    chartIndexToRemove.reverse().forEach(idx => {
+    // reverse is needed since array of size changes in each iteration
+    let chartIndexToRemoveReversed = chartIndexToRemove.sort().reverse();
+    chartIndexToRemoveReversed.forEach(idx => {
         // reverse is needed since array of size changes in each iteration
         chart.data.datasets.splice(idx, 1);
     });
@@ -226,8 +223,9 @@ function remove_ele_link(segment_index) {
         }
     });
 
-    chartIndexToRemove.reverse().forEach(idx => {
-        // reverse is needed since array of size changes in each iteration
+    // reverse is needed since array of size changes in each iteration
+    let chartIndexToRemoveReversed = chartIndexToRemove.sort().reverse();
+    chartIndexToRemoveReversed.forEach(idx => {
         chart.data.datasets.splice(idx, 1);
     });
     chart.update();
@@ -618,13 +616,13 @@ function show_summary() {
         const tblBody = document.createElement('tbody');
 
         // Fill header
-        let row = document.createElement("tr");
+        let hrow = document.createElement("tr");
         ['Track Name', 'Distance', 'Uphill', 'Downhill'].forEach(element => {
             let cell = document.createElement("th");
             cell.innerHTML = element;
-            row.appendChild(cell);
+            hrow.appendChild(cell);
         });
-        tblHead.appendChild(row);
+        tblHead.appendChild(hrow);
         table.appendChild(tblHead);
 
         // Fill body
@@ -634,7 +632,7 @@ function show_summary() {
                 let summary = data['summary'];
 
                 Object.getOwnPropertyNames(summary).forEach( file => {
-                    let row = document.createElement("tr");
+                    let brow = document.createElement("tr");
                     ['file', 'distance', 'uphill', 'downhill'].forEach(element => {
                         let cell = document.createElement("td");
                         if (element === 'file'){
@@ -648,9 +646,9 @@ function show_summary() {
                         else {
                             cell.innerHTML = summary[file][element];
                         }
-                        row.appendChild(cell);
+                        brow.appendChild(cell);
                     })
-                    tblBody.appendChild(row);
+                    tblBody.appendChild(brow);
                 })
                 table.appendChild(tblBody);
                 summary_content.appendChild(table);
