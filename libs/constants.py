@@ -31,7 +31,7 @@ class Constants:
     app_path = os.path.dirname(os.path.realpath(__file__))
 
     # OSM request options
-    version = "v0.1.3"
+    version = "v0.1.4"
     email = "alguerre@outlook.com"
     tool = "TrackEditor"
 
