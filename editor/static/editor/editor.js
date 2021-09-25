@@ -24,6 +24,11 @@ function activate_spinner(spinner_selector) {
     document.querySelector(spinner_selector).style.display = 'inline-block';
 }
 
+function deactivate_spinner(spinner_selector) {
+    document.querySelector(spinner_selector).style.display = 'none';
+}
+
+
 function submit_file() {
     /* Submit the file when it is selected, not when a submit button
     * is clicked. */
@@ -100,6 +105,7 @@ function manage_segment(segment) {
 
     // Remove segment listener
     button_remove.addEventListener('click', () => {
+        remove_segment(segment.index, {'p_name': p_name, 'span_name': span_name})
         console.log('remove segment', segment.index);
         console.log(track);
     });
@@ -112,6 +118,146 @@ function manage_segment(segment) {
     div_track_list.appendChild(p_name);
 }
 
+
+function remove_segment(segment_index, list) {
+    activate_spinner('#div_spinner');
+
+    // remove from list
+    list.p_name.style.display = 'none';
+    list.span_name.style.display = 'none';
+
+    // remove from chart -> recalculate  links
+    remove_elevation(segment_index);
+    // TODO bug: after using island_{1-4} and remove in order 3124 the 1 remains, removing the first elevation is not working well
+
+    // remove from map  -> recalculate links
+    remove_map(segment_index);
+
+    // remove from track structure
+    remove_from_track(segment_index);
+
+    // relink map
+    relink_map(segment_index);
+
+    // relink elevation
+    // relink_elevation();
+
+    // Remove segment in back end
+    fetch(`/editor/remove_segment/${segment_index}`, {
+        method: 'POST',
+    })
+        .then( () => {
+            deactivate_spinner('#div_spinner');
+        })
+        // .catch( error => {
+        //     console.log('Hubo un problema con la petición Fetch:' + error.message);
+        //     deactivate_spinner('#div_spinner');
+        // });
+}
+
+function remove_map(segment_index) {
+    console.log(`Remove track with index: ${segment_index}`);
+    const layersToRemove = [];
+    map.getLayers().forEach(layer => {
+        let layer_name = layer.get('name');
+
+        if (typeof layer_name !== 'undefined') {
+            console.log('checking layer: ', layer_name);
+            if ((layer_name === `layer_points_${segment_index}`) ||
+                (layer_name === `layer_lines_${segment_index}`) ||
+                (RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
+                (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
+                console.log('layer to remove:', layer_name);
+                layersToRemove.push(layer);
+            }
+        }
+    });
+
+    const len = layersToRemove.length;
+    for(let j = 0; j < len; j++) {
+        let layer_name = layersToRemove[j].get('name');
+        console.log(`Removing layer ${layer_name}`);
+        map.removeLayer(layersToRemove[j]);
+    }
+}
+
+function remove_elevation(segment_index) {
+    let remove_elevation_index;
+    chart.data.datasets.forEach((dataset, canvas_index) => {
+        if (dataset.label === `elevation_${segment_index}`) {
+            remove_elevation_index = canvas_index;
+        }
+    });
+
+    if (remove_elevation_index) {
+        chart.data.datasets.splice(remove_elevation_index, 1);
+    }
+    else if (chart.data.datasets.length === 1){
+        chart.data.datasets = [];
+    }
+    chart.update();
+}
+
+function remove_from_track(segment_index) {
+    let segment_track_index;
+    for (let i = 0; i < track['segments'].length; i++) {
+        let segment = track['segments'][i];
+        if (segment['index'] === segment_index) {
+            segment_track_index = i;
+            break;
+        }
+    }
+    track['segments'].splice(segment_track_index, 1);
+}
+
+function relink_map(segment_index) {
+    console.log('relink_map', segment_index);
+
+    let from = {'coor': undefined, 'segment_index': undefined, 'link_index': undefined};
+    let to = {'coor': undefined, 'segment_index': undefined, 'link_index': undefined};
+
+    for (const [i, link] of track['links_coor'].entries()) {
+        if (link.from === segment_index) {
+            to.coor = link['to_coor'];
+            to.segment_index = link['to'];
+            to.link_index = i;
+        }
+        else if (link.to === segment_index) {
+            from.coor = link['from_coor'];
+            from.segment_index = link['from'];
+            from.link_index = i;
+        }
+    }
+
+    console.log('from', from);
+    console.log('to', to);
+
+    if ((typeof from.coor !== 'undefined') && (typeof to.coor !== 'undefined')){
+        // segment is in the middle
+        track['links_coor'].splice(from.link_index, 1);
+        track['links_coor'].splice(to.link_index, 1);
+        const new_link = {'from': from.segment_index,
+                          'to': to.segment_index,
+                          'from_coor': from.coor,
+                          'to_coor': to.coor}
+        track['links_coor'].push(new_link);
+        plot_link_coor(new_link);
+        // TODO bug: upload island 1-3-5. Remove island 3. The track.links_coor has three links instead of two
+    }
+    else if ((typeof from.coor === 'undefined') && (typeof to.coor !== 'undefined')){
+        // segment is at the end
+        track['links_coor'].splice(from.link_index, 1);
+    }
+    else if ((typeof from.coor !== 'undefined') && (typeof to.coor === 'undefined')){
+        // segment is at the start
+        track['links_coor'].splice(to.link_index, 1);
+    }
+
+}
+
+// function relink_elevation(segment_index) {
+//
+// }
 
 function manage_track_names_old() {
     /*
@@ -437,6 +583,7 @@ function get_lines_style(color_index, alpha) {
         })
     });
 }
+
 
 function plot_link_coor(link) {
     const link_vector_layer = new ol.layer.Vector({
