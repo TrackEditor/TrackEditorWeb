@@ -189,7 +189,6 @@ function remove_elevation(segment_index) {
 
     chartIndexToRemove.reverse().forEach(idx => {
         // reverse is needed since array of size changes in each iteration
-        let layer_name = chart.data.datasets[idx].label;
         chart.data.datasets.splice(idx, 1);
     });
     chart.update();
@@ -808,8 +807,6 @@ function get_segment(segment_index) {
 
 
 function reverse_map_link(segment_index) {
-    console.log('reverse_map_link', segment_index);
-
     let segment = get_segment(segment_index);
 
     remove_map_link(segment_index);
@@ -818,7 +815,7 @@ function reverse_map_link(segment_index) {
         let end = segment['lon'].length - 1;
 
         if (link['from'] === segment_index) {
-            console.log('link', link);
+            // different reversing criteria to support multiple reverse
             if (segment['lon'][0] !== link['from_coor']['lon']) {
                 link['from_coor'] = {
                     'lon': segment['lon'][0],
@@ -831,11 +828,10 @@ function reverse_map_link(segment_index) {
                     'lat': segment['lat'][end]
                 };
             }
-            console.log('link', link);
             plot_link_coor(link);
         }
+
         if (link['to'] === segment_index) {
-            console.log('link', link);
             if (segment['lon'][end] !== link['to_coor']['lon']) {
                 link['to_coor'] = {
                     'lon': segment['lon'][end],
@@ -848,7 +844,6 @@ function reverse_map_link(segment_index) {
                     'lat': segment['lat'][0]
                 };
             }
-            console.log('link', link);
             plot_link_coor(link);
         }
     }
@@ -863,13 +858,30 @@ function reverse_ele_link(segment_index) {
     remove_ele_link(segment_index);
 
     for (let link of track['links_ele']) {
-        if (link['from'] === segment_index) {
-            link['from_ele'] = {'y': segment['ele'][0]};
+        let end = segment['ele'].length - 1;
+
+         if (link['from'] === segment_index) {
+            // different reversing criteria to support multiple reverse
+            if (segment['ele'][0] !== link['from_ele']['y']) {
+                link['from_ele'] = {'x': segment['distance'][end],
+                                    'y': segment['ele'][0]};
+            }
+            else{
+                link['from_ele'] = {'x': segment['distance'][end],
+                                    'y': segment['ele'][end]};
+            }
             plot_link_ele(link);
         }
+
         if (link['to'] === segment_index) {
-            let end = segment['distance'].length - 1;
-            link['to_ele'] = {'y': segment['ele'][end]};
+            if (segment['ele'][end] !== link['to_ele']['y']) {
+                link['to_ele'] = {'x': segment['distance'][0],
+                                  'y': segment['ele'][end]};
+            }
+            else {
+                link['to_ele'] = {'x': segment['distance'][0],
+                                  'y': segment['ele'][0]};
+            }
             plot_link_ele(link);
         }
     }
