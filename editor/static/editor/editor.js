@@ -12,10 +12,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     submit_file();
     plot_track();
     segments_manager();
-    // show_summary();
-    // save_session();
-    // update_session_name();
-    // download_session();
+    show_summary();
+    save_session();
+    update_session_name();
+    download_session();
     reverse_segment();
     // change_segments_order();
 });
@@ -705,53 +705,49 @@ function update_session_name() {
         let new_name = e_title.innerHTML;
         fetch(`/editor/rename_session/${new_name}`, {
             method: 'POST',
-        });
-        // .then(response => console.log(response));
+        })
+            .then(response => response_error_mng(response.status, 'update_session_name'))
+            .catch(error => response_error_mng(-1, error));
     });
-    // TODO manage error
 }
 
 
 function download(url, filename) {
     fetch(url).then(function(t) {
         return t.blob().then((b)=>{
-            var a = document.createElement("a");
+            let a = document.createElement("a");
             a.href = URL.createObjectURL(b);
             a.setAttribute("download", filename);
             a.click();
-        }
-        );
-    });
+        })
+            .catch(error => response_error_mng(-1, error));
+    })
+        .then(response => response_error_mng(response.status, 'download'))
+        .catch(error => response_error_mng(-1, error));
 }
 
 function download_session() {
     let btn_download = document.querySelector('#btn_download');
 
     btn_download.addEventListener('click', function() {
-        document.querySelector('#div_spinner').style.display = 'inline-block';
+        activate_spinner('#div_spinner');
 
         fetch('/editor/download_session', {
             method: 'POST'
             })
             .then(response => response.json())
             .then(data => {
-                document.querySelector('#div_spinner').style.display = 'none';
+                deactivate_spinner('#div_spinner');
 
-                if (data.hasOwnProperty('error')) {  // manage error
-                    let div_error = document.querySelector('#div_error_msg');
-                    div_error.innerHTML = data.error;
-                    div_error.style.display = 'inline-block';
-
-                    setTimeout(function() {
-                        div_error.innerHTML = '';
-                        div_error.style.display = 'none';
-                    }, 3000);
-
+                if (data.hasOwnProperty('error')) {
+                    display_error('error', data.error);
                 }
                 else if (data.hasOwnProperty('url')) {
                     download(data.url, data.filename);
                 }
-            });
+            })
+            .catch(error => response_error_mng(-1, error));
+
     });
 
 }
@@ -775,10 +771,10 @@ function reverse_segment() {
                 deactivate_spinner('#div_spinner');
             }
             else {
-                console.log('error management function');
+                response_error_mng(response.status, 'reverse_segment');
                 deactivate_spinner('#div_spinner');
             }
-        });
+        }).catch(error => response_error_mng(-1, error));
 
     });
 }
@@ -851,8 +847,6 @@ function reverse_map_link(segment_index) {
 }
 
 function reverse_ele_link(segment_index) {
-    console.log('reverse_ele_link', segment_index);
-
     let segment = get_segment(segment_index);
 
     remove_ele_link(segment_index);
@@ -892,22 +886,46 @@ function check_reverse_button() {
     let btn_reverse = document.getElementById('btn_reverse');
     btn_reverse.addEventListener('click', () => {
         if (selected_segments === 0) {
-                let div = document.getElementById('div_alerts_box');
-                div.innerHTML = '<div class="alert alert-warning" role="alert">No track has been selected</div>';
-                div.style.display = 'inline-block';
-
-                setTimeout(function(){
-                    div.style.display = 'none';
-                    div.innerHTML = '';
-                }, 3000);
-
-                return false;  // TODO: is this returned after 3s?
+            display_error('warning', 'No track has been selected');
+            return false;
         }
     });
 
     return true;
 }
 
+
+function display_error(severity, msg) {
+    let div = document.getElementById('div_alerts_box');
+    if (severity === 'error') {
+        div.innerHTML = `<div class="alert alert-danger" role="alert">${msg}</div>`;
+    }
+    else if (severity === 'warning') {
+        div.innerHTML = `<div class="alert alert-warning" role="alert">${msg}</div>`;
+    }
+    else {
+        div.innerHTML = `<div class="alert alert-primary" role="alert">${msg}</div>`;
+    }
+    div.style.display = 'inline-block';
+
+    setTimeout(function(){
+        div.style.display = 'none';
+        div.innerHTML = '';
+    }, 3000);
+}
+
+
+function response_error_mng(status, fnc_name) {
+    if (status === 520) {
+        display_error('error', 'No track is loaded');
+    }
+    else if ((status >= 500) && (status < 600)) {
+        display_error('error', `Server error: ${status} (${fnc_name})`);
+    }
+    else {
+        display_error('error', `Unexpected error: ${status} (${fnc_name})`);
+    }
+}
 
 function change_segments_order() {
     const modal = document.getElementById("div_change_order_modal");
@@ -1018,30 +1036,9 @@ function change_segments_order() {
             })
         })
         .then(response => {
-            document.querySelector('#div_spinner_change_order').style.display = 'none';
-
-            let div = document.getElementById('div_alerts_box');
-            if (response.status === 520){
-                div.innerHTML = '<div class="alert alert-danger" role="alert">No track is loaded</div>';
-                setTimeout(function(){
-                    div.innerHTML = '';
-                }, 3000);
-                modal.style.display = "none";
-                return;
-            }
-            else if (response.status === 532){
-                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Code: 532</div>';
-                setTimeout(function(){
-                    div.innerHTML = '';
-                }, 3000);
-                modal.style.display = "none";
-                return;
-            }
-            else if (response.status === 200){
-                document.getElementById('a_refresh_editor').click();
-            }
-
-        });
+            deactivate_spinner('#div_spinner_change_order');
+            response_error_mng(response.status, 'change_segments_order');
+        }).catch(error => display_error('error', error));
 
     }
 
