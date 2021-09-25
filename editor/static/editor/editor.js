@@ -1,8 +1,8 @@
-var selected_segments = 0;
-var selected_segment_idx;
-var track;
-var map;
-var chart;
+let selected_segments = 0;
+let selected_segment_idx;
+let track;
+let map;
+let chart;
 
 
 document.addEventListener('DOMContentLoaded', async () => {
