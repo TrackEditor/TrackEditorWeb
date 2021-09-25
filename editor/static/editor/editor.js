@@ -126,21 +126,15 @@ function remove_segment(segment_index, list) {
     list.p_name.style.display = 'none';
     list.span_name.style.display = 'none';
 
-    // remove from chart -> recalculate  links
-    remove_elevation(segment_index);
-    // TODO bug: after using island_{1-4} and remove in order 3124 the 1 remains, removing the first elevation is not working well
+    remove_elevation(segment_index);  // TODO bug: after using island_{1-4} and remove in order 3124 the 1 remains, removing the first elevation is not working well
 
-    // remove from map  -> recalculate links
     remove_map(segment_index);
 
-    // remove from track structure
-    remove_from_track(segment_index);
+    remove_segment_from_track(segment_index);
 
-    // relink map
     relink_map(segment_index);
 
-    // relink elevation
-    // relink_elevation();
+    relink_elevation(segment_index);
 
     // Remove segment in back end
     fetch(`/editor/remove_segment/${segment_index}`, {
@@ -149,15 +143,15 @@ function remove_segment(segment_index, list) {
         .then( () => {
             deactivate_spinner('#div_spinner');
         })
-        // .catch( error => {
-        //     console.log('Hubo un problema con la petición Fetch:' + error.message);
-        //     deactivate_spinner('#div_spinner');
-        // });
+        .catch( error => {
+            console.log('Hubo un problema con la petición Fetch:' + error.message);
+            deactivate_spinner('#div_spinner');
+        });
 }
 
 function remove_map(segment_index) {
-    console.log(`Remove track with index: ${segment_index}`);
-    const layersToRemove = [];
+    // console.log(`Remove track with index: ${segment_index}`);
+    let layersToRemove = [];
     map.getLayers().forEach(layer => {
         let layer_name = layer.get('name');
 
@@ -167,7 +161,7 @@ function remove_map(segment_index) {
                 (layer_name === `layer_lines_${segment_index}`) ||
                 (RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
                 (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
-                console.log('layer to remove:', layer_name);
+                // console.log('layer to remove:', layer_name);
                 layersToRemove.push(layer);
             }
         }
@@ -175,30 +169,42 @@ function remove_map(segment_index) {
 
     const len = layersToRemove.length;
     for(let j = 0; j < len; j++) {
-        let layer_name = layersToRemove[j].get('name');
-        console.log(`Removing layer ${layer_name}`);
+        // let layer_name = layersToRemove[j].get('name');
+        // console.log(`Removing layer ${layer_name}`);
         map.removeLayer(layersToRemove[j]);
     }
 }
 
 function remove_elevation(segment_index) {
-    let remove_elevation_index;
+    console.log(`Remove elevation with index: ${segment_index}`);
+
+    let chartIndexToRemove = [];
     chart.data.datasets.forEach((dataset, canvas_index) => {
-        if (dataset.label === `elevation_${segment_index}`) {
-            remove_elevation_index = canvas_index;
+        let label = dataset.label;
+
+        if (typeof label !== 'undefined') {
+            if ((label === `elevation_${segment_index}`) ||
+                (RegExp(`^link_\\d+_${segment_index}$`).test(label)) ||
+                (RegExp(`^link_${segment_index}_\\d+$`).test(label))) {
+                console.log('layer to remove:', label);
+                chartIndexToRemove.push(canvas_index);
+            }
         }
     });
 
-    if (remove_elevation_index) {
-        chart.data.datasets.splice(remove_elevation_index, 1);
-    }
-    else if (chart.data.datasets.length === 1){
-        chart.data.datasets = [];
-    }
+    console.log('chartIndexToRemove', chartIndexToRemove);
+
+    chartIndexToRemove.reverse().forEach(idx => {
+        // reverse is needed since array of size changes in each iteration
+        let layer_name = chart.data.datasets[idx].label;
+        console.log(`Removing layer ${layer_name}`);
+        chart.data.datasets.splice(idx, 1);
+    });
     chart.update();
 }
 
-function remove_from_track(segment_index) {
+function remove_segment_from_track(segment_index) {
+    // The segment is removed in the track structure
     let segment_track_index;
     for (let i = 0; i < track['segments'].length; i++) {
         let segment = track['segments'][i];
@@ -255,9 +261,51 @@ function relink_map(segment_index) {
 
 }
 
-// function relink_elevation(segment_index) {
-//
-// }
+function relink_elevation(segment_index) {
+    console.log('relink_map', segment_index);
+
+    let from = {'distance': undefined, 'elevation': undefined, 'segment_index': undefined, 'link_index': undefined};
+    let to = {'distance': undefined, 'elevation': undefined, 'segment_index': undefined, 'link_index': undefined};
+
+    for (const [i, link] of track['links_ele'].entries()) {
+        if (link.from === segment_index) {
+            to.distance = link['to_ele']['x'];
+            to.elevation = link['to_ele']['y'];
+            to.segment_index = link['to'];
+            to.link_index = i;
+        }
+        else if (link.to === segment_index) {
+            from.distance = link['from_ele']['x'];
+            from.elevation = link['from_ele']['y'];
+            from.segment_index = link['from'];
+            from.link_index = i;
+        }
+    }
+
+    console.log('from', from);
+    console.log('to', to);
+    if ((typeof from.elevation !== 'undefined') && (typeof to.elevation !== 'undefined')){
+        // segment is in the middle
+        track['links_ele'].splice(from.link_index, 1);
+        track['links_ele'].splice(to.link_index, 1);
+        const new_link = {'from': from.segment_index,
+                          'to': to.segment_index,
+                          'from_ele': {'x': from.distance, 'y': from.elevation},
+                          'to_ele': {'x': to.distance, 'y': to.elevation}}
+        track['links_ele'].push(new_link);
+        plot_link_ele(new_link);
+        // TODO bug: upload island 1-3-5. Remove island 3. The track.links_coor has three links instead of two
+    }
+    else if ((typeof from.elevation === 'undefined') && (typeof to.elevation !== 'undefined')){
+        // segment is at the end
+        track['links_ele'].splice(from.link_index, 1);
+    }
+    else if ((typeof from.elevation !== 'undefined') && (typeof to.elevation === 'undefined')){
+        // segment is at the start
+        track['links_ele'].splice(to.link_index, 1);
+    }
+
+}
 
 function manage_track_names_old() {
     /*
