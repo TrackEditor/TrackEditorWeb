@@ -595,23 +595,27 @@ function show_summary() {
     const btn = document.getElementById("btn_summary");
     const span = document.getElementById("close_summary");
     const summary_content = document.getElementById("div_summary_content");
-
+    const close_modal = () => {
+        modal.style.display = "none";
+        deactivate_spinner('#div_spinner_summary');
+    }
     // When the user clicks on <span> (x), close the modal
     span.onclick = function() {
-      modal.style.display = "none";
+        close_modal();
     }
 
     // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function(event) {
-      if (event.target == modal) {
-        modal.style.display = "none";
-      }
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            close_modal();
+        }
     }
 
     // When the user clicks on the button, open the modal
-    btn.onclick = function() {
-      modal.style.display = "block";
-      summary_content.innerHTML = '';
+    btn.onclick = () => {
+        modal.style.display = "block";
+        summary_content.innerHTML = '';
+        activate_spinner('#div_spinner_summary');
 
         // Table definition
         const table = document.createElement('table');
@@ -634,6 +638,7 @@ function show_summary() {
             .then(response => response.json())
             .then(data => {
                 let summary = data['summary'];
+                deactivate_spinner('#div_spinner_summary');
 
                 Object.getOwnPropertyNames(summary).forEach( file => {
                     let brow = document.createElement("tr");
@@ -656,9 +661,10 @@ function show_summary() {
                 })
                 table.appendChild(tblBody);
                 summary_content.appendChild(table);
-            })
-        // TODO manage errors
-
+            }).catch(error => {
+            display_error('error', error);
+            close_modal();
+        });
     }
 
 }
