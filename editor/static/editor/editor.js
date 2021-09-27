@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     update_session_name();
     download_session();
     reverse_segment();
-    // change_segments_order();
+    change_segments_order();
 });
 
 function activate_spinner(spinner_selector) {
@@ -76,6 +76,10 @@ function manage_segment(segment) {
     // Define the circle marker
     span_marker.innerHTML = '&#9899';
     span_marker.style = `font-size: 20px; color: transparent;  text-shadow: 0 0 0 ${color};`;
+
+    // Define paragraph
+    p_name.setAttribute('class', 'segment-list-item');
+    p_name.setAttribute('id', `segment-list-item-${segment.index}`);
 
     // Define editable track name
     span_name.innerHTML = segment.name;
@@ -183,7 +187,7 @@ function remove_elevation(segment_index) {
     });
 
     // reverse is needed since array of size changes in each iteration
-    let chartIndexToRemoveReversed = chartIndexToRemove.sort().reverse();
+    let chartIndexToRemoveReversed = chartIndexToRemove.reverse();
     chartIndexToRemoveReversed.forEach(idx => {
         // reverse is needed since array of size changes in each iteration
         chart.data.datasets.splice(idx, 1);
@@ -224,7 +228,7 @@ function remove_ele_link(segment_index) {
     });
 
     // reverse is needed since array of size changes in each iteration
-    let chartIndexToRemoveReversed = chartIndexToRemove.sort().reverse();
+    let chartIndexToRemoveReversed = chartIndexToRemove.reverse();
     chartIndexToRemoveReversed.forEach(idx => {
         chart.data.datasets.splice(idx, 1);
     });
@@ -914,16 +918,17 @@ function display_error(severity, msg) {
 
 
 function response_error_mng(status, fnc_name) {
-    if (status === 520) {
-        display_error('error', 'No track is loaded');
-    }
-    else if ((status >= 500) && (status < 600)) {
-        display_error('error', `Server error: ${status} (${fnc_name})`);
-    }
-    else {
-        display_error('error', `Unexpected error: ${status} (${fnc_name})`);
+    if (status !== 200) {
+        if (status === 520) {
+            display_error('error', 'No track is loaded');
+        } else if ((status >= 500) && (status < 600)) {
+            display_error('error', `Server error: ${status} (${fnc_name})`);
+        } else {
+            display_error('error', `Unexpected error: ${status} (${fnc_name})`);
+        }
     }
 }
+
 
 function change_segments_order() {
     const modal = document.getElementById("div_change_order_modal");
@@ -932,26 +937,27 @@ function change_segments_order() {
     const btn_ok = document.getElementById("btn_change_order_ok");
     const span = document.getElementById("close_change_order");
     const change_order_content = document.getElementById("div_change_order");
+    const close_modal = () => modal.style.display = "none";
 
     // When the user clicks on <span> (x), close the modal
-    span.onclick = function() {
-      modal.style.display = "none";
+    span.onclick = () => {
+      close_modal();
     }
 
     // When the user clicks cancel, close the modal
-    btn_cancel.onclick = function() {
-      modal.style.display = "none";
+    btn_cancel.onclick = () => {
+      close_modal();
     }
 
     // When the user clicks anywhere outside of the modal, close it
     window.onclick = (event) => {
-      if (event.target == modal) {
-        modal.style.display = "none";
+      if (event.target === modal) {
+        close_modal();
       }
     }
 
     // When the user clicks on the button, open the modal
-    btn.onclick = function() {
+    btn.onclick = () => {
         let segments = document.getElementsByClassName('span_rename');
         const get_number_segments = () => {
             let number_segments = 0;
@@ -964,19 +970,11 @@ function change_segments_order() {
         };
 
         if (get_number_segments() === 0){
-            let div = document.getElementById('div_alerts_box');
-            div.innerHTML = '<div class="alert alert-warning" role="alert">No segment is loaded </div>';
-            setTimeout(function(){
-                div.innerHTML = '';
-            }, 3000);
+            display_error('warning', 'No segment is loaded');
             return;
         }
         else if (get_number_segments() === 1){
-            let div = document.getElementById('div_alerts_box');
-            div.innerHTML = '<div class="alert alert-warning" role="alert">One single segment is loaded. At least two are required to modify order.</div>';
-            setTimeout(function(){
-                div.innerHTML = '';
-            }, 3000);
+            display_error('warning', 'One single segment is loaded. At least two are required to modify order.');
             return;
         }
         else {
@@ -1018,7 +1016,7 @@ function change_segments_order() {
     }
 
     // Accept the new order
-    btn_ok.onclick = function() {
+    btn_ok.onclick = () => {
         let segments = document.getElementsByClassName('draggable-segment');
         let new_order = [];
         document.querySelector('#div_spinner_change_order').style.display = 'inline-block';
@@ -1035,8 +1033,74 @@ function change_segments_order() {
         })
         .then(response => {
             deactivate_spinner('#div_spinner_change_order');
-            response_error_mng(response.status, 'change_segments_order');
-        }).catch(error => display_error('error', error));
+
+            if (response.status === 200) {
+                // 1. Apply changes to track structure
+                console.log('new_order', new_order);
+                for (let i = 0; i < track.segments.length; i++) {
+                    track.segments[i].index = new_order[i];
+                }
+                track.links_ele = [];
+                track.links_coor = [];
+                console.log('track after reorder', track);
+            } else {
+                close_modal();
+                throw new Error(`Server error by ${response.status} by change segments order`);
+            }
+        }).then ( () => {
+            // 2. Sort track by index
+            track.segments = track.segments.sort((first, second) => {
+                return first['index'] - second['index'];
+            });
+        }).then( () => {
+            // 3. Update links
+            for (let i = 0; i < track.segments.length - 1; i++) {
+                let current_segment = track.segments[i];
+                let next_segment = track.segments[i + 1];
+
+                track.links_coor.push(
+                    {'from': current_segment.index,
+                     'to': next_segment.index,
+                     'from_coor': {'lon': current_segment.lon[current_segment.lon.length - 1],
+                                  'lat': current_segment.lat[current_segment.lat.length - 1]},
+                     'to_coor': {'lon': next_segment.lon[0],
+                                'lat': next_segment.lat[0]}
+                    })
+
+                track.links_ele.push(
+                    {'from': current_segment.index,
+                     'to': next_segment.index,
+                     'from_ele': {'x': current_segment.distance[current_segment.distance.length - 1],
+                                  'y': current_segment.ele[current_segment.ele.length - 1]},
+                     'to_ele': {'x': next_segment.distance[0],
+                                'y': next_segment.ele[0]}
+                    });
+            }
+        }).then( () => {
+            // 4. Remove all plots (including links)
+            chart.data.datasets = [];
+            chart.update();
+
+            track.segments.forEach(segment => {
+                remove_map(segment.index);
+                remove_elevation(segment.index);
+                remove_map_link(segment.index);
+                remove_ele_link(segment.index);
+            });
+
+            let segment_list_items = document.getElementsByClassName('segment-list-item');
+            Array.from(segment_list_items).forEach(e => e.remove());
+
+        }).then( () => {
+            // 5. Redo all plots (including links)
+            plot_track();
+            segments_manager();
+
+            close_modal();
+        }).catch(error => {
+            display_error('error', error);
+            close_modal();
+        });
 
     }
 

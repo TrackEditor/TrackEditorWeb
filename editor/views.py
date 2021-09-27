@@ -329,4 +329,4 @@ def change_segments_order(request):
     obj_track.change_order(order_dict)
     request.session['json_track'] = obj_track.to_json()
 
-    return JsonResponse({'message': 'Segment is reversed'}, status=200)
+    return JsonResponse({'message': 'Successful reordering'}, status=200)
