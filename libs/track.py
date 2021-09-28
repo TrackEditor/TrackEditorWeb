@@ -95,6 +95,7 @@ class Track:
         else:
             track_dict = {'lat': {}, 'lon': {}, 'ele': {}, 'segment': {},
                           'ele_pos_cum': {}, 'ele_neg_cum': {}, 'distance': {},
+                          'segment_distance': {},
                           'size': 0, 'last_segment_idx': 0,
                           'extremes': [0, 0, 0, 0], 'total_distance': 0,
                           'total_uphill': 0, 'total_downhill': 0,
@@ -119,7 +120,8 @@ class Track:
             return track
 
         df_keys = ['lat', 'lon', 'ele', 'segment',
-                   'ele_pos_cum', 'ele_neg_cum', 'distance']
+                   'ele_pos_cum', 'ele_neg_cum', 'distance',
+                   'segment_distance']
 
         df_dict = dict((k, json_dict[k]) for k in df_keys if k in json_dict)
 
@@ -535,6 +537,7 @@ class Track:
         self._insert_positive_elevation()
         self._insert_negative_elevation()
         self._insert_distance()
+        self._insert_segment_distance()
         self._update_extremes()
         self.total_distance = self.df_track.distance.iloc[-1]
         self.total_uphill = self.df_track.ele_pos_cum.iloc[-1]
@@ -654,6 +657,19 @@ class Track:
         # Drop temporary columns
         self.df_track = self.df_track.drop(
             labels=['lat_shift', 'lon_shift', 'p2p_distance'], axis=1)
+
+    def _insert_segment_distance(self):
+        self.df_track['segment_distance'] = 0
+        initial_distance = {}
+
+        for s in self.df_track['segment'].unique():
+            segment = self.df_track[self.df_track['segment'] == s]
+            initial_distance[s] = segment['distance'].iloc[0]
+
+        self.df_track['segment_distance'] = \
+            self.df_track.apply(
+                lambda row: row['distance'] - initial_distance[row['segment']],
+                axis=1)
 
     def _update_extremes(self):
         """

@@ -437,7 +437,7 @@ class TrackTest(TestCase):
         obj_track.add_gpx(os.path.join(self.test_path, 'samples', 'simple_numbers.gpx'))
         json_track = json.loads(obj_track.to_json())
 
-        dataframe_keys = ['lat', 'lon', 'ele', 'segment', 'ele_pos_cum', 'ele_neg_cum', 'distance']
+        dataframe_keys = ['lat', 'lon', 'ele', 'segment', 'ele_pos_cum', 'ele_neg_cum', 'distance', 'segment_distance']
         for k in dataframe_keys:
             self.assertIn(k, json_track)
             self.assertEqual(len(json_track[k]), 5)
@@ -596,3 +596,19 @@ class TrackTest(TestCase):
                          'simple_numbers_up.gpx'))
 
         self.assertNotEqual(obj_track_1, obj_track_2)
+
+    def test_segment_distance(self):
+        # Load data
+        obj_track = track.Track()
+
+        for i in range(1, 5):
+            obj_track.add_gpx(
+                f'{self.test_path}/samples/island_{i}.gpx')
+
+        obj_track._insert_distance()
+        obj_track._insert_segment_distance()
+
+        for s in obj_track.df_track['segment'].unique():
+            segment = obj_track.df_track[obj_track.df_track['segment'] == s]
+            self.assertEqual(segment['segment_distance'].iloc[0], 0)
+            self.assertTrue(all(segment['segment_distance'].iloc[1:]))
