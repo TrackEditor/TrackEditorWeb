@@ -32,7 +32,7 @@ function deactivate_spinner(spinner_selector) {
 function submit_file() {
     /* Submit the file when it is selected, not when a submit button
     * is clicked. */
-    document.querySelector('#select-file').onchange = function() {
+    document.querySelector('#select-file').onchange = () => {
         document.querySelector('form').submit();
         activate_spinner('#div_spinner');
     };
@@ -429,7 +429,7 @@ function plot_segment(segment) {
     });
     map.addInteraction(select_interaction);
 
-    select_interaction.on('select', function (e) {
+    select_interaction.on('select',  e => {
         document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'normal';
         if (e.selected.length > 0) {
             if (e.selected[0].getId() === `features_lines_${segment.index}`) {
@@ -600,7 +600,7 @@ function show_summary() {
         deactivate_spinner('#div_spinner_summary');
     }
     // When the user clicks on <span> (x), close the modal
-    span.onclick = function() {
+    span.onclick = () => {
         close_modal();
     }
 
@@ -676,7 +676,7 @@ function save_session() {
     */
     let btn_save = document.getElementById('btn_save');
 
-    btn_save.addEventListener('click', function() {
+    btn_save.addEventListener('click', () => {
         document.querySelector('#div_spinner').style.display = 'inline-block';
         fetch('/editor/save_session', {
             method: 'POST',
@@ -698,7 +698,7 @@ function save_session() {
                 div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Unable to save</div>';
             }
 
-            setTimeout(function(){
+            setTimeout(() => {
                 div.innerHTML = '';
             }, 3000);
 
@@ -709,7 +709,7 @@ function save_session() {
 function update_session_name() {
     let e_title = document.querySelector('#h_session_name');
 
-    e_title.addEventListener('blur', function() {
+    e_title.addEventListener('blur', () => {
         let new_name = e_title.innerHTML;
         fetch(`/editor/rename_session/${new_name}`, {
             method: 'POST',
@@ -721,7 +721,7 @@ function update_session_name() {
 
 
 function download(url, filename) {
-    fetch(url).then(function(t) {
+    fetch(url).then(t => {
         return t.blob().then((b)=>{
             let a = document.createElement("a");
             a.href = URL.createObjectURL(b);
@@ -737,7 +737,7 @@ function download(url, filename) {
 function download_session() {
     let btn_download = document.querySelector('#btn_download');
 
-    btn_download.addEventListener('click', function() {
+    btn_download.addEventListener('click', () => {
         activate_spinner('#div_spinner');
 
         fetch('/editor/download_session', {
@@ -916,7 +916,7 @@ function display_error(severity, msg) {
     }
     div.style.display = 'inline-block';
 
-    setTimeout(function(){
+    setTimeout(() => {
         div.style.display = 'none';
         div.innerHTML = '';
     }, 3000);
