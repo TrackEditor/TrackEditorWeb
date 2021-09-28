@@ -43,7 +43,7 @@ async function load_track() {
         const response = await fetch('/editor/get_track');
         return await response.json();
     } catch (error) {
-        console.log('load track error');
+        display_error('error', error);
     }
 }
 
@@ -137,6 +137,8 @@ function remove_segment(segment_index, list) {
     relink_map(segment_index);
 
     relink_elevation(segment_index);
+
+    // TODO update_distance and re-plot elevation
 
     // Remove segment in back end
     fetch(`/editor/remove_segment/${segment_index}`, {
@@ -1058,8 +1060,11 @@ function change_segments_order() {
             track.segments = track.segments.sort((first, second) => {
                 return first['index'] - second['index'];
             });
+        }).then ( () => {
+            // 3. Update distance for all segments
+            update_distance();
         }).then( () => {
-            // 3. Update links
+            // 4. Update links
             for (let i = 0; i < track.segments.length - 1; i++) {
                 let current_segment = track.segments[i];
                 let next_segment = track.segments[i + 1];
@@ -1083,7 +1088,7 @@ function change_segments_order() {
                     });
             }
         }).then( () => {
-            // 4. Remove all plots (including links)
+            // 5. Remove all plots (including links)
             chart.data.datasets = [];
             chart.update();
 
@@ -1098,7 +1103,7 @@ function change_segments_order() {
             Array.from(segment_list_items).forEach(e => e.remove());
 
         }).then( () => {
-            // 5. Redo all plots (including links)
+            // 6. Redo all plots (including links)
             plot_track();
             segments_manager();
 
@@ -1163,4 +1168,50 @@ function elevation_show_segment(index=undefined, all=false) {
     });
     chart.update();
     return true;
+}
+
+function update_distance() {
+    /* The cumulative distance provided from API can be altered when a segment
+     * is removed or order is changed. So, it is needed to update it without
+     * the need of an API call.
+     * */
+    track['segments'][0]['distance'] = track['segments'][0]['segment_distance'];
+
+    for (let i = 1; i < track['segments'].length; i++) {
+        console.log('update_distance', i);
+        let previous_segment = track['segments'][i - 1];
+        let current_segment = track['segments'][i];
+        let end = previous_segment.lat.length - 1;
+        let distance = current_segment['segment_distance'];
+        console.log('distance', distance);
+        console.log('previous_segment[\'distance\'][end]', previous_segment['distance'][end]);
+        console.log('haversine', haversine_distance([current_segment.lat[0], current_segment.lon[0]],
+                                                  [previous_segment.lat[end], previous_segment.lon[end]]));
+        let seg2seg_distance = previous_segment['distance'][end] +
+                               haversine_distance([current_segment.lat[0], current_segment.lon[0]],
+                                                  [previous_segment.lat[end], previous_segment.lon[end]]);
+        distance = distance.map(a => a +  seg2seg_distance);
+        track['segments'][i]['distance'] = distance;
+    }
+}
+
+function haversine_distance([lat1, lon1], [lat2, lon2]) {
+    /* Compute distance between two coordinates */
+    const toRadian = angle => (Math.PI / 180) * angle;
+    const distance = (x, y) => (Math.PI / 180) * (x - y);
+    const RADIUS_OF_EARTH_IN_KM = 6371;
+
+    const dLat = distance(lat2, lat1);
+    const dLon = distance(lon2, lon1);
+
+    lat1 = toRadian(lat1);
+    lat2 = toRadian(lat2);
+
+    // Haversine Formula
+    const a =
+        Math.pow(Math.sin(dLat / 2), 2) +
+        Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.asin(Math.sqrt(a));
+
+    return RADIUS_OF_EARTH_IN_KM * c;
 }

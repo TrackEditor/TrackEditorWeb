@@ -190,6 +190,7 @@ def get_track(request):
              'lon': obj_segment['lon'].to_list(),
              'ele': obj_segment['ele'].to_list(),
              'distance': obj_segment['distance'].to_list(),
+             'segment_distance': obj_segment['segment_distance'].to_list(),
              'index': int(segment_idx),  # ensure serializable value
              'name': obj_track.segment_names[segment_idx - 1],
              'size': obj_segment.shape[0]})
