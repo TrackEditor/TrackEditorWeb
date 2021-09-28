@@ -1,5 +1,6 @@
 import * as utils from "./utils.js";
 import * as plot from "./plot.js";
+import * as data_ops from "./data_operations.js";
 let selected_segments = 0;
 let selected_segment_idx;
 let track;
@@ -8,38 +9,20 @@ let chart;
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    track = await load_track();
+    track = await data_ops.load_track();
     map = plot.create_map();
     chart = plot.create_chart();  // elevation chart
-    submit_file();
+    data_ops.submit_file();
+    data_ops.save_session();
+    data_ops.update_session_name();
+    data_ops.download_session();
     plot_track();
     segments_manager();
     show_summary();
-    save_session();
-    update_session_name();
-    download_session();
     reverse_segment();
     change_segments_order();
 });
 
-
-function submit_file() {
-    /* Submit the file when it is selected, not when a submit button
-    * is clicked. */
-    document.querySelector('#select-file').onchange = () => {
-        document.querySelector('form').submit();
-        utils.activate_spinner('#div_spinner');
-    };
-}
-
-async function load_track() {
-    try {
-        const response = await fetch('/editor/get_track');
-        return await response.json();
-    } catch (error) {
-        display_error('error', error);
-    }
-}
 
 function plot_track() {
     // Plot track
@@ -536,96 +519,6 @@ function show_summary() {
 
 }
 
-function save_session() {
-    /*
-    SAVE_SESSION save the current track object in backend when clicking the
-    save button
-    */
-    let btn_save = document.getElementById('btn_save');
-
-    btn_save.addEventListener('click', () => {
-        document.querySelector('#div_spinner').style.display = 'inline-block';
-        fetch('/editor/save_session', {
-            method: 'POST',
-        })
-        .then(response => {
-            document.querySelector('#div_spinner').style.display = 'none';
-
-            let div = document.getElementById('div_alerts_box');
-            if (response.status === 201){
-                div.innerHTML = '<div class="alert alert-success" role="alert">Session has been saved</div>';
-            }
-            else if (response.status === 491){
-                div.innerHTML = '<div class="alert alert-warning" role="alert">No track is loaded</div>';
-            }
-            else if (response.status === 492){
-                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Code: 492</div>';
-            }
-            else {
-                div.innerHTML = '<div class="alert alert-danger" role="alert">Unexpected error. Unable to save</div>';
-            }
-
-            setTimeout(() => {
-                div.innerHTML = '';
-            }, 3000);
-
-        })
-    });
-}
-
-function update_session_name() {
-    let e_title = document.querySelector('#h_session_name');
-
-    e_title.addEventListener('blur', () => {
-        let new_name = e_title.innerHTML;
-        fetch(`/editor/rename_session/${new_name}`, {
-            method: 'POST',
-        })
-            .then(response => response_error_mng(response.status, 'update_session_name'))
-            .catch(error => response_error_mng(-1, error));
-    });
-}
-
-
-function download(url, filename) {
-    fetch(url).then(t => {
-        return t.blob().then((b)=>{
-            let a = document.createElement("a");
-            a.href = URL.createObjectURL(b);
-            a.setAttribute("download", filename);
-            a.click();
-        })
-            .catch(error => response_error_mng(-1, error));
-    })
-        .then(response => response_error_mng(response.status, 'download'))
-        .catch(error => response_error_mng(-1, error));
-}
-
-function download_session() {
-    let btn_download = document.querySelector('#btn_download');
-
-    btn_download.addEventListener('click', () => {
-        utils.activate_spinner('#div_spinner');
-
-        fetch('/editor/download_session', {
-            method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                utils.deactivate_spinner('#div_spinner');
-
-                if (data.hasOwnProperty('error')) {
-                    display_error('error', data.error);
-                }
-                else if (data.hasOwnProperty('url')) {
-                    download(data.url, data.filename);
-                }
-            })
-            .catch(error => response_error_mng(-1, error));
-
-    });
-
-}
 
 function reverse_segment() {
     let btn_reverse = document.getElementById('btn_reverse');

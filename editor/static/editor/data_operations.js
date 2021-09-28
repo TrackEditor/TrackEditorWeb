@@ -1,4 +1,4 @@
-import * as utils from "./utils";
+import * as utils from "./utils.js";
 
 export function submit_file() {
     /* Submit the file when it is selected, not when a submit button
