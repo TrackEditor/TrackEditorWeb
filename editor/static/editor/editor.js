@@ -136,21 +136,44 @@ function remove_segment(segment_index, list) {
 
     relink_map(segment_index);
 
-    relink_elevation(segment_index);
-
-    // TODO update_distance and re-plot elevation
-
     // Remove segment in back end
     fetch(`/editor/remove_segment/${segment_index}`, {
         method: 'POST',
-    })
-        .then( () => {
-            deactivate_spinner('#div_spinner');
-        })
-        .catch( error => {
-            console.log('Hubo un problema con la petición Fetch:' + error.message);
-            deactivate_spinner('#div_spinner');
-        });
+    }).then( response => {
+        if (response.status !== 201) {
+            throw new Error(`Server error by ${response.status} when removing segment.`);
+        }
+    }).then(() =>
+        update_distance()
+    ).then(() => {
+        // Remove elevation plots and links
+        chart.data.datasets = [];
+        chart.update();
+        track.links_ele = [];
+    }).then( () => {
+        // Update links
+        for (let i = 0; i < track.segments.length - 1; i++) {
+            let current_segment = track.segments[i];
+            let next_segment = track.segments[i + 1];
+
+            track.links_ele.push(
+                {'from': current_segment.index,
+                    'to': next_segment.index,
+                    'from_ele': {'x': current_segment.distance[current_segment.distance.length - 1],
+                        'y': current_segment.ele[current_segment.ele.length - 1]},
+                    'to_ele': {'x': next_segment.distance[0],
+                        'y': next_segment.ele[0]}
+                });
+        }
+    }).then(() => {
+        // Plot new elevation
+        track['segments'].forEach(seg => plot_elevation(seg));
+        track['links_ele'].forEach(link => plot_link_ele(link));
+        deactivate_spinner('#div_spinner');
+    }).catch( error => {
+        display_error('error', error);
+        deactivate_spinner('#div_spinner');
+    });
 }
 
 function remove_map(segment_index) {
@@ -387,7 +410,7 @@ function create_map() {
     });
 }
 
-function plot_segment(segment) {
+function plot_elevation(segment) {
     // Plot elevation
     let elevation_data = [];
     segment.distance.forEach((distance, index) => {
@@ -407,6 +430,10 @@ function plot_segment(segment) {
         hidden: false,
     });
     chart.update();
+}
+
+function plot_segment(segment) {
+    plot_elevation(segment);
 
     // Points to vector layer
     const points_vector_layer = new ol.layer.Vector({
@@ -1178,15 +1205,10 @@ function update_distance() {
     track['segments'][0]['distance'] = track['segments'][0]['segment_distance'];
 
     for (let i = 1; i < track['segments'].length; i++) {
-        console.log('update_distance', i);
         let previous_segment = track['segments'][i - 1];
         let current_segment = track['segments'][i];
         let end = previous_segment.lat.length - 1;
         let distance = current_segment['segment_distance'];
-        console.log('distance', distance);
-        console.log('previous_segment[\'distance\'][end]', previous_segment['distance'][end]);
-        console.log('haversine', haversine_distance([current_segment.lat[0], current_segment.lon[0]],
-                                                  [previous_segment.lat[end], previous_segment.lon[end]]));
         let seg2seg_distance = previous_segment['distance'][end] +
                                haversine_distance([current_segment.lat[0], current_segment.lon[0]],
                                                   [previous_segment.lat[end], previous_segment.lon[end]]);
