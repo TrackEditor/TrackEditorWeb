@@ -1,3 +1,4 @@
+import * as utils from "./utils.js";
 let selected_segments = 0;
 let selected_segment_idx;
 let track;
@@ -20,21 +21,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     change_segments_order();
 });
 
-function activate_spinner(spinner_selector) {
-    document.querySelector(spinner_selector).style.display = 'inline-block';
-}
-
-function deactivate_spinner(spinner_selector) {
-    document.querySelector(spinner_selector).style.display = 'none';
-}
-
 
 function submit_file() {
     /* Submit the file when it is selected, not when a submit button
     * is clicked. */
     document.querySelector('#select-file').onchange = () => {
         document.querySelector('form').submit();
-        activate_spinner('#div_spinner');
+        utils.activate_spinner('#div_spinner');
     };
 }
 
@@ -122,7 +115,7 @@ function manage_segment(segment) {
 
 
 function remove_segment(segment_index, list) {
-    activate_spinner('#div_spinner');
+    utils.activate_spinner('#div_spinner');
 
     // remove from list
     list.p_name.style.display = 'none';
@@ -169,10 +162,10 @@ function remove_segment(segment_index, list) {
         // Plot new elevation
         track['segments'].forEach(seg => plot_elevation(seg));
         track['links_ele'].forEach(link => plot_link_ele(link));
-        deactivate_spinner('#div_spinner');
+        utils.deactivate_spinner('#div_spinner');
     }).catch( error => {
         display_error('error', error);
-        deactivate_spinner('#div_spinner');
+        utils.deactivate_spinner('#div_spinner');
     });
 }
 
@@ -624,7 +617,7 @@ function show_summary() {
     const summary_content = document.getElementById("div_summary_content");
     const close_modal = () => {
         modal.style.display = "none";
-        deactivate_spinner('#div_spinner_summary');
+        utils.deactivate_spinner('#div_spinner_summary');
     }
     // When the user clicks on <span> (x), close the modal
     span.onclick = () => {
@@ -642,7 +635,7 @@ function show_summary() {
     btn.onclick = () => {
         modal.style.display = "block";
         summary_content.innerHTML = '';
-        activate_spinner('#div_spinner_summary');
+        utils.activate_spinner('#div_spinner_summary');
 
         // Table definition
         const table = document.createElement('table');
@@ -665,7 +658,7 @@ function show_summary() {
             .then(response => response.json())
             .then(data => {
                 let summary = data['summary'];
-                deactivate_spinner('#div_spinner_summary');
+                utils.deactivate_spinner('#div_spinner_summary');
 
                 Object.getOwnPropertyNames(summary).forEach( file => {
                     let brow = document.createElement("tr");
@@ -765,14 +758,14 @@ function download_session() {
     let btn_download = document.querySelector('#btn_download');
 
     btn_download.addEventListener('click', () => {
-        activate_spinner('#div_spinner');
+        utils.activate_spinner('#div_spinner');
 
         fetch('/editor/download_session', {
             method: 'POST'
             })
             .then(response => response.json())
             .then(data => {
-                deactivate_spinner('#div_spinner');
+                utils.deactivate_spinner('#div_spinner');
 
                 if (data.hasOwnProperty('error')) {
                     display_error('error', data.error);
@@ -790,7 +783,7 @@ function download_session() {
 function reverse_segment() {
     let btn_reverse = document.getElementById('btn_reverse');
     btn_reverse.addEventListener('click', () => {
-        activate_spinner('#div_spinner');
+        utils.activate_spinner('#div_spinner');
 
         if (!check_reverse_button()){  // verify that one segment is selected
             return;
@@ -803,11 +796,11 @@ function reverse_segment() {
                 reverse_elevation(selected_segment_idx);
                 reverse_map_link(selected_segment_idx);
                 reverse_ele_link(selected_segment_idx);
-                deactivate_spinner('#div_spinner');
+                utils.deactivate_spinner('#div_spinner');
             }
             else {
                 response_error_mng(response.status, 'reverse_segment');
-                deactivate_spinner('#div_spinner');
+                utils.deactivate_spinner('#div_spinner');
             }
         }).catch(error => response_error_mng(-1, error));
 
@@ -1065,7 +1058,7 @@ function change_segments_order() {
             })
         })
         .then(response => {
-            deactivate_spinner('#div_spinner_change_order');
+            utils.deactivate_spinner('#div_spinner_change_order');
 
             if (response.status === 200) {
                 // 1. Apply changes to track structure
