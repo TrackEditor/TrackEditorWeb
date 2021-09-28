@@ -128,7 +128,7 @@ function remove_segment(segment_index, list) {
     list.p_name.style.display = 'none';
     list.span_name.style.display = 'none';
 
-    remove_elevation(segment_index);  // TODO bug: after using island_{1-4} and remove in order 3124 the 1 remains, removing the first elevation is not working well
+    remove_elevation(segment_index);
 
     remove_map(segment_index);
 
@@ -300,7 +300,6 @@ function relink_map(segment_index) {
                           'to_coor': to.coor}
         track['links_coor'].push(new_link);
         plot_link_coor(new_link);
-        // TODO bug: upload island 1-3-5. Remove island 3. The track.links_coor has three links instead of two
     }
     else if ((typeof from.coor === 'undefined') && (typeof to.coor !== 'undefined')){
         // segment is at the end
@@ -342,7 +341,6 @@ function relink_elevation(segment_index) {
                           'to_ele': {'x': to.distance, 'y': to.elevation}}
         track['links_ele'].push(new_link);
         plot_link_ele(new_link);
-        // TODO bug: upload island 1-3-5. Remove island 3. The track.links_coor has three links instead of two
     }
     else if ((typeof from.elevation === 'undefined') && (typeof to.elevation !== 'undefined')){
         // segment is at the end
