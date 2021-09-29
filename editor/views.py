@@ -121,7 +121,7 @@ def editor(request, index=None):
 @check_view('POST', 522)
 def rename_segment(request, index, new_name):
     dict_track = json.loads(request.session['json_track'])
-    dict_track['segment_names'][index] = new_name
+    dict_track['segment_names'][index - 1] = new_name
     request.session['json_track'] = json.dumps(dict_track)
 
     return JsonResponse({'message': 'Segment is successfully renamed'},

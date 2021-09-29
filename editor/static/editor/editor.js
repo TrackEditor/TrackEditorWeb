@@ -81,7 +81,7 @@ function manage_segment(segment) {
         let new_name = span_name.innerHTML;
         fetch(`/editor/rename_segment/${segment.index}/${new_name}`, {
              method: 'POST',
-        });
+        }).catch(error => display_error('error', error + '(at rename_segment)'));
     });
 
     // Remove segment listener
