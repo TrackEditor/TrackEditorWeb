@@ -66,6 +66,8 @@ def auto_zoom(lat_min: float, lat_max: float,
     :param lon_max: furthest east point
     :return: zoom to use to show full track
     """
+    if lat_min == lat_max == lon_min == lon_max == 0:
+        return 1
 
     for zoom in range(c.max_zoom):
         num_x_min, num_y_min = deg2num(lat_min, lon_min, zoom)
@@ -83,3 +85,8 @@ def auto_zoom(lat_min: float, lat_max: float,
             return zoom - 1
 
     return c.max_zoom
+
+
+def map_center(lat_min: float, lat_max: float,
+               lon_min: float, lon_max: float) -> list[float]:
+    return [(lon_min + lon_max) / 2, (lat_min + lat_max) / 2]

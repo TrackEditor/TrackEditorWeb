@@ -678,6 +678,82 @@ class GetSegmentTest(EditorTestUtils):
         self.assertEqual(response.status_code, 404)
 
 
+class GetTrackTest(EditorTestUtils):
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
+
+    def test_get_track(self):
+        self.create_session()
+
+        for file in ['simple_numbers.gpx', 'simple_numbers_down.gpx',
+                     'simple_numbers_left.gpx', 'simple_numbers_up.gpx']:
+            sample_file = self.get_sample_file(file)
+            with open(sample_file, 'r') as f:
+                self.client.post('/editor/', {'document': f})
+
+        response = self.client.get('/editor/get_track')
+        track = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+
+        # Segments
+        self.assertEqual(track['segments'][0]['lat'], [1] * 5)
+        self.assertEqual(track['segments'][0]['lon'], list(range(1, 6)))
+        self.assertEqual(track['segments'][1]['lat'], list(range(1, -4, -1)))
+        self.assertEqual(track['segments'][1]['lon'], [6] * 5)
+        self.assertEqual(track['segments'][2]['lat'], [-3] * 5)
+        self.assertEqual(track['segments'][2]['lon'], list(range(5, 0, -1)))
+        self.assertEqual(track['segments'][3]['lat'], list(range(-3, 2)))
+        self.assertEqual(track['segments'][3]['lon'], [0] * 5)
+        self.assertAlmostEqual(track['segments'][0]['distance'][0], 0, places=3)
+        self.assertAlmostEqual(track['segments'][3]['distance'][-1], 2108.121, places=3)
+        self.assertEqual((distance := sum([track['segments'][i]['distance']
+                                           for i in range(4)],
+                                          [])),
+                         sorted(distance))  # ascendant order of cum distance
+
+        # Coordinates links
+        self.assertEqual(track['links_coor'][0],
+                         {'from': 1, 'to': 2,
+                          'from_coor': {'lon': 5.0, 'lat': 1.0},
+                          'to_coor': {'lon': 6.0, 'lat': 1.0}})
+        self.assertEqual(track['links_coor'][1],
+                         {'from': 2, 'to': 3,
+                          'from_coor': {'lon': 6.0, 'lat': -3.0},
+                          'to_coor': {'lon': 5.0, 'lat': -3.0}})
+        self.assertEqual(track['links_coor'][2],
+                         {'from': 3, 'to': 4,
+                          'from_coor': {'lon': 1.0, 'lat': -3.0},
+                          'to_coor': {'lon': 0.0, 'lat': -3.0}})
+
+        # Elevation links
+        self.assertEqual(track['links_ele'][0],
+                         {'from': 1,
+                          'to': 2,
+                          'from_ele': {'x': 445.2106018066406, 'y': 10.0},
+                          'to_ele': {'x': 556.5132446289062, 'y': 10.0}})
+        self.assertEqual(track['links_ele'][1],
+                         {'from': 2,
+                          'to': 3,
+                          'from_ele': {'x': 998.8134765625, 'y': 20.0},
+                          'to_ele': {'x': 1109.9814453125, 'y': 20.0}})
+        self.assertEqual(track['links_ele'][2],
+                         {'from': 3,
+                          'to': 4,
+                          'from_ele': {'x': 1554.6531982421875, 'y': 30.0},
+                          'to_ele': {'x': 1665.8211669921875, 'y': 10.0}})
+
+    def test_get_track_no_track(self):
+        response = self.client.get('/editor/get_track')
+        self.assertEqual(response.status_code, 520)
+
+    def test_get_track_post(self):
+        response = self.client.post('/editor/get_track')
+        self.assertEqual(response.status_code, 400)
+
+
 class RemoveSegmentTest(EditorTestUtils):
     """
     Test the remove_segment view of the editor api
@@ -755,7 +831,7 @@ class RenameSegmentTest(EditorTestUtils):
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(json_track['size'], 4)
-        self.assertEqual(json_track['segment_names'][2], 'test_rename_segment')
+        self.assertEqual(json_track['segment_names'][2 - 1], 'test_rename_segment')
 
     def test_rename_segment_wrong_endpoint(self):
         """
@@ -897,6 +973,10 @@ class LoginRequiredTest(TestCase):
 
     def test_get_segment(self):
         response = self.client.get('/editor/get_segment/1')
+        self.assertEqual(response.status_code, 302)
+
+    def test_get_track(self):
+        response = self.client.get('/editor/get_track')
         self.assertEqual(response.status_code, 302)
 
     def test_get_summary(self):

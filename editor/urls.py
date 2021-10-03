@@ -10,6 +10,7 @@ urlpatterns = [
          name='rename_segment'),
     path('remove_segment/<int:index>', views.remove_segment, name='remove_segment'),
     path('get_segment/<int:index>', views.get_segment, name='get_segment'),
+    path('get_track', views.get_track, name='get_track'),
     path('get_summary', views.get_summary, name='get_summary'),
     path('save_session', views.save_session, name='save_session'),
     path('remove_session/<int:index>', views.remove_session, name='remove_session'),

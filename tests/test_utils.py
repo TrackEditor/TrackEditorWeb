@@ -34,3 +34,6 @@ class UtilsTest(TestCase):
                        'lon_min': -8.547153,
                        'lon_max': -1.319181}
         self.assertEqual(utils.auto_zoom(**coordinates), 6)
+
+    def test_auto_zoom_default(self):
+        self.assertEqual(utils.auto_zoom(0, 0, 0, 0), 1)
