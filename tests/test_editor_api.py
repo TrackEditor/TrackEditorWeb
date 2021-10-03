@@ -831,7 +831,7 @@ class RenameSegmentTest(EditorTestUtils):
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(json_track['size'], 4)
-        self.assertEqual(json_track['segment_names'][2], 'test_rename_segment')
+        self.assertEqual(json_track['segment_names'][2 - 1], 'test_rename_segment')
 
     def test_rename_segment_wrong_endpoint(self):
         """
