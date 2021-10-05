@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     show_summary();
     reverse_segment();
     change_segments_order();
+    split_segment();
 });
 
 
@@ -909,4 +910,69 @@ function update_distance() {
         distance = distance.map(a => a +  seg2seg_distance);
         track['segments'][i]['distance'] = distance;
     }
+}
+
+
+function split_segment() {
+    const btn = document.getElementById('btn_split');
+    const btn_ok = document.getElementById('btn_split_done');
+    const btn_cancel = document.getElementById('btn_split_cancel');
+
+    btn.addEventListener('click', () => {
+        open_split_assistant(btn);
+    });
+
+    btn_cancel.addEventListener('click', () => {
+        close_split_assistant();
+    });
+}
+
+function close_split_assistant() {
+    const btn = document.getElementById('btn_split');
+    const div = document.getElementById('div-split');
+    btn.classList.remove('split-mode');
+    btn.classList.add('btn-edition');
+    div.style.display = 'none';
+    enable_all_btn();
+}
+
+function open_split_assistant() {
+    const btn = document.getElementById('btn_split');
+    const div = document.getElementById('div-split');
+    btn.classList.remove('btn-edition');
+    btn.classList.add('split-mode');
+    div.style.display = 'inline-block';
+    disable_all_btn_except_ids(['btn_split_done', 'btn_split_cancel']);
+}
+
+function disable_all_btn_except_ids(btn_exception_ids) {
+    let btn_list = Array.from(document.getElementsByClassName('btn'));
+
+    btn_list.forEach(btn => {
+        if (!btn_exception_ids.includes(btn.id)) {
+            btn.disabled = true;
+        }
+    });
+
+    // Add gpx button management
+    let btn_select_file = document.getElementById('select-file');
+    let label_select_file = document.getElementById('label-select-file');
+    btn_select_file.disabled = true;
+    label_select_file.disabled = true;
+    label_select_file.style.opacity = '0.6';
+}
+
+function enable_all_btn() {
+    let btn_list = Array.from(document.getElementsByClassName('btn'));
+
+    btn_list.forEach(btn => {
+            btn.disabled = false;
+    });
+
+    // Add gpx button management
+    let btn_select_file = document.getElementById('select-file');
+    let label_select_file = document.getElementById('label-select-file');
+    btn_select_file.disabled = false;
+    label_select_file.disabled = false;
+    label_select_file.style.opacity = '1';
 }
