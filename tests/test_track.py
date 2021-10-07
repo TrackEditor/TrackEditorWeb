@@ -215,6 +215,19 @@ class TrackTest(TestCase):
         self.assertEqual(initial_shape, obj_track.df_track.shape)
         self.assertEqual(obj_track.size, 4)
 
+    def test_divide_segment_out_index(self):
+        """
+        Force IndexError when dividing index is not in provided segment.
+        """
+        # Load data
+        obj_track = track.Track()
+        for i in range(2):
+            obj_track.add_gpx(f'{self.test_path}/samples/island_full.gpx')
+
+        # Apply method
+        self.assertRaises(IndexError, obj_track.divide_segment, 1, 150)
+        self.assertRaises(IndexError, obj_track.divide_segment, 1, 1500)
+
     def test_change_order(self):
         """
         Check that the order has been properly changed by looking at first and

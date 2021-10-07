@@ -467,6 +467,13 @@ class Track:
         self.df_track['index'] = self.df_track.index
         segment_starting_index = self.df_track[self.df_track['segment'] == index].index[0]
 
+        exception_msg = 'The provided div_index is not in the provided segment index.'
+        try:
+            if self.df_track.iloc[segment_starting_index + div_index]['segment'] != index:
+                raise IndexError(exception_msg)
+        except IndexError:
+            raise IndexError(exception_msg)
+
         def segment_index_modifier(row):
             if row['index'] < segment_starting_index + div_index:
                 return row['segment']
@@ -480,7 +487,6 @@ class Track:
         self.df_track = self.df_track.drop(['index'], axis=1)
         self.size += 1
         self.last_segment_idx = max(self.df_track['segment'])
-
 
     def change_order(self, new_order: dict):
         """
