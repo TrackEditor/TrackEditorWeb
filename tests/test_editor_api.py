@@ -995,7 +995,7 @@ class DivideSegmentTest(EditorTestUtils):
 
     def test_divide_segment_force_exception(self):
         """
-        Force index error 
+        Force index error
         """
         self.create_session()
 

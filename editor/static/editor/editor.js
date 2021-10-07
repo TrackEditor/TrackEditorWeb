@@ -526,7 +526,7 @@ function reverse_segment() {
     btn_reverse.addEventListener('click', () => {
         utils.activate_spinner('#div_spinner');
 
-        if (!check_reverse_button()){  // verify that one segment is selected
+        if (!check_selected_segment(btn_reverse)){  // verify that one segment is selected
             return;
         }
 
@@ -651,9 +651,8 @@ function reverse_ele_link(segment_index) {
 }
 
 
-function check_reverse_button() {
-    let btn_reverse = document.getElementById('btn_reverse');
-    btn_reverse.addEventListener('click', () => {
+function check_selected_segment(btn) {
+    btn.addEventListener('click', () => {
         if (selected_segments === 0) {
             display_error('warning', 'No track has been selected');
             return false;
@@ -917,15 +916,38 @@ function split_segment() {
     const btn = document.getElementById('btn_split');
     const btn_ok = document.getElementById('btn_split_done');
     const btn_cancel = document.getElementById('btn_split_cancel');
+    const range = document.getElementById('split-range');
+    let segment_index;
+    check_selected_segment(btn);
 
     btn.addEventListener('click', () => {
-        open_split_assistant(btn);
+        if (selected_segments !== 0) {
+            segment_index = selected_segment_idx;
+            open_split_assistant();
+
+            let segment = get_segment(segment_index);
+            let segment_size = segment['lat'].length;
+            range.setAttribute('max', segment_size);
+        }
     });
 
     btn_cancel.addEventListener('click', () => {
         close_split_assistant();
     });
+
+    // TODO: moving point in both plots when moving the range
+    // TODO: manage the track object to split segments
+    btn_ok.addEventListener('click', () => {
+        utils.activate_spinner('#div_spinner');
+        fetch(`/editor/divide_segment/${segment_index}/${range.value}`, {
+             method: 'POST',
+        }).then( () => {
+            utils.deactivate_spinner('#div_spinner');
+            close_split_assistant();
+        }).catch(error => display_error('error', error + '(at split_segment)'));
+    });
 }
+
 
 function close_split_assistant() {
     const btn = document.getElementById('btn_split');
