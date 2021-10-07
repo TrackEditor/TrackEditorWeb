@@ -172,7 +172,7 @@ class TrackTest(TestCase):
         initial_shape = obj_track.df_track.shape
 
         # Apply method
-        obj_track.divide_segment(100)
+        obj_track.divide_segment(1, 100)
 
         # Specific checks
         self.assertEqual(obj_track.df_track.segment.iloc[99], 1)
@@ -199,9 +199,9 @@ class TrackTest(TestCase):
         initial_shape = obj_track.df_track.shape
 
         # Apply method
-        obj_track.divide_segment(80)
-        obj_track.divide_segment(120)
-        obj_track.divide_segment(40)
+        obj_track.divide_segment(1, 80)
+        obj_track.divide_segment(2, 40)
+        obj_track.divide_segment(1, 40)
 
         # Specific checks
         self.assertEqual(obj_track.df_track.segment.iloc[39], 1)

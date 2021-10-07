@@ -457,16 +457,18 @@ class Track:
 
         return self.size
 
-    def divide_segment(self, div_index: int):
+    def divide_segment(self, index: int, div_index: int):
         """
         Split one segment in two parts given a partition index
-        :param div_index: refers to the index of the full df_track, not segment
+        :param index: segment index to divide
+        :param div_index: refers to the index within the index
         :return: None
         """
         self.df_track['index'] = self.df_track.index
+        segment_starting_index = self.df_track[self.df_track['segment'] == index].index[0]
 
         def segment_index_modifier(row):
-            if row['index'] < div_index:
+            if row['index'] < segment_starting_index + div_index:
                 return row['segment']
             else:
                 return row['segment'] + 1
@@ -479,7 +481,6 @@ class Track:
         self.size += 1
         self.last_segment_idx = max(self.df_track['segment'])
 
-        return True
 
     def change_order(self, new_order: dict):
         """
