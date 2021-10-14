@@ -13,6 +13,7 @@ export function close_split_assistant(map, chart) {
     remove_map_point(map);
 }
 
+
 export function open_split_assistant(map, chart, track, segment_index) {
     const range_control = document.getElementById('split-range');
     const btn = document.getElementById('btn_split');
@@ -106,6 +107,7 @@ function disable_all_btn_except_ids(btn_exception_ids) {
     label_select_file.style.opacity = '0.6';
 }
 
+
 function enable_all_btn() {
     let btn_list = Array.from(document.getElementsByClassName('btn'));
 
@@ -120,6 +122,7 @@ function enable_all_btn() {
     label_select_file.disabled = false;
     label_select_file.style.opacity = '1';
 }
+
 
 function remove_elevation_point(chart) {
     let chartIndexToRemove;
@@ -136,6 +139,7 @@ function remove_elevation_point(chart) {
     chart.data.datasets.splice(chartIndexToRemove, 1);
     chart.update();
 }
+
 
 function remove_map_point(map) {
     let layerToRemove;

@@ -19,6 +19,7 @@ export function haversine_distance([lat1, lon1], [lat2, lon2]) {
     return RADIUS_OF_EARTH_IN_KM * c;
 }
 
+
 export function create_chart() {
     return new Chart("js-elevation", {
        type: "scatter",
@@ -53,6 +54,7 @@ export function create_chart() {
        }
    });
 }
+
 
 export function create_map() {
     return new ol.Map({
@@ -108,6 +110,7 @@ export function get_color(color_index, alpha='0.5') {
     return `rgb(${colors[color_index]}, ${alpha})`;
 }
 
+
 export function get_links_source(from, to) {
     // create points
     const points = [];
@@ -133,6 +136,7 @@ export function get_link_style() {
         })
     });
 }
+
 
 export function get_points_source(lat, lon) {
     /*

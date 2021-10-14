@@ -2,9 +2,11 @@ export function activate_spinner(spinner_selector) {
     document.querySelector(spinner_selector).style.display = 'inline-block';
 }
 
+
 export function deactivate_spinner(spinner_selector) {
     document.querySelector(spinner_selector).style.display = 'none';
 }
+
 
 export function response_error_mng(status, fnc_name) {
     if (status !== 200) {
@@ -17,6 +19,7 @@ export function response_error_mng(status, fnc_name) {
         }
     }
 }
+
 
 export function display_error(severity, msg) {
     let div = document.getElementById('div_alerts_box');

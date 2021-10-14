@@ -41,6 +41,7 @@ function plot_track() {
     }
 }
 
+
 function segments_manager() {
     track['segments'].forEach(seg => manage_segment(seg));
 }
@@ -170,6 +171,7 @@ function remove_segment_from_track(segment_index) {
     track['segments'].splice(segment_track_index, 1);
 }
 
+
 function relink_map(segment_index) {
     let from = {'coor': undefined, 'segment_index': undefined, 'link_index': undefined};
     let to = {'coor': undefined, 'segment_index': undefined, 'link_index': undefined};
@@ -231,6 +233,7 @@ function plot_elevation(segment) {
     });
     chart.update();
 }
+
 
 function plot_segment(segment) {
     plot_elevation(segment);
@@ -624,6 +627,7 @@ function change_segments_order() {
 
 }
 
+
 function elevation_show_segment(index=undefined, all=false) {
     chart.data.datasets.forEach(dataset => {
         if (all) {
@@ -639,6 +643,7 @@ function elevation_show_segment(index=undefined, all=false) {
     chart.update();
     return true;
 }
+
 
 function update_distance() {
     /* The cumulative distance provided from API can be altered when a segment
@@ -659,6 +664,7 @@ function update_distance() {
         track['segments'][i]['distance'] = distance;
     }
 }
+
 
 function split_segment() {
     const btn = document.getElementById('btn_split');
