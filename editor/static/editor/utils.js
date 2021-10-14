@@ -36,3 +36,12 @@ export function display_error(severity, msg) {
         div.innerHTML = '';
     }, 3000);
 }
+
+
+export function get_segment(track, segment_index) {
+    for (let segment of track['segments']) {
+        if (segment['index'] === segment_index) {
+            return segment;
+        }
+    }
+}
