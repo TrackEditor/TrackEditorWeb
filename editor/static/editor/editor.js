@@ -972,15 +972,15 @@ function open_split_assistant(segment_index) {
     // Segment management
     let segment = get_segment(segment_index);
     let segment_size = segment['lat'].length;
-    range_control.setAttribute('max', segment_size);
+    range_control.setAttribute('max', `${segment_size - 1}`);
 
-    // Initial point display
+    // Initial point display map
     let point_idx = range_control.value;
     let point_coordinates = {'lat': segment['lat'][point_idx],
                              'lon': segment['lon'][point_idx]};
 
-    const split_point_source_vector = get_points_source([point_coordinates.lat],
-                                                        [point_coordinates.lon]);
+    const split_point_source_vector = plot.get_points_source([point_coordinates.lat],
+                                                             [point_coordinates.lon]);
     const splitting_point_layer = new ol.layer.Vector({
         source: split_point_source_vector,
         style: plot.get_splitting_point_style(),
@@ -988,7 +988,21 @@ function open_split_assistant(segment_index) {
     });
     map.addLayer(splitting_point_layer);
 
-    // Move the displayed point
+    // Initial point display elevation
+    let point_elevation = {'x': segment['distance'][point_idx], 'y': segment['ele'][point_idx]};
+    chart.data.datasets.push({
+        label: 'split_point',
+        fill: true,
+        data: [point_elevation],
+        showLine: false,
+        pointRadius: 10,
+        backgroundColor: 'rgb(255, 0, 0, 0.6)',
+        borderColor: 'rgb(255, 0, 0, 0.8)',
+        hidden: false,
+    });
+    chart.update();
+
+    // Move the displayed point in map
     const split_assistant_point_map = () => {
         point_idx = range_control.value;
         point_coordinates = {'lat': segment['lat'][point_idx],
@@ -999,8 +1013,24 @@ function open_split_assistant(segment_index) {
                                       ol.proj.fromLonLat([point_coordinates.lon, point_coordinates.lat]));
         map.render();
     };
+
+    // Move the displayed point in elevation
+    const split_assistant_point_elevation = () => {
+        chart.data.datasets.forEach(dataset => {
+            if (dataset.label === 'split_point') {
+                point_idx = range_control.value;
+                point_elevation = {'x': segment['distance'][point_idx],
+                                   'y': segment['ele'][point_idx]};
+                dataset.data = [point_elevation];
+            }
+        });
+        chart.update();
+    };
+
     range_control.addEventListener('input', split_assistant_point_map);
     range_control.addEventListener('change', split_assistant_point_map);
+    range_control.addEventListener('input', split_assistant_point_elevation);
+    range_control.addEventListener('change', split_assistant_point_elevation);
 }
 
 
