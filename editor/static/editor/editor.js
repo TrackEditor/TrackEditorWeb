@@ -916,36 +916,36 @@ function split_segment() {
     const btn = document.getElementById('btn_split');
     const btn_ok = document.getElementById('btn_split_done');
     const btn_cancel = document.getElementById('btn_split_cancel');
-    const range = document.getElementById('split-range');
+    const range_control = document.getElementById('split-range');
     let segment_index;
     check_selected_segment(btn);
 
+    // Open the split assistant
     btn.addEventListener('click', () => {
         if (selected_segments !== 0) {
             segment_index = selected_segment_idx;
-            open_split_assistant();
-
-            let segment = get_segment(segment_index);
-            let segment_size = segment['lat'].length;
-            range.setAttribute('max', segment_size);
+            open_split_assistant(segment_index);
         }
     });
 
+    // Cancel splitting
     btn_cancel.addEventListener('click', () => {
         close_split_assistant();
     });
 
-    // TODO: moving point in both plots when moving the range
-    // TODO: manage the track object to split segments
+    // Apply splitting
     btn_ok.addEventListener('click', () => {
         utils.activate_spinner('#div_spinner');
-        fetch(`/editor/divide_segment/${segment_index}/${range.value}`, {
+        fetch(`/editor/divide_segment/${segment_index}/${range_control.value}`, {
              method: 'POST',
         }).then( () => {
             utils.deactivate_spinner('#div_spinner');
             close_split_assistant();
         }).catch(error => display_error('error', error + '(at split_segment)'));
     });
+
+    // TODO: moving point in both plots when moving the range
+    // TODO: manage the track object to split segments
 }
 
 
@@ -958,14 +958,51 @@ function close_split_assistant() {
     enable_all_btn();
 }
 
-function open_split_assistant() {
+function open_split_assistant(segment_index) {
+    const range_control = document.getElementById('split-range');
     const btn = document.getElementById('btn_split');
     const div = document.getElementById('div-split');
+
+    // Disable buttons except the split assistant
     btn.classList.remove('btn-edition');
     btn.classList.add('split-mode');
     div.style.display = 'inline-block';
     disable_all_btn_except_ids(['btn_split_done', 'btn_split_cancel']);
+
+    // Segment management
+    let segment = get_segment(segment_index);
+    let segment_size = segment['lat'].length;
+    range_control.setAttribute('max', segment_size);
+
+    // Initial point display
+    let point_idx = range_control.value;
+    let point_coordinates = {'lat': segment['lat'][point_idx],
+                             'lon': segment['lon'][point_idx]};
+
+    const split_point_source_vector = get_points_source([point_coordinates.lat],
+                                                        [point_coordinates.lon]);
+    const splitting_point_layer = new ol.layer.Vector({
+        source: split_point_source_vector,
+        style: plot.get_splitting_point_style(),
+        name: `layer_points_${segment.index}`,
+    });
+    map.addLayer(splitting_point_layer);
+
+    // Move the displayed point
+    const split_assistant_point_map = () => {
+        point_idx = range_control.value;
+        point_coordinates = {'lat': segment['lat'][point_idx],
+                             'lon': segment['lon'][point_idx]};
+        split_point_source_vector.getFeatures()[0].
+                                  getGeometry().
+                                  setCoordinates(
+                                      ol.proj.fromLonLat([point_coordinates.lon, point_coordinates.lat]));
+        map.render();
+    };
+    range_control.addEventListener('input', split_assistant_point_map);
+    range_control.addEventListener('change', split_assistant_point_map);
 }
+
 
 function disable_all_btn_except_ids(btn_exception_ids) {
     let btn_list = Array.from(document.getElementsByClassName('btn'));

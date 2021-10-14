@@ -195,6 +195,16 @@ export function get_points_style(color_index) {
 }
 
 
+export function get_splitting_point_style() {
+    return new ol.style.Style({
+        image: new ol.style.Circle({
+            fill: new ol.style.Fill({color: 'rgb(255, 0, 0, 0.7)'}),  // inner color
+            radius: 8,  // circle radius
+        }),
+    });
+}
+
+
 export function get_lines_style(color_index, alpha) {
     /*
     GET_LINES_STYLE provides a style for lines
