@@ -216,3 +216,119 @@ export function get_lines_style(color_index, alpha) {
         })
     });
 }
+
+
+export function plot_coordinates_link(map, link) {
+    const link_vector_layer = new ol.layer.Vector({
+        source: get_links_source(link['from_coor'], link['to_coor']),
+        style: get_link_style(),
+        name: `layer_link_${link['from']}_${link['to']}`,
+    });
+    map.addLayer(link_vector_layer);
+}
+
+
+export function plot_elevation_link(chart, link) {
+    let link_data = [link['from_ele'], link['to_ele']];
+    chart.data.datasets.push({
+        label: `link_${link.from}_${link.to}`,
+        fill: true,
+        data: link_data,
+        showLine: true,
+        borderWidth: 3,
+        backgroundColor: 'rgb(0, 0, 128, 0.05)',
+        borderColor: 'rgb(0, 0, 128, 0.1)',
+        hidden: false,
+        pointRadius: 0,
+    });
+
+    chart.update();
+}
+
+
+export function remove_elevation_links(chart, segment_index) {
+    let chartIndexToRemove = [];
+    chart.data.datasets.forEach((dataset, canvas_index) => {
+        let label = dataset.label;
+
+        if (typeof label !== 'undefined') {
+            if ((RegExp(`^link_\\d+_${segment_index}$`).test(label)) ||
+                (RegExp(`^link_${segment_index}_\\d+$`).test(label))) {
+                chartIndexToRemove.push(canvas_index);
+            }
+        }
+    });
+
+    // reverse is needed since array of size changes in each iteration
+    let chartIndexToRemoveReversed = chartIndexToRemove.reverse();
+    chartIndexToRemoveReversed.forEach(idx => {
+        chart.data.datasets.splice(idx, 1);
+    });
+    chart.update();
+}
+
+
+export function remove_map_links(map, segment_index) {
+    let layersToRemove = [];
+    map.getLayers().forEach(layer => {
+        let layer_name = layer.get('name');
+
+        if (typeof layer_name !== 'undefined') {
+            if ((RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
+                (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
+                layersToRemove.push(layer);
+            }
+        }
+    });
+
+    const len = layersToRemove.length;
+    for(let j = 0; j < len; j++) {
+        map.removeLayer(layersToRemove[j]);
+    }
+}
+
+
+export function remove_map_layer(map, segment_index) {
+    let layersToRemove = [];
+    map.getLayers().forEach(layer => {
+        let layer_name = layer.get('name');
+
+        if (typeof layer_name !== 'undefined') {
+            if ((layer_name === `layer_points_${segment_index}`) ||
+                (layer_name === `layer_lines_${segment_index}`) ||
+                (RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
+                (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
+                layersToRemove.push(layer);
+            }
+        }
+    });
+
+    const len = layersToRemove.length;
+    for(let j = 0; j < len; j++) {
+        map.removeLayer(layersToRemove[j]);
+    }
+}
+
+
+export function remove_elevation(chart, segment_index) {
+    let chartIndexToRemove = [];
+    chart.data.datasets.forEach((dataset, canvas_index) => {
+        let label = dataset.label;
+
+        if (typeof label !== 'undefined') {
+            if ((label === `elevation_${segment_index}`) ||
+                (RegExp(`^link_\\d+_${segment_index}$`).test(label)) ||
+                (RegExp(`^link_${segment_index}_\\d+$`).test(label))) {
+                chartIndexToRemove.push(canvas_index);
+            }
+        }
+    });
+
+    // reverse is needed since array of size changes in each iteration
+    let chartIndexToRemoveReversed = chartIndexToRemove.reverse();
+    chartIndexToRemoveReversed.forEach(idx => {
+        // reverse is needed since array of size changes in each iteration
+        chart.data.datasets.splice(idx, 1);
+    });
+    chart.update();
+}
