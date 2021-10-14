@@ -274,12 +274,12 @@ function plot_segment(segment) {
                 // Bold track name
                 document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'bolder';
             }
-            elevation_show_segment(segment.index);
+            plot.elevation_show_segment(chart, segment.index);
             selected_segment_idx = segment.index;
             selected_segments++;
         }
         else {
-            elevation_show_segment(undefined, true);
+            plot.elevation_show_segment(chart, undefined, true);
             selected_segment_idx = undefined;
             selected_segments--;
         }
@@ -628,23 +628,6 @@ function change_segments_order() {
 }
 
 
-function elevation_show_segment(index=undefined, all=false) {
-    chart.data.datasets.forEach(dataset => {
-        if (all) {
-            dataset.hidden = false;
-        }
-        else if (typeof index !== 'undefined') {
-            dataset.hidden = dataset.label !== `elevation_${index}`;
-        }
-        else {
-            return false;
-        }
-    });
-    chart.update();
-    return true;
-}
-
-
 function update_distance() {
     /* The cumulative distance provided from API can be altered when a segment
      * is removed or order is changed. So, it is needed to update it without
@@ -658,8 +641,8 @@ function update_distance() {
         let end = previous_segment.lat.length - 1;
         let distance = current_segment['segment_distance'];
         let seg2seg_distance = previous_segment['distance'][end] +
-                               plot.haversine_distance([current_segment.lat[0], current_segment.lon[0]],
-                                                  [previous_segment.lat[end], previous_segment.lon[end]]);
+                               utils.haversine_distance([current_segment.lat[0], current_segment.lon[0]],
+                                                        [previous_segment.lat[end], previous_segment.lon[end]]);
         distance = distance.map(a => a +  seg2seg_distance);
         track['segments'][i]['distance'] = distance;
     }
