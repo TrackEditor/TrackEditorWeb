@@ -1,23 +1,23 @@
 import * as utils from "./utils.js";
 import * as plot from "./plot.js";
-import * as data_ops from "./data_operations.js";
+import * as data_operations from "./data_operations.js";
 import * as reverse_utils from "./reverse.js";
 import * as split_segment_utils from "./split_segment.js";
-let selected_segments = 0;
-let selected_segment_idx;
+
+let selected_segment = {'status': false, idx: undefined};
 let track;
 let map;
 let chart;
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    track = await data_ops.load_track();
+    track = await data_operations.load_track();
     map = plot.create_map();
     chart = plot.create_chart();  // elevation chart
-    data_ops.submit_file();
-    data_ops.save_session();
-    data_ops.update_session_name();
-    data_ops.download_session();
+    data_operations.submit_file();
+    data_operations.save_session();
+    data_operations.update_session_name();
+    data_operations.download_session();
     plot_track();
     segments_manager();
     show_summary();
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function plot_track() {
     // Plot track
-    track['segments'].forEach(seg => plot_segment(seg));
+    track['segments'].forEach(seg => plot.plot_segment(map, seg, selected_segment));
     track['links_coor'].forEach(link => plot.plot_coordinates_link(map, link));
     track['links_ele'].forEach(link => plot.plot_elevation_link(chart, link));
 
@@ -148,8 +148,8 @@ function remove_segment(segment_index, list) {
         }
     }).then(() => {
         // Plot new elevation
-        track['segments'].forEach(seg => plot_elevation(seg));
-        track['links_ele'].forEach(link => plot_link_ele(link));
+        track['segments'].forEach(seg => plot.plot_elevation(chart, seg));
+        track['links_ele'].forEach(link => plot.plot_elevation_link(chart, link));
         utils.deactivate_spinner('#div_spinner');
     }).catch( error => {
         display_error('error', error);
@@ -208,83 +208,6 @@ function relink_map(segment_index) {
         // segment is at the start
         track['links_coor'].splice(to.link_index, 1);
     }
-
-}
-
-
-function plot_elevation(segment) {
-    // Plot elevation
-    let elevation_data = [];
-    segment.distance.forEach((distance, index) => {
-        let elevation = segment.ele[index];
-        elevation_data.push({x: distance, y: elevation});
-    });
-
-    chart.data.datasets.push({
-        label: `elevation_${segment.index}`,
-        fill: true,
-        lineTension: 0.4,
-        data: elevation_data,
-        showLine: true,
-        borderWidth: 3,
-        backgroundColor: plot.get_color(segment.index, '0.2'),
-        borderColor: plot.get_color(segment.index, '0.8'),
-        hidden: false,
-    });
-    chart.update();
-}
-
-
-function plot_segment(segment) {
-    plot_elevation(segment);
-
-    // Points to vector layer
-    const points_vector_layer = new ol.layer.Vector({
-        source: plot.get_points_source(segment.lat, segment.lon),
-        style: plot.get_points_style(segment.index),
-        name: `layer_points_${segment.index}`,
-    });
-    map.addLayer(points_vector_layer);
-
-    // Lines to vector layer
-    const lines_vector_layer = new ol.layer.Vector({
-        source: plot.get_lines_source(segment.lat, segment.lon,
-                                 `features_lines_${segment.index}`,
-                                 plot.get_lines_style(segment.index)),
-        name: `layer_lines_${segment.index}`,
-    });
-    map.addLayer(lines_vector_layer);
-
-    // Interaction
-    let select_interaction = new ol.interaction.Select({
-        layers: [lines_vector_layer]
-    });
-    map.addInteraction(select_interaction);
-
-    select_interaction.on('select',  e => {
-        document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'normal';
-        if (e.selected.length > 0) {
-            if (e.selected[0].getId() === `features_lines_${segment.index}`) {
-                e.selected[0].setStyle(new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: plot.get_color(segment.index, '0.9'),
-                        width: 7,
-                    })
-                }));
-                // Bold track name
-                document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'bolder';
-            }
-            plot.elevation_show_segment(chart, segment.index);
-            selected_segment_idx = segment.index;
-            selected_segments++;
-        }
-        else {
-            plot.elevation_show_segment(chart, undefined, true);
-            selected_segment_idx = undefined;
-            selected_segments--;
-        }
-
-    });
 
 }
 
@@ -384,13 +307,13 @@ function reverse_segment() {
             return;
         }
 
-        fetch(`/editor/reverse_segment/${selected_segment_idx}`, {
+        fetch(`/editor/reverse_segment/${selected_segment.idx}`, {
             method: 'POST',
         }).then( response => {
             if (response.status === 200) {
-                reverse_utils.reverse_elevation(chart, selected_segment_idx);
-                reverse_utils.reverse_map_link(map, track, selected_segment_idx);
-                reverse_utils.reverse_elevation_link(chart, track, selected_segment_idx);
+                reverse_utils.reverse_elevation(chart, selected_segment.idx);
+                reverse_utils.reverse_map_link(map, track, selected_segment.idx);
+                reverse_utils.reverse_elevation_link(chart, track, selected_segment.idx);
                 utils.deactivate_spinner('#div_spinner');
             }
             else {
@@ -405,7 +328,7 @@ function reverse_segment() {
 
 function check_selected_segment(btn) {
     btn.addEventListener('click', () => {
-        if (selected_segments === 0) {
+        if (!selected_segment.status) {
             display_error('warning', 'No track has been selected');
             return false;
         }
@@ -659,8 +582,8 @@ function split_segment() {
 
     // Open the split assistant
     btn.addEventListener('click', () => {
-        if (selected_segments !== 0) {
-            segment_index = selected_segment_idx;
+        if (selected_segment.status) {
+            segment_index = selected_segment.idx;
             split_segment_utils.open_split_assistant(map, chart, track, segment_index);
         }
     });

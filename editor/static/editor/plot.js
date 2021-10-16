@@ -200,6 +200,83 @@ export function get_lines_style(color_index, alpha) {
 }
 
 
+export function plot_elevation(chart, segment) {
+    // Plot elevation
+    let elevation_data = [];
+    segment.distance.forEach((distance, index) => {
+        let elevation = segment.ele[index];
+        elevation_data.push({x: distance, y: elevation});
+    });
+
+    chart.data.datasets.push({
+        label: `elevation_${segment.index}`,
+        fill: true,
+        lineTension: 0.4,
+        data: elevation_data,
+        showLine: true,
+        borderWidth: 3,
+        backgroundColor: plot.get_color(segment.index, '0.2'),
+        borderColor: plot.get_color(segment.index, '0.8'),
+        hidden: false,
+    });
+    chart.update();
+}
+
+
+export function plot_segment(map, segment, selected_segment) {
+    plot_elevation(segment);
+
+    // Points to vector layer
+    const points_vector_layer = new ol.layer.Vector({
+        source: get_points_source(segment.lat, segment.lon),
+        style: get_points_style(segment.index),
+        name: `layer_points_${segment.index}`,
+    });
+    map.addLayer(points_vector_layer);
+
+    // Lines to vector layer
+    const lines_vector_layer = new ol.layer.Vector({
+        source: get_lines_source(segment.lat, segment.lon,
+                                 `features_lines_${segment.index}`,
+                                 get_lines_style(segment.index)),
+        name: `layer_lines_${segment.index}`,
+    });
+    map.addLayer(lines_vector_layer);
+
+    // Interaction
+    let select_interaction = new ol.interaction.Select({
+        layers: [lines_vector_layer]
+    });
+    map.addInteraction(select_interaction);
+
+    select_interaction.on('select',  e => {
+        document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'normal';
+        if (e.selected.length > 0) {
+            if (e.selected[0].getId() === `features_lines_${segment.index}`) {
+                e.selected[0].setStyle(new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: get_color(segment.index, '0.9'),
+                        width: 7,
+                    })
+                }));
+                // Bold track name
+                document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'bolder';
+            }
+            elevation_show_segment(chart, segment.index);
+            selected_segment.idx = segment.index;
+            selected_segment.status = true;
+        }
+        else {
+            elevation_show_segment(chart, undefined, true);
+            selected_segment.idx = undefined;
+            selected_segment.status = false;
+        }
+
+    });
+
+}
+
+
 export function plot_coordinates_link(map, link) {
     const link_vector_layer = new ol.layer.Vector({
         source: get_links_source(link['from_coor'], link['to_coor']),
