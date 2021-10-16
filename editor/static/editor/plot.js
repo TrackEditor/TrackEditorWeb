@@ -319,7 +319,9 @@ export function remove_elevation_links(chart, segment_index) {
     });
 
     // reverse is needed since array of size changes in each iteration
-    let chartIndexToRemoveReversed = chartIndexToRemove.reverse();
+    let chartIndexToRemoveReversed = chartIndexToRemove.slice();
+    chartIndexToRemoveReversed.reverse();
+
     chartIndexToRemoveReversed.forEach(idx => {
         chart.data.datasets.splice(idx, 1);
     });
@@ -384,7 +386,9 @@ export function remove_elevation(chart, segment_index) {
     });
 
     // reverse is needed since array of size changes in each iteration
-    let chartIndexToRemoveReversed = chartIndexToRemove.reverse();
+    let chartIndexToRemoveReversed = chartIndexToRemove.slice();
+    chartIndexToRemoveReversed.reverse();
+
     chartIndexToRemoveReversed.forEach(idx => {
         // reverse is needed since array of size changes in each iteration
         chart.data.datasets.splice(idx, 1);
