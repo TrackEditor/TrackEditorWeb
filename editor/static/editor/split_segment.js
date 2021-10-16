@@ -153,3 +153,75 @@ function remove_map_point(map) {
 
     map.removeLayer(layerToRemove);
 }
+
+export function execute_split(track, segment_index, split_point) {
+    console.log(track);
+    // Update index of later segments
+    track.segments.forEach(seg => {
+        if (seg.index > segment_index) {
+            seg.index++;
+        }
+    });
+
+    // Split segment
+    let segment = utils.get_segment(track, segment_index);
+    track.segments.push({  // new segment
+        lat: segment.lat.slice(split_point),
+        lon: segment.lon.slice(split_point),
+        ele: segment.ele.slice(split_point),
+        distance: segment.distance.slice(split_point),
+        segment_distance: segment.segment_distance.slice(split_point) - segment.segment_distance[split_point],
+        size: segment.size - split_point,
+        index: segment_index + 1,
+        name: segment.name + '_2part'
+    });
+
+    segment.lat = segment.lat.slice(0, split_point);
+    segment.lon = segment.lon.slice(0, split_point);
+    segment.ele = segment.ele.slice(0, split_point);
+    segment.distance = segment.distance.slice(0, split_point);
+    segment.segment_distance = segment.segment_distance.slice(0, split_point);
+    segment.size = split_point;
+    segment.index = segment_index;
+    segment.name = segment.name + '_1part';
+}
+
+
+export function update_links(track, segment_index) {
+    let segment = utils.get_segment(track, segment_index);
+    let new_segment = utils.get_segment(track, segment_index + 1);
+
+    // Update links info
+    track.links_coor.forEach(link => {
+        if (link.from >= segment_index) {
+            link.from++;
+            link.to++;
+        }
+    });
+
+    track.links_ele.forEach(link => {
+        if (link.from >= segment_index) {
+            link.from++;
+            link.to++;
+        }
+    });
+
+    // Add new link
+    track.links_coor.push({
+        'from': segment_index,
+        'to': new_segment.index,
+        'from_coor': {'lat': segment.lat[segment.size - 1],
+                     'lon': segment.lon[segment.size - 1]},
+        'to_coor': {'lat': new_segment.lat[0],
+                   'lon': new_segment.lon[0]}
+    });
+    track.links_ele.push({
+        'from': segment_index,
+        'to': new_segment.index,
+        'from_ele': {'x': segment.distance[segment.size - 1],
+                     'y': segment.ele[segment.size - 1]},
+        'to_ele': {'x': new_segment.distance[0],
+                   'y': new_segment.ele[0]}
+    });
+
+}

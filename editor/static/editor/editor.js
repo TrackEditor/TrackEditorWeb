@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function plot_track() {
     // Plot track
-    track['segments'].forEach(seg => plot.plot_segment(map, seg, selected_segment));
+    track['segments'].forEach(seg => plot.plot_segment(map, chart, seg, selected_segment));
     track['links_coor'].forEach(link => plot.plot_coordinates_link(map, link));
     track['links_ele'].forEach(link => plot.plot_elevation_link(chart, link));
 
@@ -600,9 +600,37 @@ function split_segment() {
              method: 'POST',
         }).then( () => {
             utils.deactivate_spinner('#div_spinner');
+            split_segment_utils.execute_split(track, segment_index, parseInt(range_control.value));
             split_segment_utils.close_split_assistant(map, chart);
+        }).then( () => {
+            split_segment_utils.update_links(track, segment_index);
+        }).then( () => {
+            track.segments = track.segments.sort((first, second) => {
+                return first['index'] - second['index'];
+            });
+            track.links_ele = track.links_ele.sort((first, second) => {
+                return first['from'] - second['from'];
+            });
+            track.links_coor = track.links_coor.sort((first, second) => {
+                return first['to'] - second['to'];
+            });
+        }).then( () => {
+            chart.data.datasets = [];
+            chart.update();
+
+            track.segments.forEach(segment => {
+                plot.remove_map_layer(map, segment.index);
+                plot.remove_elevation(chart, segment.index);
+                plot.remove_map_links(map, segment.index);
+                plot.remove_elevation_links(chart, segment.index);
+            });
+
+            let segment_list_items = document.getElementsByClassName('segment-list-item');
+            Array.from(segment_list_items).forEach(e => e.remove());
+        }).then( () => {
+            plot_track();
+            segments_manager();
         }).catch(error => display_error('error', error + '(at split_segment)'));
     });
 
-    // TODO: manage the track object to split segments
 }

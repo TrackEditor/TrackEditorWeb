@@ -215,16 +215,16 @@ export function plot_elevation(chart, segment) {
         data: elevation_data,
         showLine: true,
         borderWidth: 3,
-        backgroundColor: plot.get_color(segment.index, '0.2'),
-        borderColor: plot.get_color(segment.index, '0.8'),
+        backgroundColor: get_color(segment.index, '0.2'),
+        borderColor: get_color(segment.index, '0.8'),
         hidden: false,
     });
     chart.update();
 }
 
 
-export function plot_segment(map, segment, selected_segment) {
-    plot_elevation(segment);
+export function plot_segment(map, chart, segment, selected_segment) {
+    plot_elevation(chart, segment);
 
     // Points to vector layer
     const points_vector_layer = new ol.layer.Vector({
