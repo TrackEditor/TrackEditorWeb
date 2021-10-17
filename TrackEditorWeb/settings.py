@@ -78,10 +78,10 @@ WSGI_APPLICATION = 'TrackEditorWeb.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'track_db',
-        'USER': 'postgres',
+        'NAME': os.environ['DB_NAME'],
+        'USER': os.environ['DB_USER'],
         'PASSWORD': os.environ['DB_PASSWORD'],
-        'HOST': 'localhost',
+        'HOST': os.environ['DB_HOST'],
         'PORT': 5432,
     }
 }
@@ -135,3 +135,6 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+import django_heroku
+django_heroku.settings(locals())
