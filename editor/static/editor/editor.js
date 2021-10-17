@@ -1,34 +1,37 @@
 import * as utils from "./utils.js";
 import * as plot from "./plot.js";
-import * as data_ops from "./data_operations.js";
-let selected_segments = 0;
-let selected_segment_idx;
+import * as data_operations from "./data_operations.js";
+import * as reverse_utils from "./reverse.js";
+import * as split_segment_utils from "./split_segment.js";
+
+let selected_segment = {'status': false, idx: undefined};
 let track;
 let map;
 let chart;
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    track = await data_ops.load_track();
+    track = await data_operations.load_track();
     map = plot.create_map();
     chart = plot.create_chart();  // elevation chart
-    data_ops.submit_file();
-    data_ops.save_session();
-    data_ops.update_session_name();
-    data_ops.download_session();
+    data_operations.submit_file();
+    data_operations.save_session();
+    data_operations.update_session_name();
+    data_operations.download_session();
     plot_track();
     segments_manager();
     show_summary();
     reverse_segment();
     change_segments_order();
+    split_segment();
 });
 
 
 function plot_track() {
     // Plot track
-    track['segments'].forEach(seg => plot_segment(seg));
-    track['links_coor'].forEach(link => plot_link_coor(link));
-    track['links_ele'].forEach(link => plot_link_ele(link));
+    track['segments'].forEach(seg => plot.plot_segment(map, chart, seg, selected_segment));
+    track['links_coor'].forEach(link => plot.plot_coordinates_link(map, link));
+    track['links_ele'].forEach(link => plot.plot_elevation_link(chart, link));
 
     if (typeof track.map_zoom !== 'undefined') {
         map.getView().setZoom(track.map_zoom);
@@ -37,6 +40,7 @@ function plot_track() {
         map.getView().setCenter(ol.proj.fromLonLat(track.map_center));
     }
 }
+
 
 function segments_manager() {
     track['segments'].forEach(seg => manage_segment(seg));
@@ -105,9 +109,9 @@ function remove_segment(segment_index, list) {
     list.p_name.style.display = 'none';
     list.span_name.style.display = 'none';
 
-    remove_elevation(segment_index);
+    plot.remove_elevation(chart, segment_index);
 
-    remove_map(segment_index);
+    plot.remove_map_layer(map, segment_index);
 
     remove_segment_from_track(segment_index);
 
@@ -144,8 +148,8 @@ function remove_segment(segment_index, list) {
         }
     }).then(() => {
         // Plot new elevation
-        track['segments'].forEach(seg => plot_elevation(seg));
-        track['links_ele'].forEach(link => plot_link_ele(link));
+        track['segments'].forEach(seg => plot.plot_elevation(chart, seg));
+        track['links_ele'].forEach(link => plot.plot_elevation_link(chart, link));
         utils.deactivate_spinner('#div_spinner');
     }).catch( error => {
         display_error('error', error);
@@ -153,89 +157,6 @@ function remove_segment(segment_index, list) {
     });
 }
 
-function remove_map(segment_index) {
-    let layersToRemove = [];
-    map.getLayers().forEach(layer => {
-        let layer_name = layer.get('name');
-
-        if (typeof layer_name !== 'undefined') {
-            if ((layer_name === `layer_points_${segment_index}`) ||
-                (layer_name === `layer_lines_${segment_index}`) ||
-                (RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
-                (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
-                layersToRemove.push(layer);
-            }
-        }
-    });
-
-    const len = layersToRemove.length;
-    for(let j = 0; j < len; j++) {
-        map.removeLayer(layersToRemove[j]);
-    }
-}
-
-function remove_elevation(segment_index) {
-    let chartIndexToRemove = [];
-    chart.data.datasets.forEach((dataset, canvas_index) => {
-        let label = dataset.label;
-
-        if (typeof label !== 'undefined') {
-            if ((label === `elevation_${segment_index}`) ||
-                (RegExp(`^link_\\d+_${segment_index}$`).test(label)) ||
-                (RegExp(`^link_${segment_index}_\\d+$`).test(label))) {
-                chartIndexToRemove.push(canvas_index);
-            }
-        }
-    });
-
-    // reverse is needed since array of size changes in each iteration
-    let chartIndexToRemoveReversed = chartIndexToRemove.reverse();
-    chartIndexToRemoveReversed.forEach(idx => {
-        // reverse is needed since array of size changes in each iteration
-        chart.data.datasets.splice(idx, 1);
-    });
-    chart.update();
-}
-
-function remove_map_link(segment_index) {
-    let layersToRemove = [];
-    map.getLayers().forEach(layer => {
-        let layer_name = layer.get('name');
-
-        if (typeof layer_name !== 'undefined') {
-            if ((RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
-                (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
-                layersToRemove.push(layer);
-            }
-        }
-    });
-
-    const len = layersToRemove.length;
-    for(let j = 0; j < len; j++) {
-        map.removeLayer(layersToRemove[j]);
-    }
-}
-
-function remove_ele_link(segment_index) {
-    let chartIndexToRemove = [];
-    chart.data.datasets.forEach((dataset, canvas_index) => {
-        let label = dataset.label;
-
-        if (typeof label !== 'undefined') {
-            if ((RegExp(`^link_\\d+_${segment_index}$`).test(label)) ||
-                (RegExp(`^link_${segment_index}_\\d+$`).test(label))) {
-                chartIndexToRemove.push(canvas_index);
-            }
-        }
-    });
-
-    // reverse is needed since array of size changes in each iteration
-    let chartIndexToRemoveReversed = chartIndexToRemove.reverse();
-    chartIndexToRemoveReversed.forEach(idx => {
-        chart.data.datasets.splice(idx, 1);
-    });
-    chart.update();
-}
 
 function remove_segment_from_track(segment_index) {
     // The segment is removed in the track structure
@@ -249,6 +170,7 @@ function remove_segment_from_track(segment_index) {
     }
     track['segments'].splice(segment_track_index, 1);
 }
+
 
 function relink_map(segment_index) {
     let from = {'coor': undefined, 'segment_index': undefined, 'link_index': undefined};
@@ -276,7 +198,7 @@ function relink_map(segment_index) {
                           'from_coor': from.coor,
                           'to_coor': to.coor}
         track['links_coor'].push(new_link);
-        plot_link_coor(new_link);
+        plot.plot_coordinates_link(map, new_link);
     }
     else if ((typeof from.coor === 'undefined') && (typeof to.coor !== 'undefined')){
         // segment is at the end
@@ -289,150 +211,6 @@ function relink_map(segment_index) {
 
 }
 
-function relink_elevation(segment_index) {
-    let from = {'distance': undefined, 'elevation': undefined, 'segment_index': undefined, 'link_index': undefined};
-    let to = {'distance': undefined, 'elevation': undefined, 'segment_index': undefined, 'link_index': undefined};
-
-    for (const [i, link] of track['links_ele'].entries()) {
-        if (link.from === segment_index) {
-            to.distance = link['to_ele']['x'];
-            to.elevation = link['to_ele']['y'];
-            to.segment_index = link['to'];
-            to.link_index = i;
-        }
-        else if (link.to === segment_index) {
-            from.distance = link['from_ele']['x'];
-            from.elevation = link['from_ele']['y'];
-            from.segment_index = link['from'];
-            from.link_index = i;
-        }
-    }
-
-    if ((typeof from.elevation !== 'undefined') && (typeof to.elevation !== 'undefined')){
-        // segment is in the middle
-        track['links_ele'].splice(from.link_index, 1);
-        track['links_ele'].splice(to.link_index, 1);
-        const new_link = {'from': from.segment_index,
-                          'to': to.segment_index,
-                          'from_ele': {'x': from.distance, 'y': from.elevation},
-                          'to_ele': {'x': to.distance, 'y': to.elevation}}
-        track['links_ele'].push(new_link);
-        plot_link_ele(new_link);
-    }
-    else if ((typeof from.elevation === 'undefined') && (typeof to.elevation !== 'undefined')){
-        // segment is at the end
-        track['links_ele'].splice(from.link_index, 1);
-    }
-    else if ((typeof from.elevation !== 'undefined') && (typeof to.elevation === 'undefined')){
-        // segment is at the start
-        track['links_ele'].splice(to.link_index, 1);
-    }
-
-}
-
-
-function plot_elevation(segment) {
-    // Plot elevation
-    let elevation_data = [];
-    segment.distance.forEach((distance, index) => {
-        let elevation = segment.ele[index];
-        elevation_data.push({x: distance, y: elevation});
-    });
-
-    chart.data.datasets.push({
-        label: `elevation_${segment.index}`,
-        fill: true,
-        lineTension: 0.4,
-        data: elevation_data,
-        showLine: true,
-        borderWidth: 3,
-        backgroundColor: plot.get_color(segment.index, '0.2'),
-        borderColor: plot.get_color(segment.index, '0.8'),
-        hidden: false,
-    });
-    chart.update();
-}
-
-function plot_segment(segment) {
-    plot_elevation(segment);
-
-    // Points to vector layer
-    const points_vector_layer = new ol.layer.Vector({
-        source: plot.get_points_source(segment.lat, segment.lon),
-        style: plot.get_points_style(segment.index),
-        name: `layer_points_${segment.index}`,
-    });
-    map.addLayer(points_vector_layer);
-
-    // Lines to vector layer
-    const lines_vector_layer = new ol.layer.Vector({
-        source: plot.get_lines_source(segment.lat, segment.lon,
-                                 `features_lines_${segment.index}`,
-                                 plot.get_lines_style(segment.index)),
-        name: `layer_lines_${segment.index}`,
-    });
-    map.addLayer(lines_vector_layer);
-
-    // Interaction
-    let select_interaction = new ol.interaction.Select({
-        layers: [lines_vector_layer]
-    });
-    map.addInteraction(select_interaction);
-
-    select_interaction.on('select',  e => {
-        document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'normal';
-        if (e.selected.length > 0) {
-            if (e.selected[0].getId() === `features_lines_${segment.index}`) {
-                e.selected[0].setStyle(new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: plot.get_color(segment.index, '0.9'),
-                        width: 7,
-                    })
-                }));
-                // Bold track name
-                document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'bolder';
-            }
-            elevation_show_segment(segment.index);
-            selected_segment_idx = segment.index;
-            selected_segments++;
-        }
-        else {
-            elevation_show_segment(undefined, true);
-            selected_segment_idx = undefined;
-            selected_segments--;
-        }
-
-    });
-
-}
-
-
-function plot_link_coor(link) {
-    const link_vector_layer = new ol.layer.Vector({
-        source: plot.get_links_source(link['from_coor'], link['to_coor']),
-        style: plot.get_link_style(),
-        name: `layer_link_${link['from']}_${link['to']}`,
-    });
-    map.addLayer(link_vector_layer);
-}
-
-
-function plot_link_ele(link) {
-    let link_data = [link['from_ele'], link['to_ele']];
-    chart.data.datasets.push({
-        label: `link_${link.from}_${link.to}`,
-        fill: true,
-        data: link_data,
-        showLine: true,
-        borderWidth: 3,
-        backgroundColor: 'rgb(0, 0, 128, 0.05)',
-        borderColor: 'rgb(0, 0, 128, 0.1)',
-        hidden: false,
-        pointRadius: 0,
-    });
-
-    chart.update();
-}
 
 function show_summary() {
     /*
@@ -525,17 +303,17 @@ function reverse_segment() {
     btn_reverse.addEventListener('click', () => {
         utils.activate_spinner('#div_spinner');
 
-        if (!check_reverse_button()){  // verify that one segment is selected
+        if (!check_selected_segment(btn_reverse)){  // verify that one segment is selected
             return;
         }
 
-        fetch(`/editor/reverse_segment/${selected_segment_idx}`, {
+        fetch(`/editor/reverse_segment/${selected_segment.idx}`, {
             method: 'POST',
         }).then( response => {
             if (response.status === 200) {
-                reverse_elevation(selected_segment_idx);
-                reverse_map_link(selected_segment_idx);
-                reverse_ele_link(selected_segment_idx);
+                reverse_utils.reverse_elevation(chart, selected_segment.idx);
+                reverse_utils.reverse_map_link(map, track, selected_segment.idx);
+                reverse_utils.reverse_elevation_link(chart, track, selected_segment.idx);
                 utils.deactivate_spinner('#div_spinner');
             }
             else {
@@ -547,113 +325,10 @@ function reverse_segment() {
     });
 }
 
-function reverse_elevation(segment_index) {
-    chart.data.datasets.forEach(dataset => {
-        if (dataset.label === `elevation_${segment_index}`) {
-            let reversed_data = [];
-            let size = dataset.data.length;
-            for (let i = 0; i < size; i++){
-                reversed_data.push({x: dataset.data[i].x, y: dataset.data[size - i - 1].y});
-            }
-            dataset.data = reversed_data;
-        }
-    });
-    chart.update();
-}
 
-function get_segment(segment_index) {
-    for (let segment of track['segments']) {
-        if (segment['index'] === segment_index) {
-            return segment;
-        }
-    }
-}
-
-
-function reverse_map_link(segment_index) {
-    let segment = get_segment(segment_index);
-
-    remove_map_link(segment_index);
-
-    for (let link of track['links_coor']) {
-        let end = segment['lon'].length - 1;
-
-        if (link['from'] === segment_index) {
-            // different reversing criteria to support multiple reverse
-            if (segment['lon'][0] !== link['from_coor']['lon']) {
-                link['from_coor'] = {
-                    'lon': segment['lon'][0],
-                    'lat': segment['lat'][0]
-                };
-            }
-            else{
-                link['from_coor'] = {
-                    'lon': segment['lon'][end],
-                    'lat': segment['lat'][end]
-                };
-            }
-            plot_link_coor(link);
-        }
-
-        if (link['to'] === segment_index) {
-            if (segment['lon'][end] !== link['to_coor']['lon']) {
-                link['to_coor'] = {
-                    'lon': segment['lon'][end],
-                    'lat': segment['lat'][end]
-                };
-            }
-            else {
-                link['to_coor'] = {
-                    'lon': segment['lon'][0],
-                    'lat': segment['lat'][0]
-                };
-            }
-            plot_link_coor(link);
-        }
-    }
-
-}
-
-function reverse_ele_link(segment_index) {
-    let segment = get_segment(segment_index);
-
-    remove_ele_link(segment_index);
-
-    for (let link of track['links_ele']) {
-        let end = segment['ele'].length - 1;
-
-         if (link['from'] === segment_index) {
-            // different reversing criteria to support multiple reverse
-            if (segment['ele'][0] !== link['from_ele']['y']) {
-                link['from_ele'] = {'x': segment['distance'][end],
-                                    'y': segment['ele'][0]};
-            }
-            else{
-                link['from_ele'] = {'x': segment['distance'][end],
-                                    'y': segment['ele'][end]};
-            }
-            plot_link_ele(link);
-        }
-
-        if (link['to'] === segment_index) {
-            if (segment['ele'][end] !== link['to_ele']['y']) {
-                link['to_ele'] = {'x': segment['distance'][0],
-                                  'y': segment['ele'][end]};
-            }
-            else {
-                link['to_ele'] = {'x': segment['distance'][0],
-                                  'y': segment['ele'][0]};
-            }
-            plot_link_ele(link);
-        }
-    }
-}
-
-
-function check_reverse_button() {
-    let btn_reverse = document.getElementById('btn_reverse');
-    btn_reverse.addEventListener('click', () => {
-        if (selected_segments === 0) {
+function check_selected_segment(btn) {
+    btn.addEventListener('click', () => {
+        if (!selected_segment.status) {
             display_error('warning', 'No track has been selected');
             return false;
         }
@@ -847,19 +522,7 @@ function change_segments_order() {
             }
         }).then( () => {
             // 5. Remove all plots (including links)
-            chart.data.datasets = [];
-            chart.update();
-
-            track.segments.forEach(segment => {
-                remove_map(segment.index);
-                remove_elevation(segment.index);
-                remove_map_link(segment.index);
-                remove_ele_link(segment.index);
-            });
-
-            let segment_list_items = document.getElementsByClassName('segment-list-item');
-            Array.from(segment_list_items).forEach(e => e.remove());
-
+            clean_all();  // remove plots and segment links
         }).then( () => {
             // 6. Redo all plots (including links)
             plot_track();
@@ -875,21 +538,6 @@ function change_segments_order() {
 
 }
 
-function elevation_show_segment(index=undefined, all=false) {
-    chart.data.datasets.forEach(dataset => {
-        if (all) {
-            dataset.hidden = false;
-        }
-        else if (typeof index !== 'undefined') {
-            dataset.hidden = dataset.label !== `elevation_${index}`;
-        }
-        else {
-            return false;
-        }
-    });
-    chart.update();
-    return true;
-}
 
 function update_distance() {
     /* The cumulative distance provided from API can be altered when a segment
@@ -904,9 +552,74 @@ function update_distance() {
         let end = previous_segment.lat.length - 1;
         let distance = current_segment['segment_distance'];
         let seg2seg_distance = previous_segment['distance'][end] +
-                               plot.haversine_distance([current_segment.lat[0], current_segment.lon[0]],
-                                                  [previous_segment.lat[end], previous_segment.lon[end]]);
+                               utils.haversine_distance([current_segment.lat[0], current_segment.lon[0]],
+                                                        [previous_segment.lat[end], previous_segment.lon[end]]);
         distance = distance.map(a => a +  seg2seg_distance);
         track['segments'][i]['distance'] = distance;
     }
+}
+
+
+function split_segment() {
+    const btn = document.getElementById('btn_split');
+    const btn_ok = document.getElementById('btn_split_done');
+    const btn_cancel = document.getElementById('btn_split_cancel');
+    const range_control = document.getElementById('split-range');
+    let segment_index;
+    check_selected_segment(btn);
+
+    // Open the split assistant
+    btn.addEventListener('click', () => {
+        if (selected_segment.status) {
+            segment_index = selected_segment.idx;
+            split_segment_utils.open_split_assistant(map, chart, track, segment_index);
+        }
+    });
+
+    // Cancel splitting
+    btn_cancel.addEventListener('click', () => {
+        split_segment_utils.close_split_assistant(map, chart);
+    });
+
+    // Apply splitting
+    btn_ok.addEventListener('click', () => {
+        utils.activate_spinner('#div_spinner');
+        fetch(`/editor/divide_segment/${segment_index}/${range_control.value}`, {
+             method: 'POST',
+        }).then( () => {
+            utils.deactivate_spinner('#div_spinner');
+            split_segment_utils.execute_split(track, segment_index, parseInt(range_control.value));
+            split_segment_utils.close_split_assistant(map, chart);
+        }).then( () => {
+            split_segment_utils.update_links(track, segment_index);
+        }).then( () => {
+            track.segments = track.segments.sort((first, second) => {
+                return first['index'] - second['index'];
+            });
+            track.links_ele = track.links_ele.sort((first, second) => {
+                return first['from'] - second['from'];
+            });
+            track.links_coor = track.links_coor.sort((first, second) => {
+                return first['to'] - second['to'];
+            });
+        }).then( () => {
+            clean_all();  // remove plots and segment links
+        }).then( () => {
+            plot_track();
+            segments_manager();
+        }).catch(error => display_error('error', error + '(at split_segment)'));
+    });
+
+}
+
+
+function clean_segments_list() {
+    let segment_list_items = document.getElementsByClassName('segment-list-item');
+    Array.from(segment_list_items).forEach(e => e.remove());
+}
+
+function clean_all() {
+    plot.clean_elevation(chart, track);
+    plot.clean_map(map, track);
+    clean_segments_list();
 }

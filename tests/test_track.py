@@ -172,7 +172,7 @@ class TrackTest(TestCase):
         initial_shape = obj_track.df_track.shape
 
         # Apply method
-        obj_track.divide_segment(100)
+        obj_track.divide_segment(1, 100)
 
         # Specific checks
         self.assertEqual(obj_track.df_track.segment.iloc[99], 1)
@@ -199,9 +199,9 @@ class TrackTest(TestCase):
         initial_shape = obj_track.df_track.shape
 
         # Apply method
-        obj_track.divide_segment(80)
-        obj_track.divide_segment(120)
-        obj_track.divide_segment(40)
+        obj_track.divide_segment(1, 80)
+        obj_track.divide_segment(2, 40)
+        obj_track.divide_segment(1, 40)
 
         # Specific checks
         self.assertEqual(obj_track.df_track.segment.iloc[39], 1)
@@ -214,6 +214,19 @@ class TrackTest(TestCase):
         self.assertEqual(initial_total_distance, obj_track.df_track.distance.iloc[-1])
         self.assertEqual(initial_shape, obj_track.df_track.shape)
         self.assertEqual(obj_track.size, 4)
+
+    def test_divide_segment_out_index(self):
+        """
+        Force IndexError when dividing index is not in provided segment.
+        """
+        # Load data
+        obj_track = track.Track()
+        for i in range(2):
+            obj_track.add_gpx(f'{self.test_path}/samples/island_full.gpx')
+
+        # Apply method
+        self.assertRaises(IndexError, obj_track.divide_segment, 1, 150)
+        self.assertRaises(IndexError, obj_track.divide_segment, 1, 1500)
 
     def test_change_order(self):
         """

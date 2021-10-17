@@ -1,24 +1,3 @@
-export function haversine_distance([lat1, lon1], [lat2, lon2]) {
-    /* Compute distance between two coordinates */
-    const toRadian = angle => (Math.PI / 180) * angle;
-    const distance = (x, y) => (Math.PI / 180) * (x - y);
-    const RADIUS_OF_EARTH_IN_KM = 6371;
-
-    const dLat = distance(lat2, lat1);
-    const dLon = distance(lon2, lon1);
-
-    lat1 = toRadian(lat1);
-    lat2 = toRadian(lat2);
-
-    // Haversine Formula
-    const a =
-        Math.pow(Math.sin(dLat / 2), 2) +
-        Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
-    const c = 2 * Math.asin(Math.sqrt(a));
-
-    return RADIUS_OF_EARTH_IN_KM * c;
-}
-
 export function create_chart() {
     return new Chart("js-elevation", {
        type: "scatter",
@@ -53,6 +32,7 @@ export function create_chart() {
        }
    });
 }
+
 
 export function create_map() {
     return new ol.Map({
@@ -108,6 +88,7 @@ export function get_color(color_index, alpha='0.5') {
     return `rgb(${colors[color_index]}, ${alpha})`;
 }
 
+
 export function get_links_source(from, to) {
     // create points
     const points = [];
@@ -133,6 +114,7 @@ export function get_link_style() {
         })
     });
 }
+
 
 export function get_points_source(lat, lon) {
     /*
@@ -195,6 +177,16 @@ export function get_points_style(color_index) {
 }
 
 
+export function get_splitting_point_style() {
+    return new ol.style.Style({
+        image: new ol.style.Circle({
+            fill: new ol.style.Fill({color: 'rgb(255, 0, 0, 0.7)'}),  // inner color
+            radius: 8,  // circle radius
+        }),
+    });
+}
+
+
 export function get_lines_style(color_index, alpha) {
     /*
     GET_LINES_STYLE provides a style for lines
@@ -204,5 +196,237 @@ export function get_lines_style(color_index, alpha) {
             color: get_color(color_index, alpha),
             width: 5,
         })
+    });
+}
+
+
+export function plot_elevation(chart, segment) {
+    // Plot elevation
+    let elevation_data = [];
+    segment.distance.forEach((distance, index) => {
+        let elevation = segment.ele[index];
+        elevation_data.push({x: distance, y: elevation});
+    });
+
+    chart.data.datasets.push({
+        label: `elevation_${segment.index}`,
+        fill: true,
+        lineTension: 0.4,
+        data: elevation_data,
+        showLine: true,
+        borderWidth: 3,
+        backgroundColor: get_color(segment.index, '0.2'),
+        borderColor: get_color(segment.index, '0.8'),
+        hidden: false,
+    });
+    chart.update();
+}
+
+
+export function plot_segment(map, chart, segment, selected_segment) {
+    plot_elevation(chart, segment);
+
+    // Points to vector layer
+    const points_vector_layer = new ol.layer.Vector({
+        source: get_points_source(segment.lat, segment.lon),
+        style: get_points_style(segment.index),
+        name: `layer_points_${segment.index}`,
+    });
+    map.addLayer(points_vector_layer);
+
+    // Lines to vector layer
+    const lines_vector_layer = new ol.layer.Vector({
+        source: get_lines_source(segment.lat, segment.lon,
+                                 `features_lines_${segment.index}`,
+                                 get_lines_style(segment.index)),
+        name: `layer_lines_${segment.index}`,
+    });
+    map.addLayer(lines_vector_layer);
+
+    // Interaction
+    let select_interaction = new ol.interaction.Select({
+        layers: [lines_vector_layer]
+    });
+    map.addInteraction(select_interaction);
+
+    select_interaction.on('select',  e => {
+        document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'normal';
+        if (e.selected.length > 0) {
+            if (e.selected[0].getId() === `features_lines_${segment.index}`) {
+                e.selected[0].setStyle(new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: get_color(segment.index, '0.9'),
+                        width: 7,
+                    })
+                }));
+                // Bold track name
+                document.querySelector(`#span_rename_${segment.index}`).style.fontWeight = 'bolder';
+            }
+            elevation_show_segment(chart, segment.index);
+            selected_segment.idx = segment.index;
+            selected_segment.status = true;
+        }
+        else {
+            elevation_show_segment(chart, undefined, true);
+            selected_segment.idx = undefined;
+            selected_segment.status = false;
+        }
+
+    });
+
+}
+
+
+export function plot_coordinates_link(map, link) {
+    const link_vector_layer = new ol.layer.Vector({
+        source: get_links_source(link['from_coor'], link['to_coor']),
+        style: get_link_style(),
+        name: `layer_link_${link['from']}_${link['to']}`,
+    });
+    map.addLayer(link_vector_layer);
+}
+
+
+export function plot_elevation_link(chart, link) {
+    let link_data = [link['from_ele'], link['to_ele']];
+    chart.data.datasets.push({
+        label: `link_${link.from}_${link.to}`,
+        fill: true,
+        data: link_data,
+        showLine: true,
+        borderWidth: 3,
+        backgroundColor: 'rgb(0, 0, 128, 0.05)',
+        borderColor: 'rgb(0, 0, 128, 0.1)',
+        hidden: false,
+        pointRadius: 0,
+    });
+
+    chart.update();
+}
+
+
+export function remove_elevation_links(chart, segment_index) {
+    let chartIndexToRemove = [];
+    chart.data.datasets.forEach((dataset, canvas_index) => {
+        let label = dataset.label;
+
+        if (typeof label !== 'undefined') {
+            if ((RegExp(`^link_\\d+_${segment_index}$`).test(label)) ||
+                (RegExp(`^link_${segment_index}_\\d+$`).test(label))) {
+                chartIndexToRemove.push(canvas_index);
+            }
+        }
+    });
+
+    // reverse is needed since array of size changes in each iteration
+    let chartIndexToRemoveReversed = chartIndexToRemove.slice();
+    chartIndexToRemoveReversed.reverse();
+
+    chartIndexToRemoveReversed.forEach(idx => {
+        chart.data.datasets.splice(idx, 1);
+    });
+    chart.update();
+}
+
+
+export function remove_map_links(map, segment_index) {
+    let layersToRemove = [];
+    map.getLayers().forEach(layer => {
+        let layer_name = layer.get('name');
+
+        if (typeof layer_name !== 'undefined') {
+            if ((RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
+                (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
+                layersToRemove.push(layer);
+            }
+        }
+    });
+
+    const len = layersToRemove.length;
+    for(let j = 0; j < len; j++) {
+        map.removeLayer(layersToRemove[j]);
+    }
+}
+
+
+export function remove_map_layer(map, segment_index) {
+    let layersToRemove = [];
+    map.getLayers().forEach(layer => {
+        let layer_name = layer.get('name');
+
+        if (typeof layer_name !== 'undefined') {
+            if ((layer_name === `layer_points_${segment_index}`) ||
+                (layer_name === `layer_lines_${segment_index}`) ||
+                (RegExp(`^layer_link_\\d+_${segment_index}$`).test(layer_name)) ||
+                (RegExp(`^layer_link_${segment_index}_\\d+$`).test(layer_name)) ) {
+                layersToRemove.push(layer);
+            }
+        }
+    });
+
+    const len = layersToRemove.length;
+    for(let j = 0; j < len; j++) {
+        map.removeLayer(layersToRemove[j]);
+    }
+}
+
+
+export function remove_elevation(chart, segment_index) {
+    let chartIndexToRemove = [];
+    chart.data.datasets.forEach((dataset, canvas_index) => {
+        let label = dataset.label;
+
+        if (typeof label !== 'undefined') {
+            if ((label === `elevation_${segment_index}`) ||
+                (RegExp(`^link_\\d+_${segment_index}$`).test(label)) ||
+                (RegExp(`^link_${segment_index}_\\d+$`).test(label))) {
+                chartIndexToRemove.push(canvas_index);
+            }
+        }
+    });
+
+    // reverse is needed since array of size changes in each iteration
+    let chartIndexToRemoveReversed = chartIndexToRemove.slice();
+    chartIndexToRemoveReversed.reverse();
+
+    chartIndexToRemoveReversed.forEach(idx => {
+        // reverse is needed since array of size changes in each iteration
+        chart.data.datasets.splice(idx, 1);
+    });
+    chart.update();
+}
+
+
+export function elevation_show_segment(chart, index=undefined, all=false) {
+    chart.data.datasets.forEach(dataset => {
+        if (all) {
+            dataset.hidden = false;
+        }
+        else if (typeof index !== 'undefined') {
+            dataset.hidden = dataset.label !== `elevation_${index}`;
+        }
+        else {
+            return false;
+        }
+    });
+    chart.update();
+    return true;
+}
+
+
+export function clean_elevation(chart, track) {
+    chart.data.datasets = [];
+    chart.update();
+
+    track.segments.forEach(segment => {
+        remove_elevation(chart, segment.index);
+        remove_elevation_links(chart, segment.index);
+    });
+}
+
+export function clean_map(map, track) {
+    track.segments.forEach(segment => {
+        remove_map_layer(map, segment.index);
+        remove_map_links(map, segment.index);
     });
 }

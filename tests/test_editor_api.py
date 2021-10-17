@@ -951,6 +951,62 @@ class ChangeOrderTest(EditorTestUtils):
         self.assertEqual(response.status_code, 532)
 
 
+class DivideSegmentTest(EditorTestUtils):
+    def setUp(self):
+        self.test_path = os.path.dirname(__file__)
+        self.user, self.username, self.password = self.create_user()
+        self.login()
+
+    def test_divide_segment(self):
+        """
+        Reorder a track of four files
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file('island_full.gpx')
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        status = [self.client.post('/editor/divide_segment/1/80').status_code,
+                  self.client.post('/editor/divide_segment/2/40').status_code,
+                  self.client.post('/editor/divide_segment/1/40').status_code]
+
+        df_track = track.Track.from_json(self.client.session['json_track']).df_track
+
+        self.assertListEqual(status, 3 * [201])
+        self.assertEqual(df_track.segment.iloc[39], 1)
+        self.assertEqual(df_track.segment.iloc[40], 2)
+        self.assertEqual(df_track.segment.iloc[80], 3)
+        self.assertEqual(df_track.segment.iloc[120], 4)
+        self.assertEqual(df_track.segment.iloc[-1], 4)
+
+    def test_divide_segment_incomplete_endpoint(self):
+        """
+        Incomplete endpoint returns error 404
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file('island_full.gpx')
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        status = self.client.post('/editor/divide_segment/1').status_code
+        self.assertEqual(status, 404)
+
+    def test_divide_segment_force_exception(self):
+        """
+        Force index error
+        """
+        self.create_session()
+
+        sample_file = self.get_sample_file('island_full.gpx')
+        with open(sample_file, 'r') as f:
+            self.client.post('/editor/', {'document': f})
+
+        status = self.client.post('/editor/divide_segment/1/150').status_code
+        self.assertEqual(status, 533)
+
+
 class LoginRequiredTest(TestCase):
     """
     All tests to check the login required are grouped in this class
@@ -1009,4 +1065,8 @@ class LoginRequiredTest(TestCase):
 
     def test_change_segments_order(self):
         response = self.client.get('/editor/change_segments_order')
+        self.assertEqual(response.status_code, 302)
+
+    def test_divide_segment(self):
+        response = self.client.get('/editor/divide_segment/1/0')
         self.assertEqual(response.status_code, 302)

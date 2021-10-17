@@ -18,7 +18,8 @@ urlpatterns = [
     path('download_session', views.download_session, name='download_session'),
     path('get_segments_links', views.get_segments_links, name='get_segments_links'),
     path('reverse_segment/<int:index>', views.reverse_segment, name='reverse_segment'),
-    path('change_segments_order', views.change_segments_order, name='change_segments_order')
+    path('change_segments_order', views.change_segments_order, name='change_segments_order'),
+    path('divide_segment/<int:index>/<int:div_index>', views.divide_segment, name='divide_segment'),
 ]
 
 # DEBUG will only be available during development in other case a more powerful

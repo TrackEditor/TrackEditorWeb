@@ -22,3 +22,11 @@
 .btn-edition:hover {
     border: 2px solid var(--color-dark);
 }
+
+.split-mode {
+    background-color: #0275d8;
+    color: white;
+    width: 130px;
+    display: inline-block;
+    margin-top: 15px;
+}

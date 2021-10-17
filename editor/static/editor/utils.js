@@ -2,9 +2,11 @@ export function activate_spinner(spinner_selector) {
     document.querySelector(spinner_selector).style.display = 'inline-block';
 }
 
+
 export function deactivate_spinner(spinner_selector) {
     document.querySelector(spinner_selector).style.display = 'none';
 }
+
 
 export function response_error_mng(status, fnc_name) {
     if (status !== 200) {
@@ -17,6 +19,7 @@ export function response_error_mng(status, fnc_name) {
         }
     }
 }
+
 
 export function display_error(severity, msg) {
     let div = document.getElementById('div_alerts_box');
@@ -35,4 +38,35 @@ export function display_error(severity, msg) {
         div.style.display = 'none';
         div.innerHTML = '';
     }, 3000);
+}
+
+
+export function get_segment(track, segment_index) {
+    for (let segment of track['segments']) {
+        if (segment['index'] === segment_index) {
+            return segment;
+        }
+    }
+}
+
+
+export function haversine_distance([lat1, lon1], [lat2, lon2]) {
+    /* Compute distance between two coordinates */
+    const toRadian = angle => (Math.PI / 180) * angle;
+    const distance = (x, y) => (Math.PI / 180) * (x - y);
+    const RADIUS_OF_EARTH_IN_KM = 6371;
+
+    const dLat = distance(lat2, lat1);
+    const dLon = distance(lon2, lon1);
+
+    lat1 = toRadian(lat1);
+    lat2 = toRadian(lat2);
+
+    // Haversine Formula
+    const a =
+        Math.pow(Math.sin(dLat / 2), 2) +
+        Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.asin(Math.sqrt(a));
+
+    return RADIUS_OF_EARTH_IN_KM * c;
 }

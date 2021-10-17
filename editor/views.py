@@ -331,3 +331,14 @@ def change_segments_order(request):
     request.session['json_track'] = obj_track.to_json()
 
     return JsonResponse({'message': 'Successful reordering'}, status=200)
+
+
+@login_required
+@csrf_exempt
+@check_view('POST', 533)
+def divide_segment(request, index: int, div_index: int):
+    obj_track = track.Track.from_json(request.session['json_track'])
+    obj_track.divide_segment(index, div_index)
+    request.session['json_track'] = obj_track.to_json()
+
+    return JsonResponse({'message': 'Successful split'}, status=201)
