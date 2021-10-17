@@ -522,19 +522,7 @@ function change_segments_order() {
             }
         }).then( () => {
             // 5. Remove all plots (including links)
-            chart.data.datasets = [];
-            chart.update();
-
-            track.segments.forEach(segment => {
-                plot.remove_map_layer(map, segment.index);
-                plot.remove_elevation(chart, segment.index);
-                plot.remove_map_links(map, segment.index);
-                plot.remove_elevation_links(chart, segment.index);
-            });
-
-            let segment_list_items = document.getElementsByClassName('segment-list-item');
-            Array.from(segment_list_items).forEach(e => e.remove());
-
+            clean_all();  // remove plots and segment links
         }).then( () => {
             // 6. Redo all plots (including links)
             plot_track();
@@ -615,22 +603,23 @@ function split_segment() {
                 return first['to'] - second['to'];
             });
         }).then( () => {
-            chart.data.datasets = [];
-            chart.update();
-
-            track.segments.forEach(segment => {
-                plot.remove_map_layer(map, segment.index);
-                plot.remove_elevation(chart, segment.index);
-                plot.remove_map_links(map, segment.index);
-                plot.remove_elevation_links(chart, segment.index);
-            });
-
-            let segment_list_items = document.getElementsByClassName('segment-list-item');
-            Array.from(segment_list_items).forEach(e => e.remove());
+            clean_all();  // remove plots and segment links
         }).then( () => {
             plot_track();
             segments_manager();
         }).catch(error => display_error('error', error + '(at split_segment)'));
     });
 
+}
+
+
+function clean_segments_list() {
+    let segment_list_items = document.getElementsByClassName('segment-list-item');
+    Array.from(segment_list_items).forEach(e => e.remove());
+}
+
+function clean_all() {
+    plot.clean_elevation(chart, track);
+    plot.clean_map(map, track);
+    clean_segments_list();
 }

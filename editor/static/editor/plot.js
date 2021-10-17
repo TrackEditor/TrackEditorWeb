@@ -412,3 +412,21 @@ export function elevation_show_segment(chart, index=undefined, all=false) {
     chart.update();
     return true;
 }
+
+
+export function clean_elevation(chart, track) {
+    chart.data.datasets = [];
+    chart.update();
+
+    track.segments.forEach(segment => {
+        remove_elevation(chart, segment.index);
+        remove_elevation_links(chart, segment.index);
+    });
+}
+
+export function clean_map(map, track) {
+    track.segments.forEach(segment => {
+        remove_map_layer(map, segment.index);
+        remove_map_links(map, segment.index);
+    });
+}
