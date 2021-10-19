@@ -80,4 +80,3 @@ class GpxTest(TestCase):
         self.assertAlmostEqual(route_df.iloc[0].lon, 1.0)
         self.assertAlmostEqual(route_df.iloc[-1].lat, 1.0)
         self.assertAlmostEqual(route_df.iloc[-1].lon, 5.0)
-
