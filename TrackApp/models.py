@@ -16,3 +16,8 @@ class Track(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.id} - {self.creation}'
+
+
+class Upload(models.Model):
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    file = models.FileField()

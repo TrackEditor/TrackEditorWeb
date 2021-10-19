@@ -301,12 +301,11 @@ class Track:
                     dt.timedelta(seconds=round(3600*row['relative_time'], 3)),
                     axis=1)
 
-    def save_gpx(self, gpx_filename: str, exclude_time=False):
+    def get_gpx(self, exclude_time=False) -> str:
         """
-        Save the track objects as a gpx file
-        :param gpx_filename: filename of output file
+        Convert track dataframe into a gpx file string
         :param exclude_time: do not include timestamp in the final file
-        :return: None
+        :return: gpxpy object
         """
         # Sort by timestamp
         self.df_track = self.df_track.sort_values(by=['time'],
@@ -352,9 +351,18 @@ class Track:
                                                         time=time)
                 gpx_segment.points.append(gpx_point)
 
-        # Write file
+        return ob_gpxpy.to_xml()
+
+    def save_gpx(self, gpx_filename: str, exclude_time=False):
+        """
+        Save the track objects as a gpx file
+        :param gpx_filename: filename of output file
+        :param exclude_time: do not include timestamp in the final file
+        :return: None
+        """
+        gpx_xml = self.get_gpx(exclude_time=exclude_time)
         with io.open(gpx_filename, 'w', newline='\n') as f:
-            f.write(ob_gpxpy.to_xml())
+            f.write(gpx_xml)
 
     def smooth_elevation(self, index: int):
         """

@@ -13,11 +13,13 @@ from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.conf import settings
+from django.core.files.base import ContentFile
 
 import libs.track as track
 from libs.constants import Constants as c
-from .models import User, Track
-from libs.utils import id_generator, auto_zoom
+from .models import User, Track, Upload
+from libs.utils import id_generator, auto_zoom, randomize_filename
 
 
 def index_view(request):
@@ -98,7 +100,11 @@ def combine_tracks(request):
 
     if request.method == 'POST':
         obj_track = track.Track()
-        fs = FileSystemStorage()
+
+        output_filename = \
+            c.tool + '_combine_tracks_' + \
+            datetime.now().strftime('%d%m%Y_%H%M%S') + '_' + \
+            id_generator(size=8) + '.gpx'
 
         if len(request.FILES.getlist('document')) == 0:
             warning = 'No file has been selected.'
@@ -107,29 +113,42 @@ def combine_tracks(request):
                            'warning': warning,
                            **config})
 
-        try:
-            # Load files
+        # try:
+        # Load files
+        if settings.USE_S3:
+            for uploaded_file in request.FILES.getlist('document'):
+                upload = Upload(file=uploaded_file)
+                filename = randomize_filename(upload.file.url.split('/')[-1])
+                upload.file.name = filename
+                upload.save()
+
+                with upload.file.open() as f:
+                    gpx_file = f.read()
+                    obj_track.add_gpx_bytes(file=gpx_file, filename=filename)
+
+            upload_output = Upload(file=ContentFile(obj_track.get_gpx().encode('utf-8')))
+            upload_output.file.name = f'{settings.MEDIA_LOCATION}/{output_filename}'
+            output_url = upload_output.file.url.replace('static/', '')
+            upload_output.save()
+
+        else:
+            fs = FileSystemStorage()
             for uploaded_file in request.FILES.getlist('document'):
                 filename = fs.save(uploaded_file.name, uploaded_file)
                 filepath = os.path.join(fs.location, filename)
                 obj_track.add_gpx(filepath)
 
-            # Process files
-            output_filename = \
-                c.tool + '_combine_tracks_' + \
-                datetime.now().strftime('%d%m%Y_%H%M%S') + '_' + \
-                id_generator(size=8) + '.gpx'
             output_location = os.path.join(fs.location, output_filename)
             output_url = fs.url(output_filename)
             obj_track.save_gpx(output_location)
 
-        except Exception as e:
-            error = 'Error loading files'
-            print(e)
-            return render(request, template_combine,
-                          {'download': False,
-                           'error': error,
-                           **config})
+        # except Exception as e:
+        #     error = 'Error loading files'
+        #     print(e)
+        #     return render(request, template_combine,
+        #                   {'download': False,
+        #                    'error': error,
+        #                    **config})
 
         map_center = [sum(obj_track.extremes[2:]) / 2,
                       sum(obj_track.extremes[:2]) / 2]
