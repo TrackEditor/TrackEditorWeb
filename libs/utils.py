@@ -90,3 +90,12 @@ def auto_zoom(lat_min: float, lat_max: float,
 def map_center(lat_min: float, lat_max: float,
                lon_min: float, lon_max: float) -> list[float]:
     return [(lon_min + lon_max) / 2, (lat_min + lat_max) / 2]
+
+
+def randomize_filename(filename: str):
+    """
+    Insert a random string into a filename to obtain a (almost)unique name
+    """
+    filename_split = filename.split('.', 1)
+    filename_split.insert(1, '_' + id_generator() + '.')
+    return ''.join(filename_split)
