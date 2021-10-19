@@ -143,13 +143,7 @@ class Track:
 
         return track
 
-    def add_gpx(self, file: str):
-        """
-        Add new segment from gpx file
-        :param file: path to gpx file
-        :return: None
-        """
-        gpx_track = gpx.Gpx(file)
+    def _load_gpx(self, gpx_track: gpx.Gpx, filename: str):
         df_gpx = gpx_track.to_pandas()
         df_gpx = df_gpx[self.columns]
         self.size += 1
@@ -159,8 +153,27 @@ class Track:
         self.df_track = pd.concat([self.df_track, df_gpx])
         self.df_track = self.df_track.reset_index(drop=True)
         self.update_summary()  # for full track
-        self.segment_names.append(os.path.basename(file))
+        self.segment_names.append(filename)
         self._force_columns_type()
+
+    def add_gpx(self, filepath: str):
+        """
+        Add new segment from gpx file
+        :param filepath: path to gpx file
+        :return: None
+        """
+        self._load_gpx(gpx_track=gpx.Gpx.from_path(filepath),
+                       filename=os.path.basename(filepath))
+
+    def add_gpx_bytes(self, file: bytes, filename: str):
+        """
+        Add new segment from gpx file from an open file
+        :param file: bytes sequence of the gpx file
+        :param filename
+        :return: None
+        """
+        self._load_gpx(gpx_track=gpx.Gpx.from_bytes(file, filename),
+                       filename=filename)
 
     def get_segment(self, index: int) -> pd.DataFrame:
         """
