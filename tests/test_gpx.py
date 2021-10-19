@@ -12,20 +12,20 @@ class GpxTest(TestCase):
     def test_load_file(self):
         file = os.path.join(self.test_path,
                             'samples/basic_sample.gpx')
-        route = gpx.Gpx(file)
-        self.assertTrue(route._load_file())
+        route = gpx.Gpx.from_path(file)
+        self.assertIsInstance(route, gpx.Gpx)
 
     def test_load_file_big(self):
         file = os.path.join(self.test_path,
                             'samples/over_10mb.gpx')
 
         with self.assertRaises(gpx.LoadGpxError):
-            gpx.Gpx(file)
+            gpx.Gpx.from_path(file)
 
     def test_to_dict(self):
         file = os.path.join(self.test_path,
                             'samples/basic_sample.gpx')
-        route = gpx.Gpx(file)
+        route = gpx.Gpx.from_path(file)
         route_dict = route.to_dict()
 
         # Extract data to check
@@ -57,7 +57,7 @@ class GpxTest(TestCase):
     def test_to_pandas(self):
         file = os.path.join(self.test_path,
                             'samples/basic_sample.gpx')
-        route = gpx.Gpx(file)
+        route = gpx.Gpx.from_path(file)
         route_df = route.to_pandas()
 
         self.assertAlmostEqual(route_df.iloc[0].lat, 46.240649)
@@ -67,3 +67,17 @@ class GpxTest(TestCase):
         self.assertAlmostEqual(route_df.iloc[-1].lat, 46.230118)
         self.assertAlmostEqual(route_df.iloc[-1].lon, 6.052533)
         self.assertAlmostEqual(route_df.iloc[-1].ele, 428.2)
+
+    def test_to_pandas_from_file(self):
+        filepath = os.path.join(self.test_path, 'samples/simple_numbers.gpx')
+
+        with open(filepath, 'r') as f:
+            route = gpx.Gpx.from_bytes(f, 'simple_numbers.bytes')
+
+        route_df = route.to_pandas()
+
+        self.assertAlmostEqual(route_df.iloc[0].lat, 1.0)
+        self.assertAlmostEqual(route_df.iloc[0].lon, 1.0)
+        self.assertAlmostEqual(route_df.iloc[-1].lat, 1.0)
+        self.assertAlmostEqual(route_df.iloc[-1].lon, 5.0)
+
