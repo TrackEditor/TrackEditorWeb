@@ -127,8 +127,8 @@ def combine_tracks(request):
                     obj_track.add_gpx_bytes(file=gpx_file, filename=filename)
 
             upload_output = Upload(file=ContentFile(obj_track.get_gpx().encode('utf-8')))
-            upload_output.file.name = f'{settings.MEDIA_LOCATION}/{output_filename}'
-            output_url = upload_output.file.url.replace('static/', '')
+            upload_output.file.name = output_filename
+            output_url = upload_output.file.url
             upload_output.save()
 
         else:
