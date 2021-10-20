@@ -113,42 +113,42 @@ def combine_tracks(request):
                            'warning': warning,
                            **config})
 
-        # try:
-        # Load files
-        if settings.USE_S3:
-            for uploaded_file in request.FILES.getlist('document'):
-                upload = Upload(file=uploaded_file)
-                filename = randomize_filename(upload.file.url.split('/')[-1])
-                upload.file.name = filename
-                upload.save()
+        try:
+            # Load files
+            if settings.USE_S3:
+                for uploaded_file in request.FILES.getlist('document'):
+                    upload = Upload(file=uploaded_file)
+                    filename = randomize_filename(upload.file.url.split('/')[-1])
+                    upload.file.name = filename
+                    upload.save()
 
-                with upload.file.open() as f:
-                    gpx_file = f.read()
-                    obj_track.add_gpx_bytes(file=gpx_file, filename=filename)
+                    with upload.file.open() as f:
+                        gpx_file = f.read()
+                        obj_track.add_gpx_bytes(file=gpx_file, filename=filename)
 
-            upload_output = Upload(file=ContentFile(obj_track.get_gpx().encode('utf-8')))
-            upload_output.file.name = output_filename
-            output_url = upload_output.file.url
-            upload_output.save()
+                upload_output = Upload(file=ContentFile(obj_track.get_gpx().encode('utf-8')))
+                upload_output.file.name = output_filename
+                output_url = upload_output.file.url
+                upload_output.save()
 
-        else:
-            fs = FileSystemStorage()
-            for uploaded_file in request.FILES.getlist('document'):
-                filename = fs.save(uploaded_file.name, uploaded_file)
-                filepath = os.path.join(fs.location, filename)
-                obj_track.add_gpx(filepath)
+            else:
+                fs = FileSystemStorage()
+                for uploaded_file in request.FILES.getlist('document'):
+                    filename = fs.save(uploaded_file.name, uploaded_file)
+                    filepath = os.path.join(fs.location, filename)
+                    obj_track.add_gpx(filepath)
 
-            output_location = os.path.join(fs.location, output_filename)
-            output_url = fs.url(output_filename)
-            obj_track.save_gpx(output_location)
+                output_location = os.path.join(fs.location, output_filename)
+                output_url = fs.url(output_filename)
+                obj_track.save_gpx(output_location)
 
-        # except Exception as e:
-        #     error = 'Error loading files'
-        #     print(e)
-        #     return render(request, template_combine,
-        #                   {'download': False,
-        #                    'error': error,
-        #                    **config})
+        except Exception as e:
+            error = 'Error loading files'
+            print(e)
+            return render(request, template_combine,
+                          {'download': False,
+                           'error': error,
+                           **config})
 
         map_center = [sum(obj_track.extremes[2:]) / 2,
                       sum(obj_track.extremes[:2]) / 2]
@@ -185,13 +185,14 @@ def insert_timestamp(request):
 
     if request.method == 'POST':
         obj_track = track.Track()
-        fs = FileSystemStorage()
+        output_filename = \
+            c.tool + '_insert_timestamp_' + \
+            datetime.now().strftime('%d%m%Y_%H%M%S') + '_' + \
+            id_generator(size=8) + '.gpx'
 
         try:
             # Load file
             uploaded_file = request.FILES['document']
-            filename = fs.save(uploaded_file.name, uploaded_file)
-            filepath = os.path.join(fs.location, filename)
 
             time = request.POST['input_time']
             date = request.POST['input_date']
@@ -201,18 +202,35 @@ def insert_timestamp(request):
             initial_time = \
                 datetime.strptime(f'{date}T{time}:00', '%Y-%m-%dT%H:%M:%S')
 
-            obj_track.add_gpx(filepath)
-            obj_track.insert_timestamp(initial_time, speed,
-                                       consider_elevation=elevation_speed)
+            if settings.USE_S3:
+                upload = Upload(file=uploaded_file)
+                filename = randomize_filename(upload.file.url.split('/')[-1])
+                upload.file.name = filename
+                upload.save()
+                with upload.file.open() as f:
+                    gpx_file = f.read()
+                    obj_track.add_gpx_bytes(file=gpx_file, filename=filename)
 
-            # Process file
-            output_filename = \
-                c.tool + '_insert_timestamp_' + \
-                datetime.now().strftime('%d%m%Y_%H%M%S') + '_' + \
-                id_generator(size=8) + '.gpx'
-            output_location = os.path.join(fs.location, output_filename)
-            output_url = fs.url(output_filename)
-            obj_track.save_gpx(output_location)
+                obj_track.insert_timestamp(initial_time, speed,
+                                           consider_elevation=elevation_speed)
+
+                upload_output = Upload(file=ContentFile(obj_track.get_gpx().encode('utf-8')))
+                upload_output.file.name = output_filename
+                output_url = upload_output.file.url
+                upload_output.save()
+
+            else:
+                fs = FileSystemStorage()
+                filename = fs.save(uploaded_file.name, uploaded_file)
+                filepath = os.path.join(fs.location, filename)
+                obj_track.add_gpx(filepath)
+
+                obj_track.insert_timestamp(initial_time, speed,
+                                           consider_elevation=elevation_speed)
+
+                output_location = os.path.join(fs.location, output_filename)
+                output_url = fs.url(output_filename)
+                obj_track.save_gpx(output_location)
 
             map_center = [sum(obj_track.extremes[2:]) / 2,
                           sum(obj_track.extremes[:2]) / 2]
