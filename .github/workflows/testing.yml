@@ -38,6 +38,10 @@ jobs:
       run: |
         flake8 . --max-line-length=100 --max-complexity 10 --ignore=W504,F401
 
+    - name: Collect static files to S3
+      run: |
+        python3 manage.py collectstatic --noinput
+
     - name: Run tests
       env:
           DEBUG_VALUE: FALSE
