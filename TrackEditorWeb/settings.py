@@ -28,7 +28,9 @@ DEBUG = os.environ['DEBUG_VALUE'] == 'TRUE'
 if DEBUG:
     ALLOWED_HOSTS = []
 else:
-    ALLOWED_HOSTS = ['trackeditor.herokuapp.com']
+    ALLOWED_HOSTS = ['trackeditor.herokuapp.com',
+                     'trackeditor.es',
+                     'www.trackeditor.es']
 
 # Application definition
 INSTALLED_APPS = [
