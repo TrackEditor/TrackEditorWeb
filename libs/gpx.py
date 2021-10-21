@@ -20,33 +20,46 @@ class Gpx:
     """
     Management of load and save operations for GPX files.
     """
-    def __init__(self, file):
+    def __init__(self):
         # Private attributes
-        self.filename = os.path.basename(file)
-        self.filepath = os.path.abspath(file)
+        self.filename = None
+        self.filepath = None
         self._state = False
-        self._gpx = self._load_file()
-        if not self._gpx:
-            raise LoadGpxError(f'Not able to load {self.filename}')
+        self._gpx = None
         self._gpx_dict = None
 
         # Public attributes
         self.df = None
 
-    def _load_file(self):
-        if os.stat(self.filepath).st_size < c.maximum_file_size:
-            try:
-                gpx_file = open(self.filepath, 'r')
-                self._state = True
-                return gpxpy.parse(gpx_file)
+    @classmethod
+    def from_path(cls, filepath: str):
+        gpx = cls()
+        gpx.filename = os.path.basename(filepath)
+        gpx.filepath = os.path.abspath(filepath)
 
-            except PermissionError:
-                self._state = False
-                return None
+        if os.stat(filepath).st_size < c.maximum_file_size:
+            try:
+                with open(filepath, 'r') as gpx_file:
+                    gpx._gpx = gpxpy.parse(gpx_file)
+                return gpx
+
+            except Exception as e:
+                raise LoadGpxError(f'Not able to load {gpx.filename} - {e}')
 
         else:
-            self._state = False
-            return None
+            raise LoadGpxError(f'Too big file: {gpx.filename}')
+
+    @classmethod
+    def from_bytes(cls, file: bytes, filename: str):
+        gpx = cls()
+        gpx.filename = filename
+
+        try:
+            gpx._gpx = gpxpy.parse(file)
+            return gpx
+
+        except Exception as e:
+            raise LoadGpxError(f'Not able to load {gpx.filename} - {e}')
 
     def to_dict(self):
         self._gpx_dict = {'lat': [], 'lon': [], 'ele': [], 'time': [],

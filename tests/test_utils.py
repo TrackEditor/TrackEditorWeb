@@ -37,3 +37,13 @@ class UtilsTest(TestCase):
 
     def test_auto_zoom_default(self):
         self.assertEqual(utils.auto_zoom(0, 0, 0, 0), 1)
+
+    def test_randomize_filename(self):
+        filename = 'track.gpx'
+        self.assertRegex(utils.randomize_filename(filename),
+                         r'track_[\w\d]{6}\.gpx')
+
+    def test_randomize_filename_double_dot(self):
+        filename = 'track.seg.gpx'
+        self.assertRegex(utils.randomize_filename(filename),
+                         r'track_[\w\d]{6}\.seg\.gpx')

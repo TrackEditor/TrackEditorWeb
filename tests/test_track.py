@@ -625,3 +625,15 @@ class TrackTest(TestCase):
             segment = obj_track.df_track[obj_track.df_track['segment'] == s]
             self.assertEqual(segment['segment_distance'].iloc[0], 0)
             self.assertTrue(all(segment['segment_distance'].iloc[1:]))
+
+    def test_add_gpx_bytes(self):
+        # Load data
+        obj_track = track.Track()
+        with open(os.path.join(self.test_path, 'samples', 'simple_numbers.gpx'), 'r') as f:
+            obj_track.add_gpx_bytes(f.read(), 'simple_numbers')
+
+        self.assertEqual(obj_track.df_track.lat[0], 1)
+        self.assertEqual(obj_track.df_track.lon[0], 1)
+        self.assertEqual(obj_track.df_track.lat.iloc[-1], 1)
+        self.assertEqual(obj_track.df_track.lon.iloc[-1], 5)
+        self.assertListEqual(obj_track.segment_names, ['simple_numbers'])

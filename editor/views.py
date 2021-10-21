@@ -7,11 +7,13 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.core.files.base import ContentFile
 
 import libs.track as track
 from libs.constants import Constants as c
-from TrackApp.models import Track
-from libs.utils import id_generator, auto_zoom, map_center
+from TrackApp.models import Track, Upload
+from libs.utils import id_generator, auto_zoom, map_center, randomize_filename
 
 
 def check_view(method, error_code):
@@ -88,13 +90,24 @@ def editor(request, index=None):
 
     if request.method == 'POST':  # add files to session
         try:
-            fs = FileSystemStorage()
             uploaded_file = request.FILES['document']
-            filename = fs.save(uploaded_file.name, uploaded_file)
-            filepath = os.path.join(fs.location, filename)
-
             obj_track = track.Track.from_json(request.session['json_track'])
-            obj_track.add_gpx(filepath)
+
+            if settings.USE_S3:
+                upload = Upload(file=uploaded_file)
+                filename = randomize_filename(upload.file.url.split('/')[-1])
+                upload.file.name = filename
+                upload.save()
+
+                with upload.file.open() as f:
+                    gpx_file = f.read()
+                    obj_track.add_gpx_bytes(file=gpx_file, filename=filename)
+
+            else:
+                fs = FileSystemStorage()
+                filename = fs.save(uploaded_file.name, uploaded_file)
+                filepath = os.path.join(fs.location, filename)
+                obj_track.add_gpx(filepath)
 
             request.session['json_track'] = obj_track.to_json()
 
@@ -281,9 +294,17 @@ def download_session(request):
 
     output_filename = \
         obj_track.title + '_' + id_generator(size=8) + '.gpx'
-    output_location = os.path.join(fs.location, output_filename)
-    output_url = fs.url(output_filename)
-    obj_track.save_gpx(output_location, exclude_time=True)
+
+    if settings.USE_S3:
+        gpx_str = obj_track.get_gpx(exclude_time=True).encode('utf-8')
+        upload = Upload(file=ContentFile(gpx_str))
+        upload.file.name = output_filename
+        output_url = upload.file.url
+        upload.save()
+    else:
+        output_location = os.path.join(fs.location, output_filename)
+        output_url = fs.url(output_filename)
+        obj_track.save_gpx(output_location, exclude_time=True)
 
     return JsonResponse({'url': output_url,
                          'filename': output_filename},
