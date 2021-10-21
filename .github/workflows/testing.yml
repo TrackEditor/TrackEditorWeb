@@ -11,9 +11,9 @@ jobs:
       postgres:
         image: postgres:10.8
         env:
-          POSTGRES_USER: postgres
+          POSTGRES_USER: ${{secrets.DB_USER}}
           POSTGRES_PASSWORD: ${{secrets.DB_PASSWORD}}
-          POSTGRES_DB: track_db
+          POSTGRES_DB: ${{secrets.DB_NAME}}
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
@@ -39,6 +39,18 @@ jobs:
         flake8 . --max-line-length=100 --max-complexity 10 --ignore=W504,F401
 
     - name: Collect static files to S3
+      env:
+          AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          AWS_STORAGE_BUCKET_NAME: ${{secrets.AWS_STORAGE_BUCKET_NAME}}
+          DEBUG_VALUE: ${{secrets.DEBUG_VALUE}}
+          USE_S3: ${{secrets.USE_S3}}
+          DB_NAME: ${{secrets.DB_NAME}}
+          DB_USER: ${{secrets.DB_USER}}
+          DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+          DB_PORT: ${{secrets.DB_PORT}}
+          DB_HOST: ${{secrets.DB_HOST}}
+          SECRET_KEY: ${{secrets.SECRET_KEY}}     
       run: |
         python3 manage.py collectstatic --noinput
 
