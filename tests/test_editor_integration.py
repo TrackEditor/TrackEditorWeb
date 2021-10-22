@@ -35,6 +35,7 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
                             username='default_user',
                             password='default_password_1234')
         self.driver.get(urljoin(self.live_server_url, 'editor'))
+        time.sleep(5)  # wait to load map and elevation
 
     def tearDown(self):
         self.driver.quit()
@@ -122,11 +123,14 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
+
         self.driver.find_element_by_id('select-file').send_keys(sample_file)
         WebDriverWait(self.driver, 5).\
             until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
         # Rename
+        WebDriverWait(self.driver, 10).\
+            until(EC.visibility_of_element_located((By.ID, 'span_rename_1')))
         element = self.driver.find_element_by_id('span_rename_1')
         element.click()
         self.driver.execute_script(
