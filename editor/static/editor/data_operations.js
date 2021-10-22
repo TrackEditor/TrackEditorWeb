@@ -21,7 +21,7 @@ export async function load_track() {
 
 export function save_session() {
     /*
-    SAVE_SESSION save the current track object in backend when clicking the
+    Save the current track object in backend when clicking the
     save button
     */
     let btn_save = document.getElementById('btn_save');
