@@ -21,7 +21,7 @@ export async function load_track() {
 
 export function save_session() {
     /*
-    SAVE_SESSION save the current track object in backend when clicking the
+    Save the current track object in backend when clicking the
     save button
     */
     let btn_save = document.getElementById('btn_save');
@@ -99,13 +99,35 @@ export function download_session() {
 
 export function update_session_name() {
     let e_title = document.querySelector('#h_session_name');
+    let old_name = e_title.innerHTML;
 
-    e_title.addEventListener('blur', () => {
-        let new_name = e_title.innerHTML;
+    const rename_session = () => {
+        let new_name = e_title.innerHTML.trim();
+
+        if (new_name.length === 0) {
+            e_title.innerHTML = old_name;
+            utils.display_error('error', 'Session title cannot be blank');
+            return;
+        }
+        else {
+            old_name = new_name;
+        }
         fetch(`/editor/rename_session/${new_name}`, {
             method: 'POST',
         })
             .then(response => utils.response_error_mng(response.status, 'update_session_name'))
             .catch(error => utils.response_error_mng(-1, error));
+    };
+
+    e_title.addEventListener('blur', () => {
+        rename_session();
+    });
+
+    e_title.addEventListener('keydown', event => {
+        if (event.code === 'Enter') {  // when pressing enter
+            event.preventDefault();  // prevent inserting line break
+            rename_session();
+            e_title.blur();  // remove focus
+        }
     });
 }

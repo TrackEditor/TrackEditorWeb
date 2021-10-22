@@ -81,11 +81,34 @@ function manage_segment(segment) {
     button_remove.setAttribute('id', `btn_remove_${segment.index}`);
 
     // Rename segment listener
-    span_name.addEventListener('blur', () => {
+    let old_name = span_name.innerHTML;
+    const rename_segment = () => {
         let new_name = span_name.innerHTML;
+
+        if (new_name.length === 0) {
+            span_name.innerHTML = old_name;
+            utils.display_error('error', 'Segment name cannot be blank');
+            return;
+        }
+        else {
+            old_name = new_name;
+        }
+
         fetch(`/editor/rename_segment/${segment.index}/${new_name}`, {
-             method: 'POST',
+            method: 'POST',
         }).catch(error => display_error('error', error + '(at rename_segment)'));
+    };
+
+    span_name.addEventListener('blur', () => {
+        rename_segment();
+    });
+
+    span_name.addEventListener('keydown', event => {
+        if (event.code === 'Enter') {  // when pressing enter
+            event.preventDefault();  // prevent inserting line break
+            rename_segment();
+            span_name.blur();  // remove focus
+        }
     });
 
     // Remove segment listener

@@ -9,7 +9,8 @@ export function deactivate_spinner(spinner_selector) {
 
 
 export function response_error_mng(status, fnc_name) {
-    if (status !== 200) {
+
+    if ((status !== 200) && (status !== 201)) {
         if (status === 520) {
             display_error('error', 'No track is loaded');
         } else if ((status >= 500) && (status < 600)) {

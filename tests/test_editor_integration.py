@@ -7,6 +7,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from glob import glob
 
 import libs.track as track
@@ -130,7 +131,7 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         element.click()
         self.driver.execute_script(
             "arguments[0].innerText = 'simple_numbers.gpx'", element)
-        self.driver.find_element_by_xpath("//html").click()
+        element.send_keys(Keys.ENTER)
 
         self.driver.find_element_by_id('btn_save').click()
         WebDriverWait(self.driver, 5).\
@@ -170,7 +171,7 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         self.driver.execute_script(
             "arguments[0].innerText = 'test_rename_and_download_session'",
             e_session_name)
-        self.driver.find_element_by_xpath("//html").click()
+        e_session_name.send_keys(Keys.ENTER)
         time.sleep(0.5)  # small time to rename session
 
         # Download file
