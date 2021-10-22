@@ -124,7 +124,7 @@ export function update_session_name() {
     });
 
     e_title.addEventListener('keydown', event => {
-        if (event.keyCode === 13) {  // when pressing enter
+        if (event.code === 'Enter') {  // when pressing enter
             event.preventDefault();  // prevent inserting line break
             rename_session();
             e_title.blur();  // remove focus
