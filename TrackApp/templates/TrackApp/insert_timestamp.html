@@ -11,8 +11,7 @@ Insert Timestamp
 
 {% block script %}
     <script src="{% static 'TrackApp/libs/ol.js' %}"></script>
-    <script src="{% static 'TrackApp/insert_timestamp.js' %}"></script>
-    <script src="{% static 'TrackApp/map.js' %}"></script>
+    <script type="module" src="{% static 'TrackApp/insert_timestamp.js' %}"></script>
 {% endblock %}
 
 {% block body %}

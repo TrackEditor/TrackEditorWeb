@@ -51,6 +51,7 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         self.driver.find_element_by_id('select-file').send_keys(sample_file)
         WebDriverWait(self.driver, 5).\
             until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        time.sleep(3)  # wait while page is reloaded
 
         self.driver.find_element_by_id('btn_save').click()
         WebDriverWait(self.driver, 5).\
