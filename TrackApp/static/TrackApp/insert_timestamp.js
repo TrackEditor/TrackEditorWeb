@@ -1,36 +1,40 @@
+import * as plot from "../../../static/editor/plot.js";
+
 document.addEventListener('DOMContentLoaded', function() {
     btn_select_gpx();
     btn_insert_timestamp();
+    insert_map();
 });
 
 
 function btn_select_gpx() {
-    let element_input = document.querySelector('#select-file');
-    let element_alert = document.querySelector('#div_alert');
+    const element_input = document.querySelector('#select-file');
+    const element_alert = document.querySelector('#div_alert');
 
-    element_input.onchange = () => {
-        const new_file = element_input.files[0];
-        if ( check_file_size(new_file, element_alert) &&
-             check_extension(new_file, element_alert) ) {
-            document.querySelector('#file-list').innerHTML = `<p>${new_file.name}</p>`;
+    if (element_input !== null) {
+        element_input.onchange = () => {
+            const new_file = element_input.files[0];
+            if (check_file_size(new_file, element_alert) &&
+                check_extension(new_file, element_alert)) {
+                document.querySelector('#file-list').innerHTML = `<p>${new_file.name}</p>`;
+            }
+        }
+
+        let element_speed = document.querySelector('#input_desired_speed');
+        element_speed.onchange = () => {
+            check_speed(element_speed, element_alert);
+        }
+
+        let element_date = document.querySelector('#input_date');
+        element_date.onchange = () => {
+            check_date(element_date, element_alert);
+        }
+
+        let element_time = document.querySelector('#input_time');
+        element_time.onchange = () => {
+            check_time(element_time, element_alert);
         }
     }
-
-    let element_speed = document.querySelector('#input_desired_speed');
-    element_speed.onchange = () => {
-        check_speed(element_speed, element_alert);
-    }
-
-    let element_date = document.querySelector('#input_date');
-    element_date.onchange = () => {
-        check_date(element_date, element_alert);
-    }
-
-    let element_time = document.querySelector('#input_time');
-    element_time.onchange = () => {
-        check_time(element_time, element_alert);
-    }
-
 }
 
 
@@ -209,16 +213,45 @@ function btn_insert_timestamp() {
     let element_form = document.querySelector('#form');
     let element_file = document.querySelector('#select-file');
 
-    element_insert_btn.onclick = () => {
-        if ( check_speed(element_speed, element_alert) &&
-             check_date(element_date, element_alert) &&
-             check_time(element_time, element_alert) &&
-             check_file(element_file, element_alert)) {
-            element_form.submit();
+    if (element_insert_btn !== null) {
+        element_insert_btn.onclick = () => {
+            if (check_speed(element_speed, element_alert) &&
+                check_date(element_date, element_alert) &&
+                check_time(element_time, element_alert) &&
+                check_file(element_file, element_alert)) {
+                element_form.submit();
 
-            // Activate spinner
-            let spinner = document.querySelector('#div_spinner');
-            spinner.style.display = 'inline-block';
+                // Activate spinner
+                let spinner = document.querySelector('#div_spinner');
+                spinner.style.display = 'inline-block';
+            }
         }
+    }
+}
+
+function insert_map() {
+    const div_map = document.querySelector('#js-map');
+
+    if (div_map !== null) {
+        // Read data
+        const lat = JSON.parse(div_map.dataset.lat);
+        const lon = JSON.parse(div_map.dataset.lon);
+        const map_center = JSON.parse(div_map.dataset.map_center);
+        const map_zoom = JSON.parse(div_map.dataset.map_zoom);
+
+        // Define map
+        const map = plot.create_map();
+        map.getView().setZoom(map_zoom);
+        map.getView().setCenter(ol.proj.fromLonLat(map_center));
+
+        // Insert data into map
+        const lines_vector_layer = new ol.layer.Vector({
+            source: plot.get_lines_source(lat, lon,
+                'features_lines_1',
+                plot.get_lines_style(1)),
+            name: 'layer_lines_1',
+        });
+        map.addLayer(lines_vector_layer);
+
     }
 }
