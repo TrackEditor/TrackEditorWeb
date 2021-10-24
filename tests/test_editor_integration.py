@@ -40,26 +40,75 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.driver.quit()
 
+    def wait_spinner(self, timeout=5):
+        WebDriverWait(self.driver, timeout).\
+            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+
+    def add_gpx(self, sample_file):
+        self.driver.find_element_by_id('select-file').send_keys(sample_file)
+        self.wait_spinner()
+        time.sleep(3)  # wait while page is reloaded
+
+    def save(self):
+        self.driver.find_element_by_id('btn_save').click()
+        self.wait_spinner()
+        return models.Track.objects.filter(user=self.user).order_by('-last_edit')[0]
+
+    def download(self, pattern):
+        self.driver.find_element_by_id('btn_download').click()
+        self.wait_spinner()
+        time.sleep(5)
+
+        downloaded_file = glob(os.path.join(self.downloads_dir, pattern))[-1]
+        return downloaded_file
+
+    def rename_segment(self, index, new_name):
+        WebDriverWait(self.driver, 10). \
+            until(
+            EC.visibility_of_element_located((By.ID, f'span_rename_{index}')))
+        element = self.driver.find_element_by_id(f'span_rename_{index}')
+        element.click()
+        self.driver.execute_script(
+            f"arguments[0].innerText = '{new_name}'", element)
+        element.send_keys(Keys.ENTER)
+
+    def remove_segment(self, index):
+        WebDriverWait(self.driver, 5).\
+            until(EC.visibility_of_element_located((By.ID, f'btn_remove_{index}')))
+        self.driver.find_element_by_id(f'btn_remove_{index}').click()
+        self.wait_spinner()
+        time.sleep(1)  # js code to be executed behind
+
+    def rename_session(self, new_title):
+        e_session_name = self.driver.find_element_by_id('h_session_name')
+        e_session_name.click()
+        self.driver.execute_script(
+            f"arguments[0].innerText = '{new_title}'",
+            e_session_name)
+        e_session_name.send_keys(Keys.ENTER)
+        time.sleep(0.5)  # small time to rename session
+
+    def remove_downloads(self, pattern):
+        # Remove previous testing files
+        for file in glob(os.path.join(self.downloads_dir, pattern)):
+            os.remove(file)
+
     def test_save_session(self):
         """
         Save session in web browser and compare versus direct use of track
         object.
         """
+        # Include files
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
-        self.driver.find_element_by_id('select-file').send_keys(sample_file)
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
-        time.sleep(3)  # wait while page is reloaded
+        self.add_gpx(sample_file)
 
-        self.driver.find_element_by_id('btn_save').click()
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        # Save session
+        saved_session = self.save()
+        saved_track = json.loads(saved_session.track)
 
-        saved_track = models.Track.objects.filter(user=self.user).\
-            order_by('-last_edit')[0]
-        saved_track = json.loads(saved_track.track)
+        # Replicate session
         obj_track = track.Track()
         obj_track.add_gpx(sample_file)
         reference_track = json.loads(obj_track.to_json())
@@ -76,30 +125,19 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         Remove segment in web browser and compare versus direct use of track
         object.
         """
-        sample_file = os.path.join(self.test_path,
-                                   'samples',
-                                   'simple_numbers.gpx')
-        self.driver.find_element_by_id('select-file').send_keys(sample_file)
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
-
-        self.driver.find_element_by_id('select-file').send_keys(sample_file)
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        # Include files
+        for _ in range(2):
+            sample_file = os.path.join(self.test_path,
+                                       'samples',
+                                       'simple_numbers.gpx')
+            self.add_gpx(sample_file)
 
         # Delete track
-        WebDriverWait(self.driver, 1).\
-            until(EC.visibility_of_element_located((By.ID, 'btn_remove_1')))
-        self.driver.find_element_by_id('btn_remove_1').click()
-        time.sleep(0.2)  # js code to be executed behind
+        self.remove_segment(1)
+        saved_session = self.save()
+        saved_track = json.loads(saved_session.track)
 
-        self.driver.find_element_by_id('btn_save').click()
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
-
-        saved_track = models.Track.objects.filter(user=self.user).\
-            order_by('-last_edit')[0]
-        saved_track = json.loads(saved_track.track)
+        # Replicate session
         obj_track = track.Track()
         obj_track.add_gpx(sample_file)
         reference_track = json.loads(obj_track.to_json())
@@ -121,30 +159,18 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         Rename segment in web browser and compare versus direct use of track
         object.
         """
+        # Include files
         sample_file = os.path.join(self.test_path,
                                    'samples',
                                    'simple_numbers.gpx')
-
-        self.driver.find_element_by_id('select-file').send_keys(sample_file)
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        self.add_gpx(sample_file)
 
         # Rename
-        WebDriverWait(self.driver, 10).\
-            until(EC.visibility_of_element_located((By.ID, 'span_rename_1')))
-        element = self.driver.find_element_by_id('span_rename_1')
-        element.click()
-        self.driver.execute_script(
-            "arguments[0].innerText = 'simple_numbers.gpx'", element)
-        element.send_keys(Keys.ENTER)
+        self.rename_segment(1, 'simple_numbers.gpx')
+        saved_session = self.save()
+        saved_track = json.loads(saved_session.track)
 
-        self.driver.find_element_by_id('btn_save').click()
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
-
-        saved_track = models.Track.objects.filter(user=self.user).\
-            order_by('-last_edit')[0]
-        saved_track = json.loads(saved_track.track)
+        # Replicate session
         obj_track = track.Track()
         obj_track.add_gpx(sample_file)
         reference_track = json.loads(obj_track.to_json())
@@ -156,38 +182,20 @@ class EditorIntegrationTest(StaticLiveServerTestCase):
         Load two tracks, rename the session and download. The product file is
         compared versus reference.
         """
-        # Remove previous testing files
-        for file in glob(os.path.join(self.downloads_dir,
-                                      'test_rename_and_download_session*.gpx')):
-            os.remove(file)
+        self.remove_downloads(pattern='test_rename_and_download_session*.gpx')
 
         # Add files
         for i in range(1, 3):
             sample_file = os.path.join(self.test_path,
                                        'samples',
                                        f'island_{i}.gpx')
-            self.driver.find_element_by_id('select-file').send_keys(sample_file)
-            WebDriverWait(self.driver, 5).\
-                until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+            self.add_gpx(sample_file)
 
-        # Rename session
-        e_session_name = self.driver.find_element_by_id('h_session_name')
-        e_session_name.click()
-        self.driver.execute_script(
-            "arguments[0].innerText = 'test_rename_and_download_session'",
-            e_session_name)
-        e_session_name.send_keys(Keys.ENTER)
-        time.sleep(0.5)  # small time to rename session
+        # Rename and download
+        self.rename_session(new_title='test_rename_and_download_session')
+        downloaded_file = self.download(pattern='test_rename_and_download_session*.gpx')
 
-        # Download file
-        self.driver.find_element_by_id('btn_download').click()
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
-        time.sleep(2)
-
-        downloaded_file = \
-            glob(os.path.join(self.downloads_dir,
-                              'test_rename_and_download_session*.gpx'))[-1]
+        # Replicate session
         sample_file = os.path.join(self.test_path, 'references', 'test_combine_tracks.gpx')
 
         self.assertTrue(
