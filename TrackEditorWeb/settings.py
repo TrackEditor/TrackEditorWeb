@@ -180,7 +180,7 @@ LOGGING = {
         'verbose': {
             'format': ('%(asctime)s [%(process)d] [%(levelname)s] ' +
                        'pathname=%(pathname)s lineno=%(lineno)s ' +
-                       '%(username)s funcname=%(funcName)s %(message)s'),
+                       'funcname=%(funcName)s %(message)s'),
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
         'simple': {
@@ -188,18 +188,14 @@ LOGGING = {
         }
     },
     'handlers': {
-        'null': {
-            'level': 'DEBUG',
-            'class': 'logging.NullHandler',
-        },
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
+            'formatter': 'verbose',
         }
     },
     'loggers': {
-        'testlogger': {
+        'django': {
             'handlers': ['console'],
             'level': 'INFO',
         }

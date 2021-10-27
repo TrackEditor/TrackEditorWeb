@@ -17,7 +17,7 @@ from libs.constants import Constants as c
 from TrackApp.models import Track, Upload
 from libs.utils import id_generator, auto_zoom, map_center, randomize_filename
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 def check_view(method, error_code):

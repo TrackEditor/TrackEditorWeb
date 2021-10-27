@@ -22,7 +22,8 @@ from libs.constants import Constants as c
 from .models import User, Track, Upload
 from libs.utils import id_generator, auto_zoom, randomize_filename
 
-logger = logging.getLogger(__name__)
+
+logger = logging.getLogger('django')
 
 
 def index_view(request):
