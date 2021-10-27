@@ -1,6 +1,8 @@
 import os
 import json
 import traceback
+import logging
+
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -14,6 +16,8 @@ import libs.track as track
 from libs.constants import Constants as c
 from TrackApp.models import Track, Upload
 from libs.utils import id_generator, auto_zoom, map_center, randomize_filename
+
+logger = logging.getLogger(__name__)
 
 
 def check_view(method, error_code):
@@ -44,6 +48,7 @@ def check_view(method, error_code):
                 print(f'Error in function: {func.__name__}')
                 print(f'Call: {func.__name__}({args}, {kwargs})')
                 print(traceback.format_exc())
+                logger.error(f'exception={e}, function={func.__name__}, {args=}, {kwargs=}')
                 return JsonResponse(
                     {'error': f'Unexpected error ({error_code}): {e}'},
                     status=error_code)
@@ -71,6 +76,7 @@ def editor(request, index=None):
                                'title': obj_track.title,
                                **config})
             except Exception as e:
+                logging.error('Unexpected error loading editor')
                 return JsonResponse(
                     {'error': f'Unexpected error (521): {e}'},
                     status=521)
@@ -119,6 +125,7 @@ def editor(request, index=None):
                            'title': obj_track.title,
                            **config})
         except Exception as e:
+            logging.error('Unexpected error loading files to editor')
             return JsonResponse(
                 {'error': f'Unexpected error (521): {e}'},
                 status=521)
@@ -260,6 +267,7 @@ def save_session(request):
         new_track.save()
         request.session['index_db'] = new_track.id
 
+    logger.info(f'Saving session {request.session["index_db"]}')
     return JsonResponse({'message': 'Session has been saved'},
                         status=201)
 
@@ -306,6 +314,7 @@ def download_session(request):
         output_url = fs.url(output_filename)
         obj_track.save_gpx(output_location, exclude_time=True)
 
+    logger.info(f'Downloading file {output_url}')
     return JsonResponse({'url': output_url,
                          'filename': output_filename},
                         status=200)

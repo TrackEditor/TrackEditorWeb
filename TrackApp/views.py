@@ -1,6 +1,7 @@
 import os
 import traceback
 import math
+import logging
 from datetime import datetime
 
 from django.contrib.auth import authenticate, login, logout
@@ -20,6 +21,8 @@ import libs.track as track
 from libs.constants import Constants as c
 from .models import User, Track, Upload
 from libs.utils import id_generator, auto_zoom, randomize_filename
+
+logger = logging.getLogger(__name__)
 
 
 def index_view(request):
@@ -54,6 +57,7 @@ def register_view(request):
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
+            logger.error(f'Username already taken: {username=}')
             return render(request, template_register, {
                 'error': 'Username already taken.'
             })
@@ -144,6 +148,7 @@ def combine_tracks(request):
 
         except Exception as e:
             error = 'Error loading files'
+            logger.error(f'Error loading files: exception="{e}", {output_filename=}')
             print(e)
             return render(request, template_combine,
                           {'download': False,
@@ -237,6 +242,7 @@ def insert_timestamp(request):
 
         except Exception as e:
             error = 'Error loading files'
+            logger.error(f'Error loading files: exception={e}, {output_filename=}')
             print(f'Exception: {e}')
             traceback.print_exc()
             return render(request, template_timestamp,
