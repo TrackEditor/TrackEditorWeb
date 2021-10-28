@@ -61,13 +61,14 @@ def editor(request, index=None):
     template_editor = 'editor/editor.html'
     config = {'maximum_file_size': c.maximum_file_size,
               'maximum_files': c.maximum_files,
-              'valid_extensions': c.valid_extensions}
+              'valid_extensions': c.valid_extensions,
+              'error': False}
 
     if index is not None:
         if index == 0:  # reload
-            try:
-                obj_track = track.Track.from_json(request.session['json_track'])
+            obj_track = track.Track.from_json(request.session['json_track'])
 
+            try:
                 return render(request,
                               template_editor,
                               {'track_list': [n for n in obj_track.segment_names if n],
@@ -77,9 +78,14 @@ def editor(request, index=None):
                                **config})
             except Exception as e:
                 logging.error('Unexpected error loading editor')
-                return JsonResponse(
-                    {'error': f'Unexpected error (521): {e}'},
-                    status=521)
+                config['error'] = True
+                return render(request,
+                              template_editor,
+                              {'track_list': [n for n in obj_track.segment_names if n],
+                               'segment_list': list(obj_track.df_track['segment'].unique()),
+                               'title': obj_track.title,
+                               'error_msg': f'Unexpected error loading editor (521): {e}',
+                               **config})
 
         elif index > 0:  # load existing session
             request.session['json_track'] = Track.objects.get(id=index).track
@@ -95,9 +101,10 @@ def editor(request, index=None):
                  **config})
 
     if request.method == 'POST':  # add files to session
+        obj_track = track.Track.from_json(request.session['json_track'])
+
         try:
             uploaded_file = request.FILES['document']
-            obj_track = track.Track.from_json(request.session['json_track'])
 
             if settings.USE_S3:
                 upload = Upload(file=uploaded_file)
@@ -126,9 +133,15 @@ def editor(request, index=None):
                            **config})
         except Exception as e:
             logging.error('Unexpected error loading files to editor')
-            return JsonResponse(
-                {'error': f'Unexpected error (521): {e}'},
-                status=521)
+            config['error'] = True
+            return render(request,
+                          template_editor,
+                          {'track_list': [n for n in obj_track.segment_names if n],
+                           'segment_list':
+                               list(obj_track.df_track['segment'].unique()),
+                           'title': obj_track.title,
+                           'error_msg': f'Unexpected error loading files to editor (521): {e}',
+                           **config})
 
     # Create new session
     request.session['json_track'] = track.Track().to_json()
