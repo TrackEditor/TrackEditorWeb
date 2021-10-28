@@ -142,12 +142,16 @@ class InsertTimestampIntegrationTest(StaticLiveServerTestCase):
                          init_time='0150',
                          speed='1')
 
-        self.driver.find_element_by_id('input_btn_insert_timestamp').click()
-        WebDriverWait(self.driver, 5).\
-            until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
+        with self.assertLogs(level='ERROR') as log:
+            self.driver.find_element_by_id('input_btn_insert_timestamp').click()
+            WebDriverWait(self.driver, 5).\
+                until(EC.invisibility_of_element_located((By.ID, 'div_spinner')))
 
-        error_msg = self.driver.find_element_by_id('div_error_msg')
-        self.assertEqual(error_msg.text, 'Error loading files')
+            error_msg = self.driver.find_element_by_id('div_error_msg')
+            self.assertEqual(error_msg.text, 'Error loading files')
+            self.assertEqual(len(log.output), 1)
+            self.assertEqual(len(log.records), 1)
+            self.assertIn('Error loading files', log.output[0])
 
     def test_timestamp_missing_desired_speed(self):
         self.insert_data(file='island_1.gpx',

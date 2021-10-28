@@ -156,6 +156,11 @@ class CombineTracksIntegrationTest(StaticLiveServerTestCase):
                                    'samples',
                                    'bad_formed.gpx'))
 
-        self.driver.find_element_by_id('input_btn_combine').click()
-        error_msg = self.driver.find_element_by_id('div_error_msg')
-        self.assertEqual(error_msg.text, 'Error loading files')
+        with self.assertLogs(level='ERROR') as log:
+            self.driver.find_element_by_id('input_btn_combine').click()
+            error_msg = self.driver.find_element_by_id('div_error_msg')
+            self.assertEqual(error_msg.text, 'Error loading files')
+
+            self.assertEqual(len(log.output), 1)
+            self.assertEqual(len(log.records), 1)
+            self.assertIn('Error loading files', log.output[0])
