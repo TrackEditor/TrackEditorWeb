@@ -58,7 +58,8 @@ def register_view(request):
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
-            logger.error(f'Username already taken: {username=}')
+            if username.isalnum():
+                logger.error(f'Username already taken: {username=}')
             return render(request, template_register, {
                 'error': 'Username already taken.'
             })
