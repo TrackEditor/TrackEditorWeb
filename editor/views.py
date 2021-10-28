@@ -1,6 +1,8 @@
 import os
 import json
 import traceback
+import logging
+
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -14,6 +16,8 @@ import libs.track as track
 from libs.constants import Constants as c
 from TrackApp.models import Track, Upload
 from libs.utils import id_generator, auto_zoom, map_center, randomize_filename
+
+logger = logging.getLogger('django')
 
 
 def check_view(method, error_code):
@@ -44,6 +48,7 @@ def check_view(method, error_code):
                 print(f'Error in function: {func.__name__}')
                 print(f'Call: {func.__name__}({args}, {kwargs})')
                 print(traceback.format_exc())
+                logger.error(f'exception={e}, function={func.__name__}, {args=}, {kwargs=}')
                 return JsonResponse(
                     {'error': f'Unexpected error ({error_code}): {e}'},
                     status=error_code)
@@ -56,13 +61,14 @@ def editor(request, index=None):
     template_editor = 'editor/editor.html'
     config = {'maximum_file_size': c.maximum_file_size,
               'maximum_files': c.maximum_files,
-              'valid_extensions': c.valid_extensions}
+              'valid_extensions': c.valid_extensions,
+              'error': False}
 
     if index is not None:
         if index == 0:  # reload
-            try:
-                obj_track = track.Track.from_json(request.session['json_track'])
+            obj_track = track.Track.from_json(request.session['json_track'])
 
+            try:
                 return render(request,
                               template_editor,
                               {'track_list': [n for n in obj_track.segment_names if n],
@@ -71,9 +77,15 @@ def editor(request, index=None):
                                'title': obj_track.title,
                                **config})
             except Exception as e:
-                return JsonResponse(
-                    {'error': f'Unexpected error (521): {e}'},
-                    status=521)
+                logging.error('Unexpected error loading editor')
+                config['error'] = True
+                return render(request,
+                              template_editor,
+                              {'track_list': [n for n in obj_track.segment_names if n],
+                               'segment_list': list(obj_track.df_track['segment'].unique()),
+                               'title': obj_track.title,
+                               'error_msg': f'Unexpected error loading editor (521): {e}',
+                               **config})
 
         elif index > 0:  # load existing session
             request.session['json_track'] = Track.objects.get(id=index).track
@@ -89,9 +101,10 @@ def editor(request, index=None):
                  **config})
 
     if request.method == 'POST':  # add files to session
+        obj_track = track.Track.from_json(request.session['json_track'])
+
         try:
             uploaded_file = request.FILES['document']
-            obj_track = track.Track.from_json(request.session['json_track'])
 
             if settings.USE_S3:
                 upload = Upload(file=uploaded_file)
@@ -119,9 +132,16 @@ def editor(request, index=None):
                            'title': obj_track.title,
                            **config})
         except Exception as e:
-            return JsonResponse(
-                {'error': f'Unexpected error (521): {e}'},
-                status=521)
+            logging.error('Unexpected error loading files to editor')
+            config['error'] = True
+            return render(request,
+                          template_editor,
+                          {'track_list': [n for n in obj_track.segment_names if n],
+                           'segment_list':
+                               list(obj_track.df_track['segment'].unique()),
+                           'title': obj_track.title,
+                           'error_msg': f'Unexpected error loading files to editor (521): {e}',
+                           **config})
 
     # Create new session
     request.session['json_track'] = track.Track().to_json()
@@ -260,6 +280,7 @@ def save_session(request):
         new_track.save()
         request.session['index_db'] = new_track.id
 
+    logger.info(f'Saving session {request.session["index_db"]}')
     return JsonResponse({'message': 'Session has been saved'},
                         status=201)
 
@@ -306,6 +327,7 @@ def download_session(request):
         output_url = fs.url(output_filename)
         obj_track.save_gpx(output_location, exclude_time=True)
 
+    logger.info(f'Downloading file {output_url}')
     return JsonResponse({'url': output_url,
                          'filename': output_filename},
                         status=200)
