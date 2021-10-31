@@ -64,41 +64,42 @@ def editor(request, index=None):
               'valid_extensions': c.valid_extensions,
               'error': False}
 
-    if index is not None:
-        if index == 0:  # reload
-            obj_track = track.Track.from_json(request.session['json_track'])
+    if request.method == 'GET':
+        if index is not None:
+            if index == 0:  # reload
+                obj_track = track.Track.from_json(request.session['json_track'])
 
-            try:
-                return render(request,
-                              template_editor,
-                              {'track_list': [n for n in obj_track.segment_names if n],
-                               'segment_list':
-                                   list(obj_track.df_track['segment'].unique()),
-                               'title': obj_track.title,
-                               **config})
-            except Exception as e:
-                logging.error('Unexpected error loading editor')
-                config['error'] = True
-                return render(request,
-                              template_editor,
-                              {'track_list': [n for n in obj_track.segment_names if n],
-                               'segment_list': list(obj_track.df_track['segment'].unique()),
-                               'title': obj_track.title,
-                               'error_msg': f'Unexpected error loading editor (521): {e}',
-                               **config})
+                try:
+                    return render(request,
+                                  template_editor,
+                                  {'track_list': [n for n in obj_track.segment_names if n],
+                                   'segment_list':
+                                       list(obj_track.df_track['segment'].unique()),
+                                   'title': obj_track.title,
+                                   **config})
+                except Exception as e:
+                    logging.error('Unexpected error loading editor')
+                    config['error'] = True
+                    return render(request,
+                                  template_editor,
+                                  {'track_list': [n for n in obj_track.segment_names if n],
+                                   'segment_list': list(obj_track.df_track['segment'].unique()),
+                                   'title': obj_track.title,
+                                   'error_msg': f'Unexpected error loading editor (521): {e}',
+                                   **config})
 
-        elif index > 0:  # load existing session
-            request.session['json_track'] = Track.objects.get(id=index).track
-            request.session['index_db'] = index
-            json_track = json.loads(request.session['json_track'])
+            elif index > 0:  # load existing session
+                request.session['json_track'] = Track.objects.get(id=index).track
+                request.session['index_db'] = index
+                json_track = json.loads(request.session['json_track'])
 
-            return render(
-                request,
-                template_editor,
-                {'track_list': [n for n in json_track['segment_names'] if n],
-                 'segment_list': list(set(json_track['segment'])),
-                 'title': json_track['title'],
-                 **config})
+                return render(
+                    request,
+                    template_editor,
+                    {'track_list': [n for n in json_track['segment_names'] if n],
+                     'segment_list': list(set(json_track['segment'])),
+                     'title': json_track['title'],
+                     **config})
 
     if request.method == 'POST':  # add files to session
         obj_track = track.Track.from_json(request.session['json_track'])
