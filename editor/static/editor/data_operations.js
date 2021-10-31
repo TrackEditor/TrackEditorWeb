@@ -12,6 +12,8 @@ export function submit_file() {
 export async function load_track() {
     try {
         const response = await fetch('/editor/get_track');
+        utils.response_error_mng(response.status, 'load_track');
+
         return await response.json();
     } catch (error) {
         utils.display_error('error', error);
