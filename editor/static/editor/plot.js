@@ -39,7 +39,7 @@ export function create_map() {
         view: new ol.View({
             center: ol.proj.fromLonLat([0, 0]),
             zoom: 1,
-            maxZoom: 16,
+            maxZoom: 20,
             minZoom: 1
         }),
         layers: [
@@ -203,6 +203,7 @@ export function get_lines_style(color_index, alpha) {
 export function plot_elevation(chart, segment) {
     // Plot elevation
     let elevation_data = [];
+
     segment.distance.forEach((distance, index) => {
         let elevation = segment.ele[index];
         elevation_data.push({x: distance, y: elevation});
