@@ -177,7 +177,9 @@ class TrackTest(TestCase):
         # Specific checks
         self.assertEqual(obj_track.df_track.segment.iloc[99], 1)
         self.assertEqual(obj_track.df_track.segment.iloc[100], 2)
-
+        self.assertListEqual(obj_track.segment_names,
+                             ['island_full.gpx_part1',
+                              'island_full.gpx_part2'])
         # Non-regression checks
         self.assertEqual(initial_total_distance, obj_track.df_track.distance.iloc[-1])
         self.assertEqual(initial_shape, obj_track.df_track.shape)
@@ -209,6 +211,11 @@ class TrackTest(TestCase):
         self.assertEqual(obj_track.df_track.segment.iloc[80], 3)
         self.assertEqual(obj_track.df_track.segment.iloc[120], 4)
         self.assertEqual(obj_track.df_track.segment.iloc[-1], 4)
+        self.assertListEqual(obj_track.segment_names,
+                             ['island_full.gpx_part1_part1',
+                              'island_full.gpx_part1_part2',
+                              'island_full.gpx_part2_part1',
+                              'island_full.gpx_part2_part2'])
 
         # Non-regression checks
         self.assertEqual(initial_total_distance, obj_track.df_track.distance.iloc[-1])
