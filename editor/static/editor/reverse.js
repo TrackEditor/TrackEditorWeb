@@ -2,15 +2,21 @@ import * as plot from "./plot.js";
 import * as utils from "./utils.js";
 
 
-export function reverse_elevation(chart, segment_index) {
+export function reverse_elevation(track, chart, segment_index) {
     chart.data.datasets.forEach(dataset => {
         if (dataset.label === `elevation_${segment_index}`) {
             let reversed_data = [];
             let size = dataset.data.length;
-            for (let i = 0; i < size; i++){
+            for (let i = 0; i < size; i++){  // reverse elevation in plot
                 reversed_data.push({x: dataset.data[i].x, y: dataset.data[size - i - 1].y});
             }
             dataset.data = reversed_data;
+
+            for (let segment of track['segments']) {  // reverse elevation in track
+                if (segment['index'] === segment_index) {
+                    segment['ele'].reverse();
+                }
+            }
         }
     });
     chart.update();
