@@ -334,7 +334,7 @@ function reverse_segment() {
             method: 'POST',
         }).then( response => {
             if (response.status === 200) {
-                reverse_utils.reverse_elevation(chart, selected_segment.idx);
+                reverse_utils.reverse_elevation(track, chart, selected_segment.idx);
                 reverse_utils.reverse_map_link(map, track, selected_segment.idx);
                 reverse_utils.reverse_elevation_link(chart, track, selected_segment.idx);
                 utils.deactivate_spinner('#div_spinner');
