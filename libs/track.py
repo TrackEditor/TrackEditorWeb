@@ -509,6 +509,11 @@ class Track:
         self.size += 1
         self.last_segment_idx = max(self.df_track['segment'])
 
+        # Names management
+        self.segment_names.insert(index,
+                                  self.segment_names[index-1] + '_part2')
+        self.segment_names[index - 1] += '_part1'
+
     def change_order(self, new_order: dict):
         """
         Modify the segments order

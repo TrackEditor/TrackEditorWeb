@@ -44,10 +44,10 @@ def check_view(method, error_code):
             try:
                 return func(request, *args, **kwargs)
             except Exception as e:
-                print(f'Error in function: {func.__name__}')
-                print(f'Call: {func.__name__}({args}, {kwargs})')
-                print(traceback.format_exc())
-                logger.error(f'exception={e}, function={func.__name__}, {args=}, {kwargs=}')
+                msg = f'Error in function: {func.__name__}\n' + \
+                      f'Call: {func.__name__}({args}, {kwargs})\n' + \
+                      traceback.format_exc()
+                logger.error(msg)
                 return JsonResponse(
                     {'error': f'Unexpected error ({error_code}): {e}'},
                     status=error_code)

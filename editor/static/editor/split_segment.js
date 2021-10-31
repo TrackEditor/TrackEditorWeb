@@ -155,7 +155,6 @@ function remove_map_point(map) {
 }
 
 export function execute_split(track, segment_index, split_point) {
-    console.log(track);
     // Update index of later segments
     track.segments.forEach(seg => {
         if (seg.index > segment_index) {
@@ -165,12 +164,13 @@ export function execute_split(track, segment_index, split_point) {
 
     // Split segment
     let segment = utils.get_segment(track, segment_index);
+
     track.segments.push({  // new segment
         lat: segment.lat.slice(split_point),
         lon: segment.lon.slice(split_point),
         ele: segment.ele.slice(split_point),
         distance: segment.distance.slice(split_point),
-        segment_distance: segment.segment_distance.slice(split_point) - segment.segment_distance[split_point],
+        segment_distance: segment.segment_distance.slice(split_point).map(a => a + segment.segment_distance[split_point]),
         size: segment.size - split_point,
         index: segment_index + 1,
         name: segment.name + '_2part'

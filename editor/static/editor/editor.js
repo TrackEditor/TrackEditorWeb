@@ -147,8 +147,11 @@ function remove_segment(segment_index, list) {
         if (response.status !== 201) {
             throw new Error(`Server error by ${response.status} when removing segment.`);
         }
-    }).then(() =>
-        update_distance()
+    }).then ( () => {
+        track.segments = track.segments.sort((first, second) => {
+            return first['index'] - second['index'];
+        });
+    }).then(() => update_distance()
     ).then(() => {
         // Remove elevation plots and links
         chart.data.datasets = [];
@@ -567,6 +570,9 @@ function update_distance() {
      * is removed or order is changed. So, it is needed to update it without
      * the need of an API call.
      * */
+    track['segments'][0]['segment_distance'] =
+        track['segments'][0]['segment_distance'].map(a =>
+            a - track['segments'][0]['segment_distance'][0]);
     track['segments'][0]['distance'] = track['segments'][0]['segment_distance'];
 
     for (let i = 1; i < track['segments'].length; i++) {
