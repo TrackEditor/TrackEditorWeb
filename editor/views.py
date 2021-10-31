@@ -29,9 +29,8 @@ def check_view(method, error_code):
     :return: function called through wrapper
     """
     def exist_track(request):
-        if 'json_track' in request.session:
-            if request.session['json_track']:
-                return True
+        if request.session.get('json_track') is not None:
+            return True
         return False
 
     def decorator_function(func):
@@ -57,73 +56,31 @@ def check_view(method, error_code):
 
 
 @login_required
-def editor(request, index=None):
+def editor(request, index: int = None):
     template_editor = 'editor/editor.html'
     config = {'maximum_file_size': c.maximum_file_size,
               'maximum_files': c.maximum_files,
               'valid_extensions': c.valid_extensions,
               'error': False}
 
-    if index is not None:
-        if index == 0:  # reload
-            obj_track = track.Track.from_json(request.session['json_track'])
+    if request.method == 'GET' and index is not None:
+        if index >= 0:
+            return load_editor(request, index, template_editor, config)
 
-            try:
-                return render(request,
-                              template_editor,
-                              {'track_list': [n for n in obj_track.segment_names if n],
-                               'segment_list':
-                                   list(obj_track.df_track['segment'].unique()),
-                               'title': obj_track.title,
-                               **config})
-            except Exception as e:
-                logging.error('Unexpected error loading editor')
-                config['error'] = True
-                return render(request,
-                              template_editor,
-                              {'track_list': [n for n in obj_track.segment_names if n],
-                               'segment_list': list(obj_track.df_track['segment'].unique()),
-                               'title': obj_track.title,
-                               'error_msg': f'Unexpected error loading editor (521): {e}',
-                               **config})
+    elif request.method == 'POST':  # add files to session
+        return load_segment(request, template_editor, config)
 
-        elif index > 0:  # load existing session
-            request.session['json_track'] = Track.objects.get(id=index).track
-            request.session['index_db'] = index
-            json_track = json.loads(request.session['json_track'])
+    # Create new session
+    request.session['json_track'] = track.Track().to_json()
+    request.session['index_db'] = None
+    return render(request, template_editor, {**config})
 
-            return render(
-                request,
-                template_editor,
-                {'track_list': [n for n in json_track['segment_names'] if n],
-                 'segment_list': list(set(json_track['segment'])),
-                 'title': json_track['title'],
-                 **config})
 
-    if request.method == 'POST':  # add files to session
+def load_editor(request, index: int, template_editor: str, config: dict):
+    if index == 0:  # reload
         obj_track = track.Track.from_json(request.session['json_track'])
 
         try:
-            uploaded_file = request.FILES['document']
-
-            if settings.USE_S3:
-                upload = Upload(file=uploaded_file)
-                filename = randomize_filename(upload.file.url.split('/')[-1])
-                upload.file.name = filename
-                upload.save()
-
-                with upload.file.open() as f:
-                    gpx_file = f.read()
-                    obj_track.add_gpx_bytes(file=gpx_file, filename=filename)
-
-            else:
-                fs = FileSystemStorage()
-                filename = fs.save(uploaded_file.name, uploaded_file)
-                filepath = os.path.join(fs.location, filename)
-                obj_track.add_gpx(filepath)
-
-            request.session['json_track'] = obj_track.to_json()
-
             return render(request,
                           template_editor,
                           {'track_list': [n for n in obj_track.segment_names if n],
@@ -132,21 +89,73 @@ def editor(request, index=None):
                            'title': obj_track.title,
                            **config})
         except Exception as e:
-            logging.error('Unexpected error loading files to editor')
+            logging.error('Unexpected error loading editor')
             config['error'] = True
             return render(request,
                           template_editor,
                           {'track_list': [n for n in obj_track.segment_names if n],
-                           'segment_list':
-                               list(obj_track.df_track['segment'].unique()),
+                           'segment_list': list(
+                               obj_track.df_track['segment'].unique()),
                            'title': obj_track.title,
-                           'error_msg': f'Unexpected error loading files to editor (521): {e}',
+                           'error_msg': f'Unexpected error loading editor (521): {e}',
                            **config})
 
-    # Create new session
-    request.session['json_track'] = track.Track().to_json()
-    request.session['index_db'] = None
-    return render(request, template_editor, {**config})
+    elif index > 0:  # load existing session
+        request.session['json_track'] = Track.objects.get(id=index).track
+        request.session['index_db'] = index
+        json_track = json.loads(request.session['json_track'])
+
+        return render(
+            request,
+            template_editor,
+            {'track_list': [n for n in json_track['segment_names'] if n],
+             'segment_list': list(set(json_track['segment'])),
+             'title': json_track['title'],
+             **config})
+
+
+def load_segment(request, template_editor: str, config: dict):
+    obj_track = track.Track.from_json(request.session['json_track'])
+
+    try:
+        uploaded_file = request.FILES['document']
+
+        if settings.USE_S3:
+            upload = Upload(file=uploaded_file)
+            filename = randomize_filename(upload.file.url.split('/')[-1])
+            upload.file.name = filename
+            upload.save()
+
+            with upload.file.open() as f:
+                gpx_file = f.read()
+                obj_track.add_gpx_bytes(file=gpx_file, filename=filename)
+
+        else:
+            fs = FileSystemStorage()
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            filepath = os.path.join(fs.location, filename)
+            obj_track.add_gpx(filepath)
+
+        request.session['json_track'] = obj_track.to_json()
+
+        return render(request,
+                      template_editor,
+                      {'track_list': [n for n in obj_track.segment_names if n],
+                       'segment_list':
+                           list(obj_track.df_track['segment'].unique()),
+                       'title': obj_track.title,
+                       **config})
+    except Exception as e:
+        logging.error('Unexpected error loading files to editor')
+        config['error'] = True
+        return render(request,
+                      template_editor,
+                      {'track_list': [n for n in obj_track.segment_names if n],
+                       'segment_list':
+                           list(obj_track.df_track['segment'].unique()),
+                       'title': obj_track.title,
+                       'error_msg': f'Unexpected error loading files to editor (521): {e}',
+                       **config})
 
 
 @login_required
