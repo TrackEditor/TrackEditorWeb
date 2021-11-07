@@ -68,7 +68,6 @@ function download(url, filename) {
         })
             .catch(error => utils.response_error_mng(-1, error));
     })
-        .then(response => utils.response_error_mng(response.status, 'download'))
         .catch(error => utils.response_error_mng(-1, error));
 }
 
