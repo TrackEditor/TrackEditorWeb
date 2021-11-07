@@ -228,7 +228,7 @@ class TrackTest(TestCase):
         """
         # Load data
         obj_track = track.Track()
-        for i in range(2):
+        for _ in range(2):
             obj_track.add_gpx(f'{self.test_path}/samples/island_full.gpx')
 
         # Apply method

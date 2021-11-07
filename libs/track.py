@@ -67,10 +67,10 @@ class Track:
         return self.__str__()
 
     def __eq__(self, other):
-        for col in self.columns:
-            if not self.df_track[col].equals(other.df_track[col]):
-                return False
-        return True
+        return all(
+            self.df_track[col].equals(other.df_track[col])
+            for col in self.columns
+        )
 
     def to_json(self) -> str:
         """
@@ -91,7 +91,6 @@ class Track:
             track_dict['total_downhill'] = float(self.total_downhill)
             track_dict['segment_names'] = self.segment_names
             track_dict['title'] = self.title
-            return json.dumps(track_dict)
         else:
             track_dict = {'lat': {}, 'lon': {}, 'ele': {}, 'segment': {},
                           'ele_pos_cum': {}, 'ele_neg_cum': {}, 'distance': {},
@@ -100,7 +99,7 @@ class Track:
                           'extremes': [0, 0, 0, 0], 'total_distance': 0,
                           'total_uphill': 0, 'total_downhill': 0,
                           'segment_names': [], 'title': self.title}
-            return json.dumps(track_dict)
+        return json.dumps(track_dict)
 
     @classmethod
     def from_json(cls, json_file: str) -> Track:
@@ -113,17 +112,15 @@ class Track:
         track = cls()  # define object
 
         json_dict = json.loads(json_file)
-        if json_dict['size'] == 0:
-            if 'title' in json_dict:
-                if json_dict['title']:
-                    track.title = json_dict['title']
+        if json_dict['size'] == 0 and json_dict.get('title', None):
+            track.title = json_dict['title']
             return track
 
         df_keys = ['lat', 'lon', 'ele', 'segment',
                    'ele_pos_cum', 'ele_neg_cum', 'distance',
                    'segment_distance']
 
-        df_dict = dict((k, json_dict[k]) for k in df_keys if k in json_dict)
+        df_dict = {k: json_dict[k] for k in df_keys if k in json_dict}
 
         # Load dataframe
         track.df_track = pd.DataFrame(df_dict)
@@ -224,7 +221,7 @@ class Track:
         :param slope: in %
         :return: speed factor
         """
-
+        # Tuning parameters
         param_a = 1.005
         param_b = -0.05725
         param_c = -1.352e-8
@@ -738,12 +735,7 @@ class SummaryUtils:
             else:
                 distance = last['distance'] - first['distance']
 
-        if distance < 5:
-            label = f'{distance:.2f} km'
-        else:
-            label = f'{distance:.1f} km'
-
-        return label
+        return f'{distance:.2f} km' if distance < 5 else f'{distance:.1f} km'
 
     @staticmethod
     def get_elevation_label(ob_track: Track, magnitude: str,
@@ -775,11 +767,7 @@ class SummaryUtils:
             else:
                 elevation = last[magnitude] - first[magnitude]
 
-        if abs(elevation) < 10:
-            label = f'{elevation:.1f} m'
-        else:
-            label = f'{int(elevation)} m'
-
+        label = f'{elevation:.1f} m' if abs(elevation) < 10 else f'{int(elevation)} m'
         if elevation > 0:
             label = f'+{label}'
 

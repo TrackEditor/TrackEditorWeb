@@ -37,17 +37,15 @@ class Gpx:
         gpx.filename = os.path.basename(filepath)
         gpx.filepath = os.path.abspath(filepath)
 
-        if os.stat(filepath).st_size < c.maximum_file_size:
-            try:
-                with open(filepath, 'r') as gpx_file:
-                    gpx._gpx = gpxpy.parse(gpx_file)
-                return gpx
-
-            except Exception as e:
-                raise LoadGpxError(f'Not able to load {gpx.filename} - {e}')
-
-        else:
+        if os.stat(filepath).st_size >= c.maximum_file_size:
             raise LoadGpxError(f'Too big file: {gpx.filename}')
+        try:
+            with open(filepath, 'r') as gpx_file:
+                gpx._gpx = gpxpy.parse(gpx_file)
+            return gpx
+
+        except Exception as e:
+            raise LoadGpxError(f'Not able to load {gpx.filename} - {e}')
 
     @classmethod
     def from_bytes(cls, file: bytes, filename: str):
