@@ -11,6 +11,7 @@ from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.http import HttpResponseNotFound
 
 import libs.track as track
 from libs.constants import Constants as c
@@ -101,7 +102,11 @@ def load_editor(request, index: int, template_editor: str, config: dict):
                            **config})
 
     elif index > 0:  # load existing session
-        request.session['json_track'] = Track.objects.get(id=index).track
+        try:
+            request.session['json_track'] = Track.objects.get(id=index, user=request.user).track
+        except Track.DoesNotExist:
+            return HttpResponseNotFound(f'Not found track {index} for {request.user.username}')
+
         request.session['index_db'] = index
         json_track = json.loads(request.session['json_track'])
 
@@ -277,7 +282,7 @@ def save_session(request):
 
     if request.session['index_db']:
         index = request.session['index_db']
-        new_track = Track.objects.get(id=index)
+        new_track = Track.objects.get(id=index, user=request.user)
         new_track.track = json_track
         new_track.title = obj_track.title
         new_track.last_edit = datetime.now()
