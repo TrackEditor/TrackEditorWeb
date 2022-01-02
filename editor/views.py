@@ -8,6 +8,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods, require_POST, require_GET
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import HttpResponseNotFound
@@ -16,16 +17,18 @@ import libs.track as track
 from libs.constants import Constants as c
 from TrackApp.models import Track, Upload
 from libs.utils import id_generator, auto_zoom, map_center, randomize_filename
+from editor.error_codes import EditorError
+
 
 logger = logging.getLogger('django')
 
 
-def check_view(method, error_code):
+def error_handler(error_code: EditorError, expected_track: bool = True):
     """
-    Function to be used as a decorator to check the expected request method
-    and any possible exception
-    :param method: request method which is expected to be used (GET, POST, ...)
-    :param error_code: numeric number to provide in case of excepction
+    Function to be used as a decorator to manage any unexpected exception and 
+    return it as Json
+    :param error_code: numeric number to provide in case of exception
+    :param expected_track: true if a track is expected to be already defined
     :return: function called through wrapper
     """
     def exist_track(request):
@@ -35,10 +38,7 @@ def check_view(method, error_code):
 
     def decorator_function(func):
         def wrapper(request, *args, **kwargs):
-            if request.method != method:
-                return JsonResponse({'error': f'{method} request required'},
-                                    status=400)
-            if not exist_track(request):
+            if not exist_track(request) and expected_track:
                 return JsonResponse({'error': 'No available track'},
                                     status=520)
             try:
@@ -49,13 +49,15 @@ def check_view(method, error_code):
                       traceback.format_exc()
                 logger.error(msg)
                 return JsonResponse(
-                    {'error': f'Unexpected error ({error_code}): {e}'},
-                    status=error_code)
+                    {'error': f'Unexpected error ({error_code.value}): {e}'},
+                    status=error_code.value)
         return wrapper
     return decorator_function
 
 
 @login_required
+@error_handler(EditorError.EDITOR, expected_track=False)
+@require_http_methods(['GET', 'POST'])
 def editor(request, index: int = None):
     template_editor = 'editor/editor.html'
     config = {'maximum_file_size': c.maximum_file_size,
@@ -163,7 +165,8 @@ def load_segment(request, template_editor: str, config: dict):
 
 
 @login_required
-@check_view('POST', 522)
+@require_POST
+@error_handler(EditorError.RENAME_SEGMENT)
 def rename_segment(request, index, new_name):
     dict_track = json.loads(request.session['json_track'])
     dict_track['segment_names'][index - 1] = new_name
@@ -174,7 +177,8 @@ def rename_segment(request, index, new_name):
 
 
 @login_required
-@check_view('POST', 523)
+@require_POST
+@error_handler(EditorError.REMOVE_SEGMENT)
 def remove_segment(request, index):
     obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.remove_segment(index)
@@ -185,7 +189,8 @@ def remove_segment(request, index):
 
 
 @login_required
-@check_view('GET', 524)
+@require_GET
+@error_handler(EditorError.GET_SEGMENT)
 def get_segment(request, index):
     json_track = json.loads(request.session['json_track'])
 
@@ -213,7 +218,8 @@ def get_segment(request, index):
 
 
 @login_required
-@check_view('GET', 524)
+@require_GET
+@error_handler(EditorError.GET_TRACK)
 def get_track(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     df_track = obj_track.df_track
@@ -261,7 +267,8 @@ def get_track(request):
 
 
 @login_required
-@check_view('GET', 525)
+@require_GET
+@error_handler(EditorError.GET_SUMMARY)
 def get_summary(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.update_summary()
@@ -271,7 +278,8 @@ def get_summary(request):
 
 
 @login_required
-@check_view('POST', 526)
+@require_POST
+@error_handler(EditorError.SAVE_SESSION)
 def save_session(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     json_track = obj_track.to_json()
@@ -296,7 +304,8 @@ def save_session(request):
 
 
 @login_required
-@check_view('POST', 527)
+@require_POST
+@error_handler(EditorError.REMOVE_SESSION)
 def remove_session(request, index):
     Track.objects.get(id=index, user=request.user).delete()
     return JsonResponse({'message': 'Track is successfully removed'},
@@ -304,7 +313,8 @@ def remove_session(request, index):
 
 
 @login_required
-@check_view('POST', 528)
+@require_POST
+@error_handler(EditorError.RENAME_SESSION)
 def rename_session(request, new_name):
     dict_track = json.loads(request.session['json_track'])
     dict_track['title'] = new_name.replace('\n', '').strip()
@@ -315,7 +325,8 @@ def rename_session(request, new_name):
 
 
 @login_required
-@check_view('POST', 529)
+@require_POST
+@error_handler(EditorError.DOWNLOAD_SESSION)
 def download_session(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     fs = FileSystemStorage()
@@ -341,7 +352,8 @@ def download_session(request):
 
 
 @login_required
-@check_view('GET', 530)
+@require_GET
+@error_handler(EditorError.GET_SEGMENTS_LINKS)
 def get_segments_links(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     df_track = obj_track.df_track
@@ -359,7 +371,8 @@ def get_segments_links(request):
 
 
 @login_required
-@check_view('POST', 531)
+@require_POST
+@error_handler(EditorError.REVERSE_SEGMENT)
 def reverse_segment(request, index):
     obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.reverse_segment(index)
@@ -368,7 +381,8 @@ def reverse_segment(request, index):
 
 
 @login_required
-@check_view('POST', 532)
+@require_POST
+@error_handler(EditorError.CHANGE_SEGMENTS_ORDER)
 def change_segments_order(request):
     data = json.loads(request.body)
     new_order = data['new_order']
@@ -382,7 +396,8 @@ def change_segments_order(request):
 
 
 @login_required
-@check_view('POST', 533)
+@require_POST
+@error_handler(EditorError.DIVIDE_SEGMENT)
 def divide_segment(request, index: int, div_index: int):
     obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.divide_segment(index, div_index)
@@ -392,7 +407,8 @@ def divide_segment(request, index: int, div_index: int):
 
 
 @login_required
-@check_view('POST', 588)
+@require_http_methods(['GET', 'POST'])
+@error_handler(588)
 def hello(request, var):
     if request.method == 'POST':
         data = json.loads(request.body)
