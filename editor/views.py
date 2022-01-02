@@ -25,7 +25,7 @@ logger = logging.getLogger('django')
 
 def error_handler(error_code: EditorError, expected_track: bool = True):
     """
-    Function to be used as a decorator to manage any unexpected exception and 
+    Function to be used as a decorator to manage any unexpected exception and
     return it as Json
     :param error_code: numeric number to provide in case of exception
     :param expected_track: true if a track is expected to be already defined
