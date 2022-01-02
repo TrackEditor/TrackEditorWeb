@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class EditorError(Enum):
+    NO_TRACK = 520
     EDITOR = 520
     RENAME_SEGMENT = 521
     REMOVE_SEGMENT = 522

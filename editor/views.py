@@ -41,7 +41,7 @@ def error_handler(error_code: EditorError, expected_track: bool = True):
         def wrapper(request, *args, **kwargs):
             if not exist_track(request) and expected_track:
                 return JsonResponse({'error': 'No available track'},
-                                    status=520)
+                                    status=EditorError.NO_TRACK)
             try:
                 return func(request, *args, **kwargs)
             except Exception as e:
@@ -118,7 +118,7 @@ def load_editor(request, index: int, template_editor: str, config: dict):
                            'segment_list': list(
                                obj_track.df_track['segment'].unique()),
                            'title': obj_track.title,
-                           'error_msg': f'Unexpected error loading editor (521): {e}',
+                           'error_msg': f'Unexpected error loading editor: {e}',
                            **config})
 
     elif index > 0:  # load existing session
@@ -179,7 +179,7 @@ def load_segment(request, template_editor: str, config: dict):
                        'segment_list':
                            list(obj_track.df_track['segment'].unique()),
                        'title': obj_track.title,
-                       'error_msg': f'Unexpected error loading files to editor (521): {e}',
+                       'error_msg': f'Unexpected error loading files to editor: {e}',
                        **config})
 
 
@@ -194,6 +194,7 @@ def rename_segment(request, index, new_name):
                         status=201)
 
 
+@csrf_exempt
 @check_view(EditorError.REMOVE_SEGMENT, 'POST')
 def remove_segment(request, index):
     obj_track = track.Track.from_json(request.session['json_track'])
