@@ -9,9 +9,9 @@ from django.db import IntegrityError
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods, require_GET
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.conf import settings
@@ -26,6 +26,7 @@ from libs.utils import id_generator, auto_zoom, randomize_filename
 logger = logging.getLogger('django')
 
 
+@require_GET
 def index_view(request):
     if request.user.is_authenticated:
         number_pages = math.ceil(Track.objects.order_by("-last_edit").
@@ -38,66 +39,67 @@ def index_view(request):
     return render(request, 'TrackApp/index.html')
 
 
+@require_http_methods(['POST', 'GET'])
 def register_view(request):
     template_register = 'TrackApp/register.html'
 
-    if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-
-        # Ensure password matches confirmation
-        password = request.POST['password']
-        confirmation = request.POST['confirmation']
-        if password != confirmation:
-            return render(request, template_register, {
-                'error': 'Passwords must match.'
-            })
-
-        # Attempt to create new user
-        try:
-            user = User.objects.create_user(username, email, password)
-            user.save()
-        except IntegrityError:
-            if username.isalnum():
-                logger.error(f'Username already taken: {username=}')
-            return render(request, template_register, {
-                'error': 'Username already taken.'
-            })
-        login(request, user)
-        return HttpResponseRedirect(reverse('index'))
-    else:
+    if request.method != 'POST':
         return render(request, template_register)
 
+    username = request.POST['username']
+    email = request.POST['email']
 
+    # Ensure password matches confirmation
+    password = request.POST['password']
+    confirmation = request.POST['confirmation']
+    if password != confirmation:
+        return render(request, template_register, {
+            'error': 'Passwords must match.'
+        })
+
+    # Attempt to create new user
+    try:
+        user = User.objects.create_user(username, email, password)
+        user.save()
+    except IntegrityError:
+        if username.isalnum():
+            logger.error(f'Username already taken: {username=}')
+        return render(request, template_register, {
+            'error': 'Username already taken.'
+        })
+    login(request, user)
+    return HttpResponseRedirect(reverse('index'))
+
+
+@require_http_methods(['POST', 'GET'])
 def login_view(request):
     template_login = 'TrackApp/login.html'
 
-    if request.method == 'POST':
-
-        # Attempt to sign user in
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-
-        # Check if authentication successful
-        if user is not None:
-            login(request, user)
-            return HttpResponseRedirect(reverse('index'))
-        else:
-            return render(request, template_login, {
-                'error': 'Invalid username and/or password.'
-            })
-    else:
+    if request.method != 'POST':
         return render(request, template_login)
 
+    # Attempt to sign user in
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(request, username=username, password=password)
 
+    # Check if authentication successful
+    if user is None:
+        return render(request, template_login, {
+            'error': 'Invalid username and/or password.'
+        })
+    login(request, user)
+    return HttpResponseRedirect(reverse('index'))
+
+
+@require_GET
 def logout_view(request):
     logout(request)
     messages.success(request, 'See you soon!')
     return HttpResponseRedirect(reverse('index'))
 
 
-@csrf_exempt
+@require_http_methods(['POST', 'GET'])
 def combine_tracks(request):
     template_combine = 'TrackApp/combine_tracks.html'
     config = {'maximum_file_size': c.maximum_file_size,
@@ -184,6 +186,7 @@ def combine_tracks(request):
                    **config})
 
 
+@require_http_methods(['POST', 'GET'])
 def insert_timestamp(request):
     template_timestamp = 'TrackApp/insert_timestamp.html'
     config = {'maximum_file_size': c.maximum_file_size,
@@ -267,6 +270,7 @@ def insert_timestamp(request):
                    **config})
 
 
+@require_GET
 def users_only(request):
     return render(request, 'TrackApp/login.html', {
         'warning':
@@ -274,22 +278,25 @@ def users_only(request):
     })
 
 
+@require_GET
 @login_required
 def get_tracks_from_db(request, page):
     all_tracks = Track.objects.order_by("-last_edit").filter(user=request.user)
     page_tracks = Paginator(all_tracks, 10).page(page).object_list
 
-    response = []
-    for page in page_tracks:
-        response.append(
-            {'id': page.id,
-             'title': page.title,
-             'last_edit': page.last_edit.strftime('%d %B %Y %H:%M')}
-        )
+    response = [
+        {
+            'id': page.id,
+            'title': page.title,
+            'last_edit': page.last_edit.strftime('%d %B %Y %H:%M'),
+        }
+        for page in page_tracks
+    ]
 
     return JsonResponse(response, safe=False)
 
 
+@require_GET
 @login_required
 def dashboard(request):
     number_pages = math.ceil(Track.objects.order_by("-last_edit").
