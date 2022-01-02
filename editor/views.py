@@ -55,6 +55,24 @@ def error_handler(error_code: EditorError, expected_track: bool = True):
     return decorator_function
 
 
+def composed(*decs):
+    # Compose decorators
+    def deco(f):
+        for dec in reversed(decs):
+            f = dec(f)
+        return f
+    return deco
+
+
+def check_view(error_code: EditorError, method: str):
+    require_method = {'POST': require_POST, 'GET': require_GET}
+    return composed(
+        login_required,
+        require_method[method],
+        error_handler(error_code)
+    )
+
+
 @login_required
 @error_handler(EditorError.EDITOR, expected_track=False)
 @require_http_methods(['GET', 'POST'])
@@ -164,9 +182,7 @@ def load_segment(request, template_editor: str, config: dict):
                        **config})
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.RENAME_SEGMENT)
+@check_view(EditorError.RENAME_SEGMENT, 'POST')
 def rename_segment(request, index, new_name):
     dict_track = json.loads(request.session['json_track'])
     dict_track['segment_names'][index - 1] = new_name
@@ -176,9 +192,7 @@ def rename_segment(request, index, new_name):
                         status=201)
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.REMOVE_SEGMENT)
+@check_view(EditorError.REMOVE_SEGMENT, 'POST')
 def remove_segment(request, index):
     obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.remove_segment(index)
@@ -188,9 +202,7 @@ def remove_segment(request, index):
                         status=201)
 
 
-@login_required
-@require_GET
-@error_handler(EditorError.GET_SEGMENT)
+@check_view(EditorError.GET_SEGMENT, 'GET')
 def get_segment(request, index):
     json_track = json.loads(request.session['json_track'])
 
@@ -217,9 +229,7 @@ def get_segment(request, index):
                          }, status=200)
 
 
-@login_required
-@require_GET
-@error_handler(EditorError.GET_TRACK)
+@check_view(EditorError.GET_TRACK, 'GET')
 def get_track(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     df_track = obj_track.df_track
@@ -266,9 +276,7 @@ def get_track(request):
     return JsonResponse(track_json, status=200)
 
 
-@login_required
-@require_GET
-@error_handler(EditorError.GET_SUMMARY)
+@check_view(EditorError.GET_SUMMARY, 'GET')
 def get_summary(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.update_summary()
@@ -277,9 +285,7 @@ def get_summary(request):
     return JsonResponse({'summary': summary}, status=200)
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.SAVE_SESSION)
+@check_view(EditorError.SAVE_SESSION, 'POST')
 def save_session(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     json_track = obj_track.to_json()
@@ -303,18 +309,14 @@ def save_session(request):
                         status=201)
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.REMOVE_SESSION)
+@check_view(EditorError.REMOVE_SESSION, 'POST')
 def remove_session(request, index):
     Track.objects.get(id=index, user=request.user).delete()
     return JsonResponse({'message': 'Track is successfully removed'},
                         status=201)
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.RENAME_SESSION)
+@check_view(EditorError.RENAME_SESSION, 'POST')
 def rename_session(request, new_name):
     dict_track = json.loads(request.session['json_track'])
     dict_track['title'] = new_name.replace('\n', '').strip()
@@ -324,9 +326,7 @@ def rename_session(request, new_name):
                         status=201)
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.DOWNLOAD_SESSION)
+@check_view(EditorError.DOWNLOAD_SESSION, 'POST')
 def download_session(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     fs = FileSystemStorage()
@@ -351,9 +351,7 @@ def download_session(request):
                         status=200)
 
 
-@login_required
-@require_GET
-@error_handler(EditorError.GET_SEGMENTS_LINKS)
+@check_view(EditorError.GET_SEGMENTS_LINKS, 'GET')
 def get_segments_links(request):
     obj_track = track.Track.from_json(request.session['json_track'])
     df_track = obj_track.df_track
@@ -370,9 +368,7 @@ def get_segments_links(request):
     return JsonResponse({'links': str(links)}, status=200)
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.REVERSE_SEGMENT)
+@check_view(EditorError.REVERSE_SEGMENT, 'POST')
 def reverse_segment(request, index):
     obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.reverse_segment(index)
@@ -380,9 +376,7 @@ def reverse_segment(request, index):
     return JsonResponse({'message': 'Segment is reversed'}, status=200)
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.CHANGE_SEGMENTS_ORDER)
+@check_view(EditorError.CHANGE_SEGMENTS_ORDER, 'POST')
 def change_segments_order(request):
     data = json.loads(request.body)
     new_order = data['new_order']
@@ -395,9 +389,7 @@ def change_segments_order(request):
     return JsonResponse({'message': 'Successful reordering'}, status=200)
 
 
-@login_required
-@require_POST
-@error_handler(EditorError.DIVIDE_SEGMENT)
+@check_view(EditorError.DIVIDE_SEGMENT, 'POST')
 def divide_segment(request, index: int, div_index: int):
     obj_track = track.Track.from_json(request.session['json_track'])
     obj_track.divide_segment(index, div_index)
