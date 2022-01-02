@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods, require_POST, require_GET
@@ -182,6 +183,7 @@ def load_segment(request, template_editor: str, config: dict):
                        **config})
 
 
+@csrf_exempt
 @check_view(EditorError.RENAME_SEGMENT, 'POST')
 def rename_segment(request, index, new_name):
     dict_track = json.loads(request.session['json_track'])
@@ -291,6 +293,7 @@ def save_session(request):
     json_track = obj_track.to_json()
 
     if request.session['index_db']:
+        # edit existing track
         index = request.session['index_db']
         new_track = Track.objects.get(id=index, user=request.user)
         new_track.track = json_track
@@ -329,7 +332,6 @@ def rename_session(request, new_name):
 @check_view(EditorError.DOWNLOAD_SESSION, 'POST')
 def download_session(request):
     obj_track = track.Track.from_json(request.session['json_track'])
-    fs = FileSystemStorage()
 
     output_filename = \
         obj_track.title + '_' + id_generator(size=8) + '.gpx'
@@ -341,6 +343,7 @@ def download_session(request):
         output_url = upload.file.url
         upload.save()
     else:
+        fs = FileSystemStorage()
         output_location = os.path.join(fs.location, output_filename)
         output_url = fs.url(output_filename)
         obj_track.save_gpx(output_location, exclude_time=True)
@@ -368,6 +371,7 @@ def get_segments_links(request):
     return JsonResponse({'links': str(links)}, status=200)
 
 
+@csrf_exempt
 @check_view(EditorError.REVERSE_SEGMENT, 'POST')
 def reverse_segment(request, index):
     obj_track = track.Track.from_json(request.session['json_track'])
@@ -376,6 +380,7 @@ def reverse_segment(request, index):
     return JsonResponse({'message': 'Segment is reversed'}, status=200)
 
 
+@csrf_exempt
 @check_view(EditorError.CHANGE_SEGMENTS_ORDER, 'POST')
 def change_segments_order(request):
     data = json.loads(request.body)
@@ -389,6 +394,7 @@ def change_segments_order(request):
     return JsonResponse({'message': 'Successful reordering'}, status=200)
 
 
+@csrf_exempt
 @check_view(EditorError.DIVIDE_SEGMENT, 'POST')
 def divide_segment(request, index: int, div_index: int):
     obj_track = track.Track.from_json(request.session['json_track'])
@@ -398,12 +404,12 @@ def divide_segment(request, index: int, div_index: int):
     return JsonResponse({'message': 'Successful split'}, status=201)
 
 
-@login_required
-@require_http_methods(['GET', 'POST'])
-@error_handler(588)
-def hello(request, var):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        return JsonResponse({'message': 'hello-post', 'var': var, **data}, status=201)
-    elif request.method == 'GET':
-        return JsonResponse({'message': 'hello-get'}, status=200)
+# @login_required
+# @require_http_methods(['GET', 'POST'])
+# @error_handler(588)
+# def hello(request, var):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         return JsonResponse({'message': 'hello-post', 'var': var, **data}, status=201)
+#     elif request.method == 'GET':
+#         return JsonResponse({'message': 'hello-get'}, status=200)
