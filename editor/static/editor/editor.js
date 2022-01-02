@@ -19,12 +19,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     data_operations.update_session_name();
     data_operations.download_session();
     plot_track();
+    // hello();
     segments_manager();
     show_summary();
     reverse_segment();
     change_segments_order();
     split_segment();
 });
+
+
+/*
+function hello() {
+    const helloBtn = document.getElementById("btn_hello");
+    const csrftoken = utils.getCookie('csrftoken');
+
+    helloBtn.addEventListener('click', () => {
+        fetch('/editor/hello/5', {
+            method: 'POST',
+            body: JSON.stringify({
+                data:  'enviando informacion',
+                track: track
+            }),
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        })
+            .then(response => {
+                console.log('post status', response.status);
+
+                return response.json();
+            })
+            .then(data => console.log(data))
+            .catch(error => console.log(error));
+    });
+}
+*/
 
 
 function plot_track() {
@@ -82,6 +111,7 @@ function manage_segment(segment) {
 
     // Rename segment listener
     let old_name = span_name.innerHTML;
+
     const rename_segment = () => {
         let new_name = span_name.innerHTML;
 
@@ -94,8 +124,12 @@ function manage_segment(segment) {
             old_name = new_name;
         }
 
+        const csrftoken = utils.getCookie('csrftoken');
         fetch(`/editor/rename_segment/${segment.index}/${new_name}`, {
             method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrftoken
+            }
         }).catch(error => display_error('error', error + '(at rename_segment)'));
     };
 
@@ -325,7 +359,9 @@ function show_summary() {
 
 
 function reverse_segment() {
-    let btn_reverse = document.getElementById('btn_reverse');
+    const btn_reverse = document.getElementById('btn_reverse');
+    const csrftoken = utils.getCookie('csrftoken');
+
     btn_reverse.addEventListener('click', () => {
         utils.activate_spinner('#div_spinner');
 
@@ -335,6 +371,9 @@ function reverse_segment() {
 
         fetch(`/editor/reverse_segment/${selected_segment.idx}`, {
             method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrftoken
+            }
         }).then( response => {
             if (response.status === 200) {
                 reverse_utils.reverse_elevation(track, chart, selected_segment.idx);
@@ -492,11 +531,15 @@ function change_segments_order() {
             new_order.push(parseInt(el.dataset.segment_idx));
         });
 
+        const csrftoken = utils.getCookie('csrftoken');
         fetch('/editor/change_segments_order', {
             method: 'POST',
             body: JSON.stringify({
                 new_order:  new_order,
-            })
+            }),
+            headers: {
+                'X-CSRF-TOKEN': csrftoken
+            }
         })
         .then(response => {
             utils.deactivate_spinner('#div_spinner_change_order');
@@ -613,8 +656,13 @@ function split_segment() {
     // Apply splitting
     btn_ok.addEventListener('click', () => {
         utils.activate_spinner('#div_spinner');
+        const csrftoken = utils.getCookie('csrftoken');
+
         fetch(`/editor/divide_segment/${segment_index}/${range_control.value}`, {
-             method: 'POST',
+            method: 'POST',
+            headers: {
+                 'X-CSRF-TOKEN': csrftoken
+            }
         }).then( () => {
             utils.deactivate_spinner('#div_spinner');
             split_segment_utils.execute_split(track, segment_index, parseInt(range_control.value));
