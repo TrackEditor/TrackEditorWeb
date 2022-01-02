@@ -6,7 +6,6 @@ import logging
 from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -164,7 +163,6 @@ def load_segment(request, template_editor: str, config: dict):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 522)
 def rename_segment(request, index, new_name):
     dict_track = json.loads(request.session['json_track'])
@@ -176,7 +174,6 @@ def rename_segment(request, index, new_name):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 523)
 def remove_segment(request, index):
     obj_track = track.Track.from_json(request.session['json_track'])
@@ -274,7 +271,6 @@ def get_summary(request):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 526)
 def save_session(request):
     obj_track = track.Track.from_json(request.session['json_track'])
@@ -300,7 +296,6 @@ def save_session(request):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 527)
 def remove_session(request, index):
     Track.objects.get(id=index, user=request.user).delete()
@@ -309,7 +304,6 @@ def remove_session(request, index):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 528)
 def rename_session(request, new_name):
     dict_track = json.loads(request.session['json_track'])
@@ -321,7 +315,6 @@ def rename_session(request, new_name):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 529)
 def download_session(request):
     obj_track = track.Track.from_json(request.session['json_track'])
@@ -366,7 +359,6 @@ def get_segments_links(request):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 531)
 def reverse_segment(request, index):
     obj_track = track.Track.from_json(request.session['json_track'])
@@ -376,7 +368,6 @@ def reverse_segment(request, index):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 532)
 def change_segments_order(request):
     data = json.loads(request.body)
@@ -391,7 +382,6 @@ def change_segments_order(request):
 
 
 @login_required
-@csrf_exempt
 @check_view('POST', 533)
 def divide_segment(request, index: int, div_index: int):
     obj_track = track.Track.from_json(request.session['json_track'])
@@ -399,3 +389,13 @@ def divide_segment(request, index: int, div_index: int):
     request.session['json_track'] = obj_track.to_json()
 
     return JsonResponse({'message': 'Successful split'}, status=201)
+
+
+@login_required
+@check_view('POST', 588)
+def hello(request, var):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        return JsonResponse({'message': 'hello-post', 'var': var, **data}, status=201)
+    elif request.method == 'GET':
+        return JsonResponse({'message': 'hello-get'}, status=200)
