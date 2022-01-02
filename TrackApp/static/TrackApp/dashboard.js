@@ -1,4 +1,4 @@
-import * as utils from "./trackapp_utils.js";
+import * as utils from "../../../static/editor/utils.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     // Load initial page
