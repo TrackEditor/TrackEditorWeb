@@ -41,7 +41,7 @@ def error_handler(error_code: EditorError, expected_track: bool = True):
         def wrapper(request, *args, **kwargs):
             if not exist_track(request) and expected_track:
                 return JsonResponse({'error': 'No available track'},
-                                    status=EditorError.NO_TRACK)
+                                    status=EditorError.NO_TRACK.value)
             try:
                 return func(request, *args, **kwargs)
             except Exception as e:
