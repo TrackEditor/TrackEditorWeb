@@ -30,8 +30,13 @@ export function save_session() {
 
     btn_save.addEventListener('click', () => {
         document.querySelector('#div_spinner').style.display = 'inline-block';
+        const csrftoken = utils.getCookie('csrftoken');
+
         fetch('/editor/save_session', {
             method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
         })
         .then(response => {
             document.querySelector('#div_spinner').style.display = 'none';
@@ -74,12 +79,16 @@ function download(url, filename) {
 
 export function download_session() {
     let btn_download = document.querySelector('#btn_download');
+    const csrftoken = utils.getCookie('csrftoken');
 
     btn_download.addEventListener('click', () => {
         utils.activate_spinner('#div_spinner');
 
         fetch('/editor/download_session', {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
             })
             .then(response => response.json())
             .then(data => {
@@ -113,8 +122,13 @@ export function update_session_name() {
         else {
             old_name = new_name;
         }
+
+        const csrftoken = utils.getCookie('csrftoken');
         fetch(`/editor/rename_session/${new_name}`, {
             method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
         })
             .then(response => utils.response_error_mng(response.status, 'update_session_name'))
             .catch(error => utils.response_error_mng(-1, error));

@@ -161,12 +161,12 @@ class GetSummaryTest(EditorTestUtils):
         response = self.client.get('/editor/get_summary')
         self.assertEqual(response.status_code, 520)
 
-    def test_get_summary_post(self):
+    def test_get_summary_wrong_request(self):
         """
         Use post request instead of get and check response
         """
         response = self.client.post('/editor/get_summary')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
 
 class SaveSessionTest(EditorTestUtils):
@@ -296,13 +296,13 @@ class SaveSessionTest(EditorTestUtils):
         self.assertEqual(json.loads(record.track)['title'],
                          'test_save_rename_save')
 
-    def test_save_session_get(self):
+    def test_save_session_wrong_request(self):
         """
         Use get request instead of post and check response
         """
         self.create_session()
         response = self.client.get('/editor/save_session')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_save_session_no_track(self):
         """
@@ -349,13 +349,13 @@ class RemoveSessionTest(EditorTestUtils):
 
         self.assertEqual(response.status_code, 520)
 
-    def test_remove_session_get(self):
+    def test_remove_session_wrong_request(self):
         """
         Use get request instead of post and check response
         """
         response = self.client.get('/editor/remove_session/25')
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
 
 class RenameSessionTest(EditorTestUtils):
@@ -390,12 +390,12 @@ class RenameSessionTest(EditorTestUtils):
             '/editor/rename_session/test_rename_session_no_track')
         self.assertEqual(response.status_code, 520)
 
-    def test_rename_session_get(self):
+    def test_rename_session_wrong_request(self):
         """
         Use get request instead of post and check response
         """
         response = self.client.get('/editor/rename_session/new_name')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_rename_session_invalid_endpoint(self):
         """
@@ -438,7 +438,7 @@ class DownloadSessionTest(EditorTestUtils):
 
         self.assertEqual(response.status_code, 200)
 
-    def test_download_session_get(self):
+    def test_download_session_wrong_request(self):
         """
         Use get request instead of post and check response
         """
@@ -450,7 +450,7 @@ class DownloadSessionTest(EditorTestUtils):
 
         response = self.client.get('/editor/download_session')
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_download_session_no_session(self):
         """
@@ -508,12 +508,12 @@ class GetSegmentsLinksTest(EditorTestUtils):
         response = self.client.get('/editor/get_segments_links')
         self.assertEqual(response.status_code, 520)
 
-    def test_get_segments_links_post(self):
+    def test_get_segments_links_wrong_request(self):
         """
         Send post instead of get
         """
         response = self.client.post('/editor/get_segments_links')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
 
 class ReverseSegmentTest(EditorTestUtils):
@@ -573,12 +573,12 @@ class ReverseSegmentTest(EditorTestUtils):
         response = self.client.post('/editor/reverse_segment')
         self.assertEqual(response.status_code, 404)
 
-    def test_reverse_segment_get(self):
+    def test_reverse_segment_wrong_request(self):
         """
         Send get instead of get
         """
         response = self.client.get('/editor/reverse_segment/1')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_reverse_segment_non_existing_segment(self):
         """
@@ -661,14 +661,14 @@ class GetSegmentTest(EditorTestUtils):
                 self.client.post('/editor/', {'document': f})
 
         response = self.client.get('/editor/get_segment/28')
-        self.assertEqual(response.status_code, 524)
+        self.assertEqual(response.status_code, 523)
 
-    def test_get_segment_post(self):
+    def test_get_segment_wrong_request(self):
         """
         Send post instead of get
         """
         response = self.client.post('/editor/get_segment/1')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_get_segment_no_index(self):
         """
@@ -749,9 +749,9 @@ class GetTrackTest(EditorTestUtils):
         response = self.client.get('/editor/get_track')
         self.assertEqual(response.status_code, 520)
 
-    def test_get_track_post(self):
+    def test_get_track_wrong_request(self):
         response = self.client.post('/editor/get_track')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
 
 class RemoveSegmentTest(EditorTestUtils):
@@ -796,11 +796,11 @@ class RemoveSegmentTest(EditorTestUtils):
 
         response = self.client.post('/editor/remove_segment/2')
 
-        self.assertEqual(response.status_code, 523)
+        self.assertEqual(response.status_code, 522)
 
-    def test_remove_segment_bad_request(self):
+    def test_remove_segment_wrong_request(self):
         response = self.client.get('/editor/remove_segment/2')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
 
 class RenameSegmentTest(EditorTestUtils):
@@ -860,7 +860,7 @@ class RenameSegmentTest(EditorTestUtils):
         response = self.client.post(
             '/editor/rename_segment/5/test_rename_segment_non_existing_index')
 
-        self.assertEqual(response.status_code, 522)
+        self.assertEqual(response.status_code, 521)
 
     def test_rename_segment_no_track(self):
         """
@@ -930,7 +930,7 @@ class ChangeOrderTest(EditorTestUtils):
         Use get request instead of post
         """
         response = self.client.get('/editor/change_segments_order')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_change_order_invalid(self):
         """

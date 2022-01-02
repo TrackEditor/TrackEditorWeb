@@ -10,6 +10,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+
+function getCookie(name) {
+    /* Provided in the Django's documentation to get the csrf code
+    *  https://docs.djangoproject.com/en/4.0/ref/csrf/ */
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
 function page_management(page, number_pages) {
     // Manage page changes
     document.querySelectorAll('.page-link').forEach(item => {
@@ -114,9 +134,13 @@ function remove_session(id, page) {
 
     // When click yes
     btn_yes.onclick = () => {
+        const csrftoken = getCookie('csrftoken');
         document.querySelector('#div_spinner_modal').style.display = 'inline-block';
         fetch(`/editor/remove_session/${id}`, {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
         })
         .then(response => {
             modal.style.display = 'none';
