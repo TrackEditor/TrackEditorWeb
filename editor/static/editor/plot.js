@@ -35,12 +35,13 @@ export function create_chart() {
 
 
 export function create_map() {
-    return new ol.Map({
+    const map = new ol.Map({
+        controls: ol.control.defaults().extend([new MapLayers()]),
         view: new ol.View({
             center: ol.proj.fromLonLat([0, 0]),
             zoom: 1,
             maxZoom: 20,
-            minZoom: 1
+            minZoom: 1,
         }),
         layers: [
             new ol.layer.Tile({
@@ -49,6 +50,121 @@ export function create_map() {
         ],
         target: 'js-map'
     });
+
+    let baseLayerGroup = get_base_layers();
+    map.addLayer(baseLayerGroup);
+
+    return map
+}
+
+function get_base_layers() {
+    const openStreetMapStandard = new ol.layer.Tile({
+        source: new ol.source.OSM({
+            attributions: '',
+        }),
+        visible: true,
+        title: 'OSMStandard',
+    });
+
+    const stamenTerrain = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url: 'https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg',
+            attributions: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+        }),
+        visible: false,
+        title: 'Terrain',
+    });
+
+    const arcGIS = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.jpg',
+            attributions: '',
+        }),
+        visible: false,
+        title: 'Satellite',
+    });
+
+    return new ol.layer.Group({
+        layers: [openStreetMapStandard, stamenTerrain, arcGIS]
+    });
+}
+
+class MapLayers extends ol.control.Control {
+  /**
+   * @param {Object} [opt_options] Control options.
+   */
+  constructor(opt_options) {
+    const options = opt_options || {};
+
+    const maps_button = document.createElement('button');
+    maps_button.innerHTML = 'Maps &#9652';
+    maps_button.value = 'false';  // to determine if options are displayed
+    maps_button.id = 'maps-button';
+    maps_button.setAttribute("style",
+        "display: inline-block;" +
+        "width: 4.5em;");
+
+    const maps_div = document.createElement('div');
+    maps_div.className = 'ol-control';  // ol-unselectable
+    maps_div.setAttribute("style", "top: .5em;");
+    maps_div.setAttribute("style", "right: 1.8em;");
+
+    maps_div.appendChild(maps_button);
+
+    super({
+      element: maps_div,
+      target: options.target,
+    });
+
+    const menu_div = document.createElement('div');
+    menu_div.style.display = 'none';
+
+    const btn_standard = document.createElement('button');
+    const btn_terrain = document.createElement('button');
+    const btn_satellite = document.createElement('button');
+    btn_standard.innerHTML = 'Standard';
+    btn_terrain.innerHTML = 'Terrain';
+    btn_satellite.innerHTML = 'Satellite';
+    btn_standard.setAttribute("style", "width: 5.8em; font-size: 14px; background-color: rgba(0,60,136,.3); color: rgba(0,60,136);");
+    btn_terrain.setAttribute("style", "width: 5.8em; font-size: 14px; background-color: rgba(0,60,136,.3);");
+    btn_satellite.setAttribute("style", "width: 5.8em; font-size: 14px; background-color: rgba(0,60,136,.3);");
+    menu_div.appendChild(btn_standard);
+    menu_div.appendChild(btn_terrain);
+    menu_div.appendChild(btn_satellite);
+    maps_div.appendChild(menu_div);
+
+    maps_button.addEventListener('click', () => {
+        if (maps_button.value === 'false') {
+            maps_button.value = 'true';
+            maps_button.innerHTML = 'Maps &#9662';
+            menu_div.style.display = 'block';
+        }
+        else {
+            maps_button.value = 'false';
+            maps_button.innerHTML = 'Maps &#9652';
+            menu_div.style.display = 'none';
+        }
+    });
+
+    btn_terrain.addEventListener('click', () =>{
+        btn_standard.style.color = 'white';
+        btn_terrain.style.color = 'rgba(0,60,136)';
+        btn_satellite.style.color = 'white';
+        // let layers =  this.getMap().getLayers();
+        // layers.forEach( function(element, index, array) {
+        //     let baseLayerTitle = element.get('title');
+        //     console.log(element);
+        //     console.log(baseLayerTitle);
+        // });
+    });
+    // maps_button.addEventListener('click', this.handleRotateNorth.bind(this), false);
+  }
+
+  // handleRotateNorth() {
+  //     this.value = 'Maps &#9662';
+  //     console.log('hola');
+  //   // this.getMap().getView().setRotation(0);
+  // }
 }
 
 
